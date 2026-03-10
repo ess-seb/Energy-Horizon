@@ -87,7 +87,10 @@ export function mapLtsResponseToSeries(
   period: ComparisonPeriod
 ): ComparisonSeries | undefined {
   const data = (response as { result?: LtsStatisticsResponse }).result ?? response;
-  const results = (data as LtsStatisticsResponse).results;
+  // HA WebSocket returns result as { [statistic_id]: [...] } (no "results" wrapper)
+  const results =
+    (data as LtsStatisticsResponse).results ??
+    (data as Record<string, LtsStatisticPoint[]>);
   if (!results || typeof results !== "object") return undefined;
 
   let points = results[entityId];

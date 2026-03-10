@@ -82,16 +82,18 @@ export class EnergyBurndownCard extends LitElement implements LovelaceCard {
 
       if (this._config.debug) {
         const data =
-          (response as { result?: { results?: Record<string, unknown> } })
-            ?.result ?? response;
-        const results = (data as { results?: Record<string, unknown> }).results;
+          (response as { result?: Record<string, unknown> })?.result ?? response;
+        const results =
+          (data as { results?: Record<string, unknown> }).results ??
+          (data as Record<string, unknown>);
         // eslint-disable-next-line no-console
         console.log("[Energy Burndown] API Response (raw):", response);
         if (results && typeof results === "object") {
+          const keys = Object.keys(results);
           // eslint-disable-next-line no-console
           console.log(
             "[Energy Burndown] Results keys (available statistic_ids):",
-            Object.keys(results)
+            keys
           );
           const entityData = results[this._config.entity];
           // eslint-disable-next-line no-console
@@ -103,7 +105,9 @@ export class EnergyBurndownCard extends LitElement implements LovelaceCard {
           );
         } else {
           // eslint-disable-next-line no-console
-          console.log("[Energy Burndown] No 'results' in response or invalid structure");
+          console.log(
+            "[Energy Burndown] No results in response or invalid structure"
+          );
         }
       }
 
