@@ -24,10 +24,10 @@ description: "Tasks for implementing Energy Burndown Cumulative Comparison Card"
 
 **Purpose**: Inicjalizacja projektu i bazowej struktury pod kartę Lovelace.
 
-- [ ] T001 Utwórz strukturę projektu zgodnie z `plan.md` (`src/card`, `tests`, `config`)
-- [ ] T002 Zainicjalizuj projekt TypeScript z Vite (`package.json`, `vite.config.ts`, `tsconfig.json` w `config/`)
-- [ ] T003 [P] Dodaj i skonfiguruj zależności: `lit`, `chart.js`, typy HA/kart, narzędzia build (`package.json`)
-- [ ] T004 [P] Skonfiguruj linting i formatowanie (ESLint + Prettier) (`config/eslint.config.js`, `package.json` skrypty)
+ - [x] T001 Utwórz strukturę projektu zgodnie z `plan.md` (`src/card`, `tests`, `config`)
+ - [x] T002 Zainicjalizuj projekt TypeScript z Vite (`package.json`, `vite.config.ts`, `tsconfig.json` w `config/`)
+ - [x] T003 [P] Dodaj i skonfiguruj zależności: `lit`, `chart.js`, typy HA/kart, narzędzia build (`package.json`)
+ - [x] T004 [P] Skonfiguruj linting i formatowanie (ESLint + Prettier) (`config/eslint.config.js`, `package.json` skrypty)
 
 ---
 
@@ -37,10 +37,10 @@ description: "Tasks for implementing Energy Burndown Cumulative Comparison Card"
 
 **⚠️ CRITICAL**: Wszystkie zadania z tej fazy muszą zostać ukończone przed rozpoczęciem prac nad US1–US3.
 
-- [ ] T005 Utwórz bazowe typy konfiguracji i modeli w `src/card/types.ts` (`CardConfig`, `ComparisonPeriod`, modele LTS, `CardState`)
-- [ ] T006 [P] Przygotuj szkic `cumulative-comparison-chart.ts` z pustym szkieletem klasy `LitElement` implementującej `LovelaceCard` (bez logiki) w `src/card/cumulative-comparison-chart.ts`
-- [ ] T007 [P] Dodaj punkt wejścia bundla karty i rejestrację custom elementu w `src/index.ts`
-- [ ] T008 [P] Skonfiguruj podstawowe testy jednostkowe (Vitest) i integracyjne (`tests/unit/`, `tests/integration/`, konfiguracja w `package.json`)
+ - [x] T005 Utwórz bazowe typy konfiguracji i modeli w `src/card/types.ts` (`CardConfig`, `ComparisonPeriod`, modele LTS, `CardState`)
+ - [x] T006 [P] Przygotuj szkic `cumulative-comparison-chart.ts` z pustym szkieletem klasy `LitElement` implementującej `LovelaceCard` (bez logiki) w `src/card/cumulative-comparison-chart.ts`
+ - [x] T007 [P] Dodaj punkt wejścia bundla karty i rejestrację custom elementu w `src/index.ts`
+ - [x] T008 [P] Skonfiguruj podstawowe testy jednostkowe (Vitest) i integracyjne (`tests/unit/`, `tests/integration/`, konfiguracja w `package.json`)
 
 **Checkpoint**: Po ukończeniu fazy 2 projekt ma minimalny szkielet karty, typy i środowisko testowe – można implementować user stories.
 
@@ -54,18 +54,18 @@ description: "Tasks for implementing Energy Burndown Cumulative Comparison Card"
 
 ### Tests for User Story 1
 
-- [ ] T009 [P] [US1] Dodaj testy jednostkowe mapowania odpowiedzi LTS na `ComparisonSeries` w `tests/unit/ha-api.test.ts`
-- [ ] T010 [P] [US1] Dodaj testy integracyjne podstawowego renderowania karty (loading/no-data/ready) w `tests/integration/card-render.test.ts`
+- [x] T009 [P] [US1] Dodaj testy jednostkowe mapowania odpowiedzi LTS na `ComparisonSeries` w `tests/unit/ha-api.test.ts`
+- [x] T010 [P] [US1] Dodaj testy integracyjne podstawowego renderowania karty (loading/no-data/ready) w `tests/integration/card-render.test.ts`
 
 ### Implementation for User Story 1
 
-- [ ] T011 [P] [US1] Zaimplementuj serwis WebSocket LTS w `src/card/ha-api.ts` (budowa zapytań `recorder/statistics_during_period`, defensywne parsowanie odpowiedzi)
-- [ ] T012 [P] [US1] Zaimplementuj funkcje przeliczania serii na skumulowane (`CumulativeSeries`) i budowę `ComparisonSeries` w `src/card/ha-api.ts`
-- [ ] T013 [P] [US1] Utwórz klasę `ChartRenderer` inicjalizującą i aktualizującą Chart.js w `src/card/chart-renderer.ts` (line chart, gradienty, markery, tooltip/legend)
-- [ ] T014 [P] [US1] Zaimplementuj `theme-utils` do odczytu zmiennych HA i mapowania na kolory/gradienty Chart.js w `src/card/theme-utils.ts`
-- [ ] T015 [US1] Rozszerz `cumulative-comparison-chart.ts` o pełny lifecycle: `setConfig`, `hass` setter, `getCardSize`, zarządzanie stanem `CardState` (loading/error/no-data/ready) i inicjalizację `ha-api` + `ChartRenderer`
-- [ ] T016 [US1] Zaimplementuj logikę wariantów okresu (rok‑do‑roku / miesiąc‑do‑roku) i wyznaczanie zakresów czasu w oparciu o `CardConfig` i `ComparisonPeriod` w `src/card/ha-api.ts`
-- [ ] T017 [US1] Zaimplementuj layout `render()` w `cumulative-comparison-chart.ts` (spinner podczas ładowania, `<ha-alert>` dla błędów/braku danych, `<canvas>` dla wykresu) w `src/card/cumulative-comparison-chart.ts`
+- [x] T011 [P] [US1] Zaimplementuj serwis WebSocket LTS w `src/card/ha-api.ts` (budowa zapytań `recorder/statistics_during_period`, defensywne parsowanie odpowiedzi)
+- [x] T012 [P] [US1] Zaimplementuj funkcje przeliczania serii na skumulowane (`CumulativeSeries`) i budowę `ComparisonSeries` w `src/card/ha-api.ts`
+- [x] T013 [P] [US1] Utwórz klasę `ChartRenderer` inicjalizującą i aktualizującą Chart.js w `src/card/chart-renderer.ts` (line chart, gradienty, markery, tooltip/legend)
+- [x] T014 [P] [US1] Zaimplementuj `theme-utils` do odczytu zmiennych HA i mapowania na kolory/gradienty Chart.js w `src/card/theme-utils.ts`
+- [x] T015 [US1] Rozszerz `cumulative-comparison-chart.ts` o pełny lifecycle: `setConfig`, `hass` setter, `getCardSize`, zarządzanie stanem `CardState` (loading/error/no-data/ready) i inicjalizację `ha-api` + `ChartRenderer`
+- [x] T016 [US1] Zaimplementuj logikę wariantów okresu (rok‑do‑roku / miesiąc‑do‑roku) i wyznaczanie zakresów czasu w oparciu o `CardConfig` i `ComparisonPeriod` w `src/card/ha-api.ts`
+- [x] T017 [US1] Zaimplementuj layout `render()` w `cumulative-comparison-chart.ts` (spinner podczas ładowania, `<ha-alert>` dla błędów/braku danych, `<canvas>` dla wykresu) w `src/card/cumulative-comparison-chart.ts`
 - [ ] T018 [US1] Obsłuż przypadki braku danych dla jednego z okresów (pokazanie pojedynczej serii + komunikat) w `src/card/cumulative-comparison-chart.ts`
 
 **Checkpoint**: User Story 1 gotowa – karta dodana na dashboardzie pokazuje dwie serie skumulowane zgodnie ze specyfikacją.
@@ -80,14 +80,14 @@ description: "Tasks for implementing Energy Burndown Cumulative Comparison Card"
 
 ### Tests for User Story 2
 
-- [ ] T019 [P] [US2] Dodaj testy jednostkowe dla wyliczania `SummaryStats` (wartości skumulowane, różnice, procenty) w `tests/unit/aggregation.test.ts`
+- [x] T019 [P] [US2] Dodaj testy jednostkowe dla wyliczania `SummaryStats` (wartości skumulowane, różnice, procenty) w `tests/unit/aggregation.test.ts`
 
 ### Implementation for User Story 2
 
-- [ ] T020 [P] [US2] Rozszerz logikę przetwarzania danych o wyliczanie `SummaryStats` (bieżące i referencyjne skumulowane wartości, różnice) w `src/card/ha-api.ts` lub dedykowanym helperze
-- [ ] T021 [US2] Zaimplementuj sekcję podsumowania w `render()` (dwie wyraźnie opisane wartości + różnica, z jednostką) w `src/card/cumulative-comparison-chart.ts`
-- [ ] T022 [US2] Obsłuż niekompletne dane referencyjne (np. brak dnia w okresie referencyjnym) – komunikat o niekompletności / pominięcie porównania liczbowego bez błędów renderowania w `src/card/cumulative-comparison-chart.ts`
-- [ ] T023 [US2] Zaimplementuj generowanie nagłówka tekstowego `TextSummary.heading` na podstawie `SummaryStats` (logika „wyższe/niższe/podobne/nieznane” zgodnie z FR-009) i wyświetl go w górnej części karty w `src/card/cumulative-comparison-chart.ts`
+- [x] T020 [P] [US2] Rozszerz logikę przetwarzania danych o wyliczanie `SummaryStats` (bieżące i referencyjne skumulowane wartości, różnice) w `src/card/ha-api.ts` lub dedykowanym helperze
+- [x] T021 [US2] Zaimplementuj sekcję podsumowania w `render()` (dwie wyraźnie opisane wartości + różnica, z jednostką) w `src/card/cumulative-comparison-chart.ts`
+- [x] T022 [US2] Obsłuż niekompletne dane referencyjne (np. brak dnia w okresie referencyjnym) – komunikat o niekompletności / pominięcie porównania liczbowego bez błędów renderowania w `src/card/cumulative-comparison-chart.ts`
+- [x] T023 [US2] Zaimplementuj generowanie nagłówka tekstowego `TextSummary.heading` na podstawie `SummaryStats` (logika „wyższe/niższe/podobne/nieznane” zgodnie z FR-009) i wyświetl go w górnej części karty w `src/card/cumulative-comparison-chart.ts`
 
 **Checkpoint**: User Story 1 + 2 gotowe – karta prezentuje zarówno wykres, jak i czytelne wartości skumulowane dla obu okresów.
 
@@ -101,12 +101,12 @@ description: "Tasks for implementing Energy Burndown Cumulative Comparison Card"
 
 ### Tests for User Story 3
 
-- [ ] T024 [P] [US3] Dodaj testy jednostkowe dla wyliczania `ForecastStats` (średnie dzienne, ekstrapolacja, poziom pewności) w `tests/unit/aggregation.test.ts`
+- [x] T024 [P] [US3] Dodaj testy jednostkowe dla wyliczania `ForecastStats` (średnie dzienne, ekstrapolacja, poziom pewności) w `tests/unit/aggregation.test.ts`
 
 ### Implementation for User Story 3
 
-- [ ] T025 [P] [US3] Zaimplementuj logikę prognozy (`ForecastStats`): ekstrapolacja na podstawie dotychczasowego trendu, próg minimalnej liczby punktów, wyliczanie `confidence` w `src/card/ha-api.ts` lub dedykowanym helperze
-- [ ] T026 [US3] Rozszerz sekcję podsumowania o prognozę końcowego zużycia bieżącego okresu i historyczną wartość referencyjną, z oznaczeniem poziomu pewności w `src/card/cumulative-comparison-chart.ts`
+- [x] T025 [P] [US3] Zaimplementuj logikę prognozy (`ForecastStats`): ekstrapolacja na podstawie dotychczasowego trendu, próg minimalnej liczby punktów, wyliczanie `confidence` w `src/card/ha-api.ts` lub dedykowanym helperze
+- [x] T026 [US3] Rozszerz sekcję podsumowania o prognozę końcowego zużycia bieżącego okresu i historyczną wartość referencyjną, z oznaczeniem poziomu pewności w `src/card/cumulative-comparison-chart.ts`
 - [ ] T027 [US3] Zaimplementuj ostrożne zachowanie przy bardzo krótkiej historii / wysokiej niestabilności danych (np. ukrycie prognozy lub wyświetlenie komunikatu o niskiej pewności) w `src/card/cumulative-comparison-chart.ts`
 
 **Checkpoint**: Wszystkie trzy user stories działają niezależnie – wykres, wartości skumulowane i prognoza są spójne z wymaganiami.
@@ -122,7 +122,7 @@ description: "Tasks for implementing Energy Burndown Cumulative Comparison Card"
 - [ ] T030 Przejrzyj i uprość kod (refaktoryzacja, usunięcie duplikacji) w `src/card/*`
 - [ ] T031 [P] Zweryfikuj wydajność renderowania karty przy typowych zakresach danych i popraw ewentualne wąskie gardła (np. konfiguracja Chart.js) w `src/card/chart-renderer.ts`
 - [ ] T032 Zweryfikuj zachowanie themingu i trybów dark/light na różnych motywach HA (dostosuj `theme-utils.ts` w razie potrzeby)
-- [ ] T033 [P] Zaimplementuj formatowanie dat i liczb zgodnie z sekcją „Locale & Formatting” w `plan.md` (wykorzystanie `hass.locale` / `hass.language` z `Intl.DateTimeFormat` / `Intl.NumberFormat`) w `src/card/cumulative-comparison-chart.ts`
+ - [x] T033 [P] Zaimplementuj formatowanie dat i liczb zgodnie z sekcją „Locale & Formatting” w `plan.md` (wykorzystanie `hass.locale` / `hass.language` z `Intl.DateTimeFormat` / `Intl.NumberFormat`) w `src/card/cumulative-comparison-chart.ts`
 - [ ] T034 [P] Zweryfikuj, że użycie `<ha-alert>` i `<ha-circular-progress>` w `src/card/cumulative-comparison-chart.ts` jest zgodne z kontraktem opisanym w `specs/001-energy-burndown-card/contracts/ui.md` i wprowadź ewentualne poprawki
 - [ ] T032 [P] Zaimplementuj formatowanie dat i liczb zgodnie z sekcją „Locale & Formatting” w `plan.md` (wykorzystanie `hass.locale` / `hass.language` z `Intl.DateTimeFormat` / `Intl.NumberFormat`) w `src/card/cumulative-comparison-chart.ts`
 - [ ] T033 [P] Zweryfikuj, że użycie `<ha-alert>` i `<ha-circular-progress>` w `src/card/cumulative-comparison-chart.ts` jest zgodne z kontraktem opisanym w `specs/001-energy-burndown-card/contracts/ui.md` i wprowadź ewentualne poprawki

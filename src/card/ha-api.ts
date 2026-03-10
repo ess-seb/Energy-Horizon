@@ -19,12 +19,43 @@ export function buildComparisonPeriod(
   now: Date,
   timeZone: string
 ): ComparisonPeriod {
-  // Minimal placeholder implementation – full date math to be added later.
+  const current = new Date(now.getTime());
+  const offsetYears = config.period_offset ?? -1;
+
+  let current_start: Date;
+  let current_end: Date;
+  let reference_start: Date;
+  let reference_end: Date;
+
+  if (config.comparison_mode === "year_over_year") {
+    const year = current.getFullYear();
+
+    current_start = new Date(year, 0, 1, 0, 0, 0, 0);
+    current_end = current;
+
+    const refYear = year + offsetYears;
+    reference_start = new Date(refYear, 0, 1, 0, 0, 0, 0);
+    // Koniec roku referencyjnego – ostatni dzień roku o 23:59:59.999
+    reference_end = new Date(refYear, 11, 31, 23, 59, 59, 999);
+  } else {
+    // month_over_year
+    const year = current.getFullYear();
+    const month = current.getMonth(); // 0‑based
+
+    current_start = new Date(year, month, 1, 0, 0, 0, 0);
+    current_end = current;
+
+    const refYear = year + offsetYears;
+    reference_start = new Date(refYear, month, 1, 0, 0, 0, 0);
+    // Ostatni dzień tego samego miesiąca w roku referencyjnym
+    reference_end = new Date(refYear, month + 1, 0, 23, 59, 59, 999);
+  }
+
   return {
-    current_start: now,
-    current_end: now,
-    reference_start: now,
-    reference_end: now,
+    current_start,
+    current_end,
+    reference_start,
+    reference_end,
     aggregation: config.aggregation ?? "day",
     time_zone: timeZone
   };
@@ -166,7 +197,26 @@ export function computeForecast(
   const current_cumulative = points[n - 1].value;
   const avg_per_day = current_cumulative / n;
 
-  const fullPeriodDays = n; // placeholder, docelowo zależne od okresu
+  // Przybliżenie FULL_PERIOD_DAYS na podstawie zakresu danych:
+  const firstDate = new Date(points[0].timestamp);
+  const lastDate = new Date(points[n - 1].timestamp);
+  const spanMs = lastDate.getTime() - firstDate.getTime();
+  const spanDays = spanMs / (1000 * 60 * 60 * 24);
+
+  let fullPeriodDays: number;
+
+  // Uproszczone rozróżnienie: jeśli zakres > ~200 dni traktujemy jako rok, inaczej jako miesiąc
+  if (spanDays > 200) {
+    const year = firstDate.getFullYear();
+    const isLeap =
+      (year % 4 === 0 && year % 100 !== 0) || year % 400 === 0;
+    fullPeriodDays = isLeap ? 366 : 365;
+  } else {
+    const year = firstDate.getFullYear();
+    const month = firstDate.getMonth();
+    fullPeriodDays = new Date(year, month + 1, 0).getDate();
+  }
+
   const forecast_total = avg_per_day * fullPeriodDays;
 
   let confidence: ForecastStats["confidence"] = "low";

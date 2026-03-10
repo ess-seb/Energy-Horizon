@@ -139,10 +139,118 @@ export class EnergyBurndownCard
     }
 
     const heading = this._state.textSummary?.heading;
+    const summary = this._state.summary;
+    const forecast = this._state.forecast;
+
+    const locale =
+      this.hass.locale?.language ?? this.hass.language ?? navigator.language;
+    const precision = this._config.precision ?? 1;
+
+    const numberFormatter = new Intl.NumberFormat(locale, {
+      minimumFractionDigits: precision,
+      maximumFractionDigits: precision
+    });
+
+    const percentFormatter = new Intl.NumberFormat(locale, {
+      maximumFractionDigits: 1
+    });
+
+    const currentSummaryValue =
+      summary != null
+        ? `${numberFormatter.format(summary.current_cumulative)} ${
+            summary.unit
+          }`
+        : "";
+
+    const referenceSummaryValue =
+      summary != null && summary.reference_cumulative != null
+        ? `${numberFormatter.format(summary.reference_cumulative)} ${
+            summary.unit
+          }`
+        : null;
+
+    const differenceValue =
+      summary != null && summary.difference != null
+        ? `${numberFormatter.format(Math.abs(summary.difference))} ${
+            summary.unit
+          }`
+        : null;
+
+    const differencePercentValue =
+      summary != null && summary.differencePercent != null
+        ? `${percentFormatter.format(summary.differencePercent)} %`
+        : null;
+
+    const shouldShowForecast =
+      forecast != null && forecast.enabled && this._config.show_forecast !== false;
 
     return html`<ha-card>
       <div class="content">
         ${heading ? html`<div class="heading">${heading}</div>` : null}
+
+        ${summary
+          ? html`<div class="summary">
+              <div class="summary-row">
+                <span class="label">Bieżący okres</span>
+                <span class="value">${currentSummaryValue}</span>
+              </div>
+
+              ${referenceSummaryValue
+                ? html`<div class="summary-row">
+                    <span class="label">Okres referencyjny</span>
+                    <span class="value">${referenceSummaryValue}</span>
+                  </div>`
+                : null}
+
+              ${differenceValue
+                ? html`<div class="summary-row">
+                    <span class="label">Różnica</span>
+                    <span class="value">${differenceValue}</span>
+                  </div>`
+                : null}
+
+              ${differencePercentValue
+                ? html`<div class="summary-row">
+                    <span class="label">Różnica [%]</span>
+                    <span class="value">${differencePercentValue}</span>
+                  </div>`
+                : null}
+
+              ${summary.reference_cumulative == null
+                ? html`<div class="summary-note">
+                    Dane referencyjne dla tego dnia są niepełne – liczby
+                    porównawcze mogą być niedostępne lub przybliżone.
+                  </div>`
+                : null}
+            </div>`
+          : null}
+
+        ${shouldShowForecast && forecast
+          ? html`<div class="forecast">
+              <div class="summary-row">
+                <span class="label">Prognoza bieżącego okresu</span>
+                <span class="value"
+                  >${numberFormatter.format(
+                    forecast.forecast_total ?? 0
+                  )} ${forecast.unit}</span
+                >
+              </div>
+              ${forecast.reference_total != null
+                ? html`<div class="summary-row">
+                    <span class="label">Wartość historyczna</span>
+                    <span class="value"
+                      >${numberFormatter.format(
+                        forecast.reference_total
+                      )} ${forecast.unit}</span
+                    >
+                  </div>`
+                : null}
+              <div class="summary-note">
+                Poziom pewności prognozy: ${forecast.confidence}.
+              </div>
+            </div>`
+          : null}
+
         <div class="chart-container">
           <canvas></canvas>
         </div>
@@ -169,6 +277,39 @@ export class EnergyBurndownCard
     .heading {
       margin-bottom: 12px;
       font-weight: 500;
+    }
+
+    .summary {
+      margin-bottom: 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      font-size: 0.9rem;
+    }
+
+    .summary-row {
+      display: flex;
+      justify-content: space-between;
+      gap: 8px;
+    }
+
+    .summary-row .label {
+      color: var(--secondary-text-color);
+    }
+
+    .summary-row .value {
+      font-weight: 500;
+    }
+
+    .summary-note {
+      margin-top: 4px;
+      font-size: 0.8rem;
+      color: var(--secondary-text-color);
+    }
+
+    .forecast {
+      margin-bottom: 12px;
+      font-size: 0.9rem;
     }
 
     .chart-container {
