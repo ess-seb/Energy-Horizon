@@ -73,6 +73,14 @@ Użytkownik chciałby zobaczyć przewidywaną łączną wartość zużycia energ
 - Jak system reaguje, gdy zakres czasu obejmuje rok przestępny, a okres referencyjny – nie (lub odwrotnie)?
 - Jak karta zachowuje się na bardzo małych ekranach (telefon) oraz przy bardzo wąskich kafelkach na dashboardzie (np. czytelność etykiet osi czasu)?
 
+### Założenia platformowe i kompatybilność
+
+- Minimalna wspierana wersja Home Assistant to **2024.6** (lub nowsza).
+  - Karta **nie gwarantuje kompatybilności wstecznej** z wersjami HA sprzed 2024.6.
+- Zakres wsparcia UI:
+  - Karta jest projektowana i testowana pod **domyślny interfejs Lovelace**.
+  - Integracja z alternatywnymi / customowymi UI (np. niestandardowe dashboardy, frameworki UI spoza core Lovelace) jest **poza zakresem** – brak gwarancji poprawnego działania w takich środowiskach.
+
 ## Requirements *(mandatory)*
 
 <!--
@@ -90,6 +98,11 @@ Użytkownik chciałby zobaczyć przewidywaną łączną wartość zużycia energ
 - **FR-006**: System MUST respect the user’s locale settings for date and number formatting when presenting dates on the time axis and values in textual summaries.
 - **FR-007**: System MUST support YAML-based configuration, including wybór encji, tytułu karty, wariantu okresu do wizualizacji oraz opcjonalnego nadpisania domyślnej agregacji (np. dzień, tydzień, miesiąc), bez wymagania dodatkowych kroków konfiguracyjnych poza standardową konfiguracją Lovelace.
 - **FR-008**: System MUST ensure that interaction states such as loading, error and „no comparison data” są komunikowane w sposób zwięzły i zgodny ze stylem Home Assistant, tak aby użytkownik rozumiał, dlaczego nie widzi pełnego porównania.
+- **FR-009**: System MUST generate a short, localized textual heading that interprets the comparison between current and reference cumulative usage (np. „Twoje zużycie jest o **X kWh niższe/wyższe** niż w tym samym okresie w poprzednim roku”), przy czym:
+  - Dla dodatniej różnicy (`current_cumulative > reference_cumulative`) komunikat używa formy „wyższe” oraz wyświetla wartość różnicy w jednostce energii.
+  - Dla ujemnej różnicy (`current_cumulative < reference_cumulative`) komunikat używa formy „niższe” oraz wyświetla wartość bezwzględną różnicy.
+  - Dla różnicy bliskiej zeru (np. |różnica| < 0.01 jednostki) komunikat może wskazywać, że zużycie jest „na podobnym poziomie”.
+  - Gdy brak wiarygodnych danych referencyjnych, nagłówek nie wprowadza w błąd i wprost komunikuje brak możliwości porównania (np. „Brak wystarczających danych z okresu referencyjnego do porównania zużycia”).
 
 ### Key Entities *(include if feature involves data)*
 

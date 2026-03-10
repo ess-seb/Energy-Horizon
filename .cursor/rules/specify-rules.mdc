@@ -1,0 +1,36 @@
+---
+description: Project Development Guidelines
+globs: ["**/*"]
+alwaysApply: true
+---
+
+# Energy-Burndown Development Guidelines
+
+Auto-generated from all feature plans. Last updated: 2026-03-10
+
+## Active Technologies
+
+- TypeScript (ES2020+, `strict` enabled) + Lit (`lit`, `lit/decorators.js`), Chart.js (core + line/tooltip/legend/gradient plugins), Home Assistant Lovelace card API typings, Vite bundler (001-energy-burndown-card)
+
+## Project Structure
+
+```text
+backend/
+frontend/
+tests/
+```
+
+## Commands
+
+npm test && npm run lint
+
+## Code Style
+
+TypeScript (ES2020+, `strict` enabled): Follow standard conventions
+
+## Recent Changes
+
+- 001-energy-burndown-card: Added TypeScript (ES2020+, `strict` enabled) + Lit (`lit`, `lit/decorators.js`), Chart.js (core + line/tooltip/legend/gradient plugins), Home Assistant Lovelace card API typings, Vite bundler
+
+<!-- MANUAL ADDITIONS START -->
+<!-- MANUAL ADDITIONS END -->
