@@ -86,8 +86,28 @@ export function mapLtsResponseToSeries(
   entityId: string,
   period: ComparisonPeriod
 ): ComparisonSeries | undefined {
+  const cumulative = mapLtsResponseToCumulativeSeries(
+    response,
+    entityId,
+    "Bieżący okres"
+  );
+  if (!cumulative) return undefined;
+
+  return {
+    current: cumulative,
+    aggregation: period.aggregation,
+    time_zone: period.time_zone
+  };
+}
+
+export function mapLtsResponseToCumulativeSeries(
+  response: LtsStatisticsResponse | { result?: LtsStatisticsResponse },
+  entityId: string,
+  periodLabel: string
+): CumulativeSeries | undefined {
   const data = (response as { result?: LtsStatisticsResponse }).result ?? response;
-  // HA WebSocket returns result as { [statistic_id]: [...] } (no "results" wrapper)
+  // HA WebSocket returns result either as { results: { [statistic_id]: [...] } }
+  // or directly as { [statistic_id]: [...] } without a wrapper.
   const results =
     (data as LtsStatisticsResponse).results ??
     (data as Record<string, LtsStatisticPoint[]>);
@@ -106,14 +126,10 @@ export function mapLtsResponseToSeries(
   const cumulative = toCumulativeSeries(
     timeSeries,
     unit,
-    "Bieżący okres"
+    periodLabel
   );
 
-  return {
-    current: cumulative,
-    aggregation: period.aggregation,
-    time_zone: period.time_zone
-  };
+  return cumulative;
 }
 
 function normalizePoints(points: LtsStatisticPoint[]): {
@@ -122,10 +138,34 @@ function normalizePoints(points: LtsStatisticPoint[]): {
 } {
   let unit = "";
   const series: TimeSeriesPoint[] = [];
+  let previousSum: number | undefined;
 
   for (const p of points) {
-    const value = p.sum ?? p.change ?? p.state;
-    if (value == null) continue;
+    let rawValue: number | undefined;
+
+    if (typeof p.change === "number") {
+      rawValue = p.change;
+    } else if (typeof p.sum === "number") {
+      if (previousSum === undefined) {
+        // Pierwszy punkt przy braku `change` traktujemy jako punkt odniesienia
+        // dla bieżącego okresu (różnice liczymy względem niego).
+        previousSum = p.sum;
+        continue;
+      } else {
+        const delta = p.sum - previousSum;
+        previousSum = p.sum;
+        if (!Number.isFinite(delta) || delta <= 0) {
+          // Reset licznika lub dane niespójne – pomijamy
+          continue;
+        }
+        rawValue = delta;
+      }
+    } else if (typeof p.state === "number") {
+      rawValue = p.state;
+    }
+
+    if (rawValue == null || !Number.isFinite(rawValue)) continue;
+
     if (!unit && p.unit_of_measurement) {
       unit = p.unit_of_measurement;
     } else if (unit && p.unit_of_measurement && p.unit_of_measurement !== unit) {
@@ -135,8 +175,8 @@ function normalizePoints(points: LtsStatisticPoint[]): {
 
     series.push({
       timestamp: new Date(p.start).getTime(),
-      value,
-      rawValue: value
+      value: rawValue,
+      rawValue
     });
   }
 
@@ -204,7 +244,11 @@ export function computeForecast(
   const n = points.length;
 
   if (n < MIN_POINTS_FOR_FORECAST) {
-    return { enabled: false, unit: series.current.unit };
+    return {
+      enabled: false,
+      unit: series.current.unit,
+      confidence: "low"
+    };
   }
 
   const current_cumulative = points[n - 1].value;

@@ -4,7 +4,7 @@ import type { CardConfig, CardState, ComparisonSeries } from "./types";
 import {
   buildComparisonPeriod,
   buildLtsQuery,
-  mapLtsResponseToSeries,
+  mapLtsResponseToCumulativeSeries,
   computeSummary,
   computeForecast,
   computeTextSummary
@@ -68,26 +68,39 @@ export class EnergyBurndownCard extends LitElement implements LovelaceCard {
     const now = new Date();
     const timeZone = "UTC";
     const period = buildComparisonPeriod(this._config, now, timeZone);
-    const query = buildLtsQuery(period, this._config.entity);
+    const currentQuery = buildLtsQuery(period, this._config.entity);
+    const referencePeriod: typeof period = {
+      ...period,
+      current_start: period.reference_start,
+      current_end: period.reference_end
+    };
+    const referenceQuery = buildLtsQuery(referencePeriod, this._config.entity);
 
     try {
       if (this._config.debug) {
         // eslint-disable-next-line no-console
-        console.log("[Energy Burndown] API Query:", query);
+        console.log("[Energy Burndown] API Query (current):", currentQuery);
+        console.log("[Energy Burndown] API Query (reference):", referenceQuery);
       }
 
-      const response = await this.hass.connection.sendMessagePromise(
-        query as unknown as Record<string, unknown>
-      );
+      const [currentResponse, referenceResponse] = await Promise.all([
+        this.hass.connection.sendMessagePromise(
+          currentQuery as unknown as Record<string, unknown>
+        ),
+        this.hass.connection.sendMessagePromise(
+          referenceQuery as unknown as Record<string, unknown>
+        )
+      ]);
 
       if (this._config.debug) {
         const data =
-          (response as { result?: Record<string, unknown> })?.result ?? response;
+          (currentResponse as { result?: Record<string, unknown> })?.result ??
+          currentResponse;
         const results =
           (data as { results?: Record<string, unknown> }).results ??
           (data as Record<string, unknown>);
         // eslint-disable-next-line no-console
-        console.log("[Energy Burndown] API Response (raw):", response);
+        console.log("[Energy Burndown] API Response (current, raw):", currentResponse);
         if (results && typeof results === "object") {
           const keys = Object.keys(results);
           // eslint-disable-next-line no-console
@@ -111,22 +124,35 @@ export class EnergyBurndownCard extends LitElement implements LovelaceCard {
         }
       }
 
-      const series = mapLtsResponseToSeries(
-        response as any,
+      const current = mapLtsResponseToCumulativeSeries(
+        currentResponse as any,
         this._config.entity,
-        period
-      ) as ComparisonSeries | undefined;
+        "Bieżący okres"
+      );
 
-      if (!series) {
+      if (!current) {
         if (this._config.debug) {
           // eslint-disable-next-line no-console
           console.log(
-            "[Energy Burndown] mapLtsResponseToSeries returned undefined – check entity ID and results structure above"
+            "[Energy Burndown] current series could not be built – check entity ID and results structure above"
           );
         }
         this._state = { status: "no-data" };
         return;
       }
+
+      const reference = mapLtsResponseToCumulativeSeries(
+        referenceResponse as any,
+        this._config.entity,
+        "Okres referencyjny"
+      );
+
+      const series: ComparisonSeries = {
+        current,
+        reference: reference ?? undefined,
+        aggregation: period.aggregation,
+        time_zone: period.time_zone
+      };
 
       const summary = computeSummary(series);
       const forecast = computeForecast(series);
