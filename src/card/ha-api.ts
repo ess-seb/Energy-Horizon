@@ -284,6 +284,7 @@ export function computeForecast(
 
   // C – historyczna „reszta” miesiąca (od dzisiaj do końca miesiąca rok temu)
   const C = sumSlice(referencePoints, completedDays, referencePoints.length);
+  const referenceTotal = sumSlice(referencePoints, 0, referencePoints.length);
 
   // Współczynnik trendu (A / B), z prostym ograniczeniem, aby złagodzić anomalie
   const rawTrend = A / B;
@@ -298,6 +299,7 @@ export function computeForecast(
   return {
     enabled: true,
     forecast_total,
+    reference_total: referenceTotal,
     unit: series.current.unit,
     confidence
   };

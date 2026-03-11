@@ -110,20 +110,15 @@ For daily aggregation we split the month into two parts:
 - from **today** to the **end of the month**.
 
 Let:
-- **\(A\)** – sum of usage in the current year from day 1 to yesterday,
-- **\(B\)** – sum of usage in the previous year for the same days (day 1 to yesterday),
-- **\(C\)** – sum of usage in the previous year from today to the end of the month,
-- **\(k\)** – trend factor describing how this year compares to last year.
+- **A** – sum of usage in the current year from day 1 to yesterday,
+- **B** – sum of usage in the previous year for the same days (day 1 to yesterday),
+- **C** – sum of usage in the previous year from today to the end of the month,
+- **k** – trend factor describing how this year compares to last year.
 
 We compute:
 
-\[
-k = \frac{A}{B}
-\]
-
-\[
-\text{forecast\_total} = A + C \cdot k
-\]
+- **k = A / B**
+- **forecast_total = A + C * k**
 
 The idea: we assume that the remaining part of the month will behave similarly to the same days last year, but scaled by the current trend \(k\) (you already use more or less energy than a year ago).
 

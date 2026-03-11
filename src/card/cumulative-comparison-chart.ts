@@ -338,6 +338,16 @@ export class EnergyBurndownCard extends LitElement implements LovelaceCard {
               </div>
               ${forecast.reference_total != null
                 ? html`<div class="summary-row">
+                    <span class="label">Zużycie w okresie referencyjnym</span>
+                    <span class="value"
+                      >${numberFormatter.format(
+                        forecast.reference_total
+                      )} ${forecastUnit}</span
+                    >
+                  </div>`
+                : null}
+              ${forecast.reference_total != null
+                ? html`<div class="summary-row">
                     <span class="label">Wartość historyczna</span>
                     <span class="value"
                       >${numberFormatter.format(
