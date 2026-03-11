@@ -670,29 +670,35 @@ function ra(n) {
   };
 }
 function oa(n) {
-  const t = n.current.points, e = t.length;
-  if (e < ea)
+  var f;
+  const t = n.current.points, e = t.length, i = Math.max(0, e - 1);
+  if (i < ea)
     return {
       enabled: !1,
       unit: n.current.unit,
       confidence: "low"
     };
-  const s = t[e - 1].value / e, r = new Date(t[0].timestamp), c = (new Date(t[e - 1].timestamp).getTime() - r.getTime()) / (1e3 * 60 * 60 * 24);
-  let l;
-  if (c > 200) {
-    const d = r.getFullYear();
-    l = d % 4 === 0 && d % 100 !== 0 || d % 400 === 0 ? 366 : 365;
-  } else {
-    const d = r.getFullYear(), f = r.getMonth();
-    l = new Date(d, f + 1, 0).getDate();
-  }
-  const h = s * l;
-  let u = "low";
-  return e >= 14 ? u = "high" : e >= 7 && (u = "medium"), {
+  const s = (f = n.reference) == null ? void 0 : f.points;
+  if (!s || s.length < i + 1)
+    return {
+      enabled: !1,
+      unit: n.current.unit,
+      confidence: "low"
+    };
+  const r = (g, m, p) => g.slice(m, p).reduce((b, x) => b + (x.rawValue ?? 0), 0), o = r(t, 0, i), a = r(s, 0, i);
+  if (!Number.isFinite(a) || a <= 0)
+    return {
+      enabled: !1,
+      unit: n.current.unit,
+      confidence: "low"
+    };
+  const c = r(s, i, s.length), l = o / a, h = Math.min(5, Math.max(0.2, l)), u = o + c * h;
+  let d = "low";
+  return i >= 14 ? d = "high" : i >= 7 && (d = "medium"), {
     enabled: !0,
-    forecast_total: h,
+    forecast_total: u,
     unit: n.current.unit,
-    confidence: u
+    confidence: d
   };
 }
 function aa(n) {
