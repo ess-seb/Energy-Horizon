@@ -131,6 +131,7 @@ Użytkownik chciałby zobaczyć przewidywaną łączną wartość zużycia energ
   - Dla ujemnej różnicy (`current_cumulative < reference_cumulative`) komunikat używa formy „niższe” oraz wyświetla wartość bezwzględną różnicy.
   - Dla różnicy bliskiej zeru (np. |różnica| < 0.01 jednostki) komunikat może wskazywać, że zużycie jest „na podobnym poziomie”.
   - Gdy brak wiarygodnych danych referencyjnych, nagłówek nie wprowadza w błąd i wprost komunikuje brak możliwości porównania (np. „Brak wystarczających danych z okresu referencyjnego do porównania zużycia”).
+- **FR-010**: The card’s visual styling MUST be implemented in a dedicated style layer (separate module) imported by the main component, so that visual changes (colors, spacing, typography, layout) can be made without modifying the data fetching and computation logic, in alignment with the architectural feature `001-separate-style-logic`.
 
 ### Key Entities *(include if feature involves data)*
 
