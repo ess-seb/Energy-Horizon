@@ -11225,7 +11225,65 @@ class ig {
     });
   }
 }
-const On = class On extends De {
+const sg = Fo`
+  :host {
+    display: block;
+  }
+
+  .loading {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 16px;
+  }
+
+  .content {
+    padding: 16px;
+  }
+
+  .heading {
+    margin-bottom: 12px;
+    font-weight: 500;
+  }
+
+  .summary {
+    margin-bottom: 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    font-size: 0.9rem;
+  }
+
+  .summary-row {
+    display: flex;
+    justify-content: space-between;
+    gap: 8px;
+  }
+
+  .summary-row .label {
+    color: var(--secondary-text-color);
+  }
+
+  .summary-row .value {
+    font-weight: 500;
+  }
+
+  .summary-note {
+    margin-top: 4px;
+    font-size: 0.8rem;
+    color: var(--secondary-text-color);
+  }
+
+  .forecast {
+    margin-bottom: 12px;
+    font-size: 0.9rem;
+  }
+
+  .chart-container {
+    position: relative;
+    height: 200px;
+  }
+`, On = class On extends De {
   constructor() {
     super(...arguments), this._state = { status: "loading" };
   }
@@ -11421,65 +11479,7 @@ On.properties = {
   hass: { type: Object, attribute: !1 },
   _config: { state: !0 },
   _state: { state: !0 }
-}, On.styles = Fo`
-    :host {
-      display: block;
-    }
-
-    .loading {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      padding: 16px;
-    }
-
-    .content {
-      padding: 16px;
-    }
-
-    .heading {
-      margin-bottom: 12px;
-      font-weight: 500;
-    }
-
-    .summary {
-      margin-bottom: 12px;
-      display: flex;
-      flex-direction: column;
-      gap: 4px;
-      font-size: 0.9rem;
-    }
-
-    .summary-row {
-      display: flex;
-      justify-content: space-between;
-      gap: 8px;
-    }
-
-    .summary-row .label {
-      color: var(--secondary-text-color);
-    }
-
-    .summary-row .value {
-      font-weight: 500;
-    }
-
-    .summary-note {
-      margin-top: 4px;
-      font-size: 0.8rem;
-      color: var(--secondary-text-color);
-    }
-
-    .forecast {
-      margin-bottom: 12px;
-      font-size: 0.9rem;
-    }
-
-    .chart-container {
-      position: relative;
-      height: 200px;
-    }
-  `;
+}, On.styles = sg;
 let mi = On;
 customElements.define("energy-burndown-card", mi);
 //# sourceMappingURL=energy-burndown-card.js.map

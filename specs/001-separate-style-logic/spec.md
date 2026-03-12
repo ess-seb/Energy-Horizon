@@ -73,8 +73,8 @@ Jako **opiekun projektu** chcę, aby logika pobierania danych i obliczania staty
 
 ### Key Entities *(include if feature involves data)*
 
-- **Warstwa stylów karty**: Zestaw reguł CSS/TS odpowiedzialnych wyłącznie za kolory, typografię, spacing, layout i stany wizualne elementów karty.
-- **Główny komponent karty**: Struktura HTML (layout) i logika odpowiedzialna za pobieranie danych, obliczenia, generowanie wykresu i tekstowych podsumowań, korzystająca z klas CSS, ale nie implementująca samych stylów.
+- **Warstwa stylów karty**: Zestaw reguł CSS/TS odpowiedzialnych wyłącznie za kolory, typografię, spacing, layout i stany wizualne elementów karty, zaimplementowany jako dedykowany moduł (np. `src/card/energy-burndown-card-styles.ts`), importowany przez główny komponent.
+- **Główny komponent karty**: Struktura HTML (layout) i logika odpowiedzialna za pobieranie danych, obliczenia, generowanie wykresu i tekstowych podsumowań, korzystająca z klas CSS (`.ebc-card`, `.ebc-content`, `.ebc-header`, `.ebc-stats`, `.ebc-forecast`, `.ebc-chart`), ale nie implementująca samych stylów.
 
 ## Success Criteria *(mandatory)*
 
