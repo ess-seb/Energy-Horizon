@@ -137,6 +137,8 @@ card_mod:
     }
 ```
 
+Internally, the card’s visual styles are grouped in a dedicated style module imported by the main component, so most visual changes can be done without touching the data/logic code.
+
 ## Forecast calculation
 
 The forecast for the current period uses a **Historical Index** method that takes into account how the rest of the same month behaved in the previous year.

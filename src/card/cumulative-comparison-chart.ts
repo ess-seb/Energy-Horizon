@@ -1,4 +1,4 @@
-import { LitElement, css, html } from "lit";
+import { LitElement, html } from "lit";
 import type { HomeAssistant, LovelaceCard } from "../ha-types";
 import type { CardConfig, CardState, ComparisonSeries } from "./types";
 import {
@@ -10,6 +10,7 @@ import {
   computeTextSummary
 } from "./ha-api";
 import { ChartRenderer } from "./chart-renderer";
+import { energyBurndownCardStyles } from "./energy-burndown-card-styles";
 
 export class EnergyBurndownCard extends LitElement implements LovelaceCard {
   static properties = {
@@ -23,6 +24,8 @@ export class EnergyBurndownCard extends LitElement implements LovelaceCard {
   _state: CardState = { status: "loading" };
 
   private _chartRenderer?: ChartRenderer;
+
+  static styles = energyBurndownCardStyles;
 
   public setConfig(config: CardConfig): void {
     this._config = config;
@@ -368,66 +371,6 @@ export class EnergyBurndownCard extends LitElement implements LovelaceCard {
       </div>
     </ha-card>`;
   }
-
-  static styles = css`
-    :host {
-      display: block;
-    }
-
-    .loading {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      padding: 16px;
-    }
-
-    .content {
-      padding: 16px;
-    }
-
-    .heading {
-      margin-bottom: 12px;
-      font-weight: 500;
-    }
-
-    .summary {
-      margin-bottom: 12px;
-      display: flex;
-      flex-direction: column;
-      gap: 4px;
-      font-size: 0.9rem;
-    }
-
-    .summary-row {
-      display: flex;
-      justify-content: space-between;
-      gap: 8px;
-    }
-
-    .summary-row .label {
-      color: var(--secondary-text-color);
-    }
-
-    .summary-row .value {
-      font-weight: 500;
-    }
-
-    .summary-note {
-      margin-top: 4px;
-      font-size: 0.8rem;
-      color: var(--secondary-text-color);
-    }
-
-    .forecast {
-      margin-bottom: 12px;
-      font-size: 0.9rem;
-    }
-
-    .chart-container {
-      position: relative;
-      height: 200px;
-    }
-  `;
 }
 
 customElements.define("energy-burndown-card", EnergyBurndownCard);
