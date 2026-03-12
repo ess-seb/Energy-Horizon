@@ -11136,6 +11136,14 @@ class ig {
   constructor(t) {
     this.canvas = t;
   }
+  getThemeColors() {
+    const t = this.canvas.closest(".ebc-card") ?? this.canvas.closest("ha-card") ?? this.canvas, e = getComputedStyle(t), i = e.getPropertyValue("--accent-color").trim() || e.getPropertyValue("--primary-color").trim() || "#03a9f4", s = e.getPropertyValue("--secondary-text-color").trim() || "#727272", r = e.getPropertyValue("--divider-color").trim() || "rgba(127, 127, 127, 0.3)";
+    return {
+      currentLine: i,
+      referenceLine: s,
+      grid: r
+    };
+  }
   destroy() {
     var t;
     (t = this.chart) == null || t.destroy(), this.chart = void 0;
@@ -11143,12 +11151,12 @@ class ig {
   update(t) {
     const e = this.canvas.getContext("2d");
     if (!e) return;
-    const i = t.current.points.map((c, l) => ({
-      x: l + 1,
-      y: c.value
-    })), s = t.reference ? t.reference.points.map((c, l) => ({
-      x: l + 1,
-      y: c.value
+    const i = t.current.points.map((l, h) => ({
+      x: h + 1,
+      y: l.value
+    })), s = t.reference ? t.reference.points.map((l, h) => ({
+      x: h + 1,
+      y: l.value
     })) : [], r = JSON.stringify({
       c: i,
       r: s
@@ -11156,14 +11164,14 @@ class ig {
     if (this.lastHash === r && this.chart)
       return;
     this.lastHash = r;
-    const o = {
+    const o = this.getThemeColors(), a = {
       datasets: [
         {
           label: "Bieżący okres",
           data: i,
-          borderColor: "var(--primary-color)",
-          backgroundColor: "rgba(0, 150, 136, 0.2)",
-          fill: !0,
+          borderColor: o.currentLine,
+          backgroundColor: "transparent",
+          fill: !1,
           pointRadius: 0,
           tension: 0.3
         },
@@ -11171,7 +11179,7 @@ class ig {
           {
             label: "Okres referencyjny",
             data: s,
-            borderColor: "var(--secondary-text-color)",
+            borderColor: o.referenceLine,
             backgroundColor: "transparent",
             pointRadius: 0,
             borderDash: [4, 2],
@@ -11179,7 +11187,7 @@ class ig {
           }
         ] : []
       ]
-    }, a = {
+    }, c = {
       responsive: !0,
       maintainAspectRatio: !1,
       animation: !1,
@@ -11199,21 +11207,21 @@ class ig {
             precision: 0
           },
           grid: {
-            color: "rgba(255, 255, 255, 0.06)"
+            color: o.grid
           }
         },
         y: {
           beginAtZero: !0,
           grid: {
-            color: "rgba(255, 255, 255, 0.06)"
+            color: o.grid
           }
         }
       }
     };
-    this.chart ? (this.chart.data = o, this.chart.options = a, this.chart.update()) : this.chart = new xt(e, {
+    this.chart ? (this.chart.data = a, this.chart.options = c, this.chart.update()) : this.chart = new xt(e, {
       type: "line",
-      data: o,
-      options: a
+      data: a,
+      options: c
     });
   }
 }
@@ -11317,20 +11325,20 @@ const On = class On extends De {
     if (!this._config || !this.hass)
       return K``;
     if (this._state.status === "loading")
-      return K`<ha-card>
+      return K`<ha-card class="ebc-card">
         <div class="loading">
           <ha-circular-progress active size="small"></ha-circular-progress>
           <span>Ładowanie danych statystyk długoterminowych...</span>
         </div>
       </ha-card>`;
     if (this._state.status === "error")
-      return K`<ha-card>
+      return K`<ha-card class="ebc-card">
         <ha-alert alert-type="error">
           ${this._state.errorMessage ?? "Wystąpił błąd podczas wczytywania danych."}
         </ha-alert>
       </ha-card>`;
     if (this._state.status === "no-data")
-      return K`<ha-card>
+      return K`<ha-card class="ebc-card">
         <ha-alert alert-type="info">
           Brak danych do wyświetlenia dla wybranego okresu.
         </ha-alert>
@@ -11341,11 +11349,11 @@ const On = class On extends De {
     }), c = new Intl.NumberFormat(s, {
       maximumFractionDigits: 1
     }), l = (e == null ? void 0 : e.unit) || o, h = e != null ? `${a.format(e.current_cumulative)} ${l}` : "", u = e != null && e.reference_cumulative != null ? `${a.format(e.reference_cumulative)} ${l}` : null, d = e != null && e.difference != null ? `${a.format(Math.abs(e.difference))} ${l}` : null, f = e != null && e.differencePercent != null ? `${c.format(e.differencePercent)} %` : null, g = i != null && i.enabled && this._config.show_forecast !== !1, m = (i == null ? void 0 : i.unit) || l;
-    return K`<ha-card>
-      <div class="content">
-        ${t ? K`<div class="heading">${t}</div>` : null}
+    return K`<ha-card class="ebc-card">
+      <div class="content ebc-content">
+        ${t ? K`<div class="heading ebc-header">${t}</div>` : null}
 
-        ${e ? K`<div class="summary">
+        ${e ? K`<div class="summary ebc-stats">
               <div class="summary-row">
                 <span class="label">Bieżący okres</span>
                 <span class="value">${h}</span>
@@ -11372,7 +11380,7 @@ const On = class On extends De {
                   </div>` : null}
             </div>` : null}
 
-        ${g && i ? K`<div class="forecast">
+        ${g && i ? K`<div class="forecast ebc-forecast">
               <div class="summary-row">
                 <span class="label">Prognoza bieżącego okresu</span>
                 <span class="value"
@@ -11402,7 +11410,7 @@ const On = class On extends De {
               </div>
             </div>` : null}
 
-        <div class="chart-container">
+        <div class="chart-container ebc-chart">
           <canvas></canvas>
         </div>
       </div>

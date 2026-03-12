@@ -101,6 +101,42 @@ The card uses the `recorder/statistics_during_period` API. Use entity IDs that h
 - Statistics from the Energy dashboard
 - Entities that appear in **Developer Tools → Statistics**
 
+## Theming and CSS customization
+
+The card follows Home Assistant theming and automatically adapts to light/dark modes by using HA CSS variables such as:
+
+- `--primary-color` / `--accent-color` – main line color for the current period,
+- `--secondary-text-color` – line color for the reference period and secondary labels,
+- `--divider-color` – grid color for chart axes.
+
+Advanced users can further customize the layout using CSS classes exposed on the DOM:
+
+| Section            | CSS class      |
+|--------------------|----------------|
+| Whole card         | `.ebc-card`    |
+| Card content       | `.ebc-content` |
+| Text heading       | `.ebc-header`  |
+| Numeric summary    | `.ebc-stats`   |
+| Forecast section   | `.ebc-forecast`|
+| Chart container    | `.ebc-chart`   |
+
+Example (with Card-Mod) – hide forecast section and increase chart height:
+
+```yaml
+type: custom:energy-burndown-card
+entity: sensor.energy_consumption_total
+comparison_mode: year_over_year
+card_mod:
+  style: |
+    .ebc-forecast {
+      display: none;
+    }
+
+    .ebc-chart {
+      height: 260px;
+    }
+```
+
 ## Forecast calculation
 
 The forecast for the current period uses a **Historical Index** method that takes into account how the rest of the same month behaved in the previous year.

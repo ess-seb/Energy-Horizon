@@ -204,7 +204,7 @@ export class EnergyBurndownCard extends LitElement implements LovelaceCard {
     }
 
     if (this._state.status === "loading") {
-      return html`<ha-card>
+      return html`<ha-card class="ebc-card">
         <div class="loading">
           <ha-circular-progress active size="small"></ha-circular-progress>
           <span>Ładowanie danych statystyk długoterminowych...</span>
@@ -213,7 +213,7 @@ export class EnergyBurndownCard extends LitElement implements LovelaceCard {
     }
 
     if (this._state.status === "error") {
-      return html`<ha-card>
+      return html`<ha-card class="ebc-card">
         <ha-alert alert-type="error">
           ${this._state.errorMessage ??
           "Wystąpił błąd podczas wczytywania danych."}
@@ -222,7 +222,7 @@ export class EnergyBurndownCard extends LitElement implements LovelaceCard {
     }
 
     if (this._state.status === "no-data") {
-      return html`<ha-card>
+      return html`<ha-card class="ebc-card">
         <ha-alert alert-type="info">
           Brak danych do wyświetlenia dla wybranego okresu.
         </ha-alert>
@@ -285,12 +285,12 @@ export class EnergyBurndownCard extends LitElement implements LovelaceCard {
 
     const forecastUnit = forecast?.unit || displayUnit;
 
-    return html`<ha-card>
-      <div class="content">
-        ${heading ? html`<div class="heading">${heading}</div>` : null}
+    return html`<ha-card class="ebc-card">
+      <div class="content ebc-content">
+        ${heading ? html`<div class="heading ebc-header">${heading}</div>` : null}
 
         ${summary
-          ? html`<div class="summary">
+          ? html`<div class="summary ebc-stats">
               <div class="summary-row">
                 <span class="label">Bieżący okres</span>
                 <span class="value">${currentSummaryValue}</span>
@@ -327,7 +327,7 @@ export class EnergyBurndownCard extends LitElement implements LovelaceCard {
           : null}
 
         ${shouldShowForecast && forecast
-          ? html`<div class="forecast">
+          ? html`<div class="forecast ebc-forecast">
               <div class="summary-row">
                 <span class="label">Prognoza bieżącego okresu</span>
                 <span class="value"
@@ -362,7 +362,7 @@ export class EnergyBurndownCard extends LitElement implements LovelaceCard {
             </div>`
           : null}
 
-        <div class="chart-container">
+        <div class="chart-container ebc-chart">
           <canvas></canvas>
         </div>
       </div>
