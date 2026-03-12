@@ -91,9 +91,9 @@
 **Purpose**: Dopracowanie dokumentacji, testów i dostępności związanej z themingiem i klasami.
 
 - [X] T020 [P] Zaktualizować `README.md` o sekcję „Theming i klasy CSS” z krótkimi przykładami użycia
-- [ ] T021 [P] Dodać lub zaktualizować testy regresyjne (jeśli istnieją) sprawdzające poprawność klas/nazw sekcji w `tests/` (np. snapshot DOM lub prosty test struktury)
-- [ ] T022 Zweryfikować kontrast kolorów dla jasnego/ciemnego motywu przy pomocy wybranego narzędzia (ręcznie lub automatycznie) i zanotować wynik w `specs/001-ha-theming-classes/research.md`
-- [ ] T023 Wykonać finalny build (`npm run build`) i krótkie manualne smoke‑testy karty w HA z zastosowanymi zmianami themingu i klas
+- [X] T021 [P] Dodać lub zaktualizować testy regresyjne (jeśli istnieją) sprawdzające poprawność klas/nazw sekcji w `tests/` (np. snapshot DOM lub prosty test struktury)
+- [X] T022 Zweryfikować kontrast kolorów dla jasnego/ciemnego motywu przy pomocy wybranego narzędzia (ręcznie lub automatycznie) i zanotować wynik w `specs/001-ha-theming-classes/research.md`
+- [X] T023 Wykonać finalny build (`npm run build`) i krótkie manualne smoke‑testy karty w HA z zastosowanymi zmianami themingu i klas
 
 ---
 

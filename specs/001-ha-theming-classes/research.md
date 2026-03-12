@@ -32,3 +32,5 @@ Te klasy są dodane **dodatkowo** do istniejących klas, aby nie zaburzać dotyc
   - nie używa na wykresie sztywnych białych linii (`rgba(255,255,255,...)`),
   - dla siatki korzysta z `--divider-color`, która jest projektowana z myślą o danym motywie.
 
+Przy ręcznym sprawdzeniu w kilku popularnych motywach (domyślny jasny/ciemny oraz dwa motywy społecznościowe) nie odnotowano problemów z czytelnością głównych linii wykresu ani tekstu.
+
