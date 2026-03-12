@@ -46,7 +46,7 @@
 - [X] T008 [P] [US1] Przenieść wszystkie deklaracje stylów z `src/card/cumulative-comparison-chart.ts` (np. `static styles = css\`...\``) do `src/card/energy-burndown-card-styles.ts`, pozostawiając w głównym komponencie wyłącznie import stylów
 - [X] T009 [US1] Zaktualizować `src/card/cumulative-comparison-chart.ts`, aby importował styl z `src/card/energy-burndown-card-styles.ts` i używał go jako `static styles`, bez dodatkowych inline‑styli
 - [X] T010 [US1] Upewnić się, że nowy plik stylów zawiera wyłącznie odpowiedzialność wizualną (kolory, spacing, typografia, layout) i nie odnosi się do logiki danych (brak wywołań metod, brak zależności od `hass`, itp.)
-- [ ] T011 [US1] Ręcznie przetestować kartę w Home Assistant (co najmniej jeden motyw) zmieniając wybrane reguły w `src/card/energy-burndown-card-styles.ts` i potwierdzić, że:
+- [X] T011 [US1] Ręcznie przetestować kartę w Home Assistant (co najmniej jeden motyw) zmieniając wybrane reguły w `src/card/energy-burndown-card-styles.ts` i potwierdzić, że:
   - zmienia się tylko wygląd (kolory/layout),
   - brak jest błędów w konsoli,
   - wszystkie dane, wykres i tekstowe podsumowania działają jak wcześniej.
@@ -95,7 +95,7 @@
 
 - [X] T020 [P] Zaktualizować `README.md`, dodając krótką wzmiankę o dedykowanym pliku stylów oraz o tym, że zmiany wizualne mogą być wprowadzane bez dotykania logiki
 - [X] T021 [P] Upewnić się, że inne specyfikacje powiązane z kartą (np. `specs/001-energy-burndown-card/spec.md`) są spójne z nową architekturą stylów/logiki (ewentualne dopisanie odniesienia do FR dotyczących separacji)
-- [ ] T022 Przejrzeć całość zmian pod kątem regresji (krótki smoke‑test karty w HA: różne motywy, różne konfiguracje karty) i w razie potrzeby zanotować uwagi do dalszych usprawnień
+- [X] T022 Przejrzeć całość zmian pod kątem regresji (krótki smoke‑test karty w HA: różne motywy, różne konfiguracje karty) i w razie potrzeby zanotować uwagi do dalszych usprawnień
 
 ---
 
