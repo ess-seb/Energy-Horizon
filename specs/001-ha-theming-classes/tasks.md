@@ -14,9 +14,9 @@
 
 **Purpose**: Przygotowanie środowiska developerskiego i bazowej struktury dla pracy nad themingiem i klasami.
 
-- [ ] T001 Upewnić się, że branch `001-ha-theming-classes` jest aktywny (git checkout 001-ha-theming-classes)
-- [ ] T002 [P] Zweryfikować, że `npm install` przechodzi bez błędów w katalogu głównym projektu
-- [ ] T003 [P] Uruchomić `npm run build` w celu potwierdzenia, że obecny kod karty buduje się poprawnie
+- [X] T001 Upewnić się, że branch `001-ha-theming-classes` jest aktywny (git checkout 001-ha-theming-classes)
+- [X] T002 [P] Zweryfikować, że `npm install` przechodzi bez błędów w katalogu głównym projektu
+- [X] T003 [P] Uruchomić `npm run build` w celu potwierdzenia, że obecny kod karty buduje się poprawnie
 
 ---
 
@@ -26,9 +26,9 @@
 
 **⚠️ CRITICAL**: Zakończ przed rozpoczęciem prac nad US1–US3.
 
-- [ ] T004 Zaprojektować listę docelowych klas CSS dla głównych sekcji karty (nagłówek, statystyki, prognoza, wykres, kontener) i udokumentować ją w `specs/001-ha-theming-classes/data-model.md`
-- [ ] T005 [P] Zidentyfikować istniejące elementy DOM i klasy w `src/card/cumulative-comparison-chart.ts` oraz `src/card/chart-renderer.ts` (mapa: obecne → docelowe klasy)
-- [ ] T006 [P] Zidentyfikować zestaw zmiennych themingu HA (CSS custom properties) wykorzystywanych przez inne karty/HA, które będą bazą kolorystyki (spisać w `specs/001-ha-theming-classes/research.md`)
+- [X] T004 Zaprojektować listę docelowych klas CSS dla głównych sekcji karty (nagłówek, statystyki, prognoza, wykres, kontener) i udokumentować ją w `specs/001-ha-theming-classes/data-model.md`
+- [X] T005 [P] Zidentyfikować istniejące elementy DOM i klasy w `src/card/cumulative-comparison-chart.ts` oraz `src/card/chart-renderer.ts` (mapa: obecne → docelowe klasy)
+- [X] T006 [P] Zidentyfikować zestaw zmiennych themingu HA (CSS custom properties) wykorzystywanych przez inne karty/HA, które będą bazą kolorystyki (spisać w `specs/001-ha-theming-classes/research.md`)
 
 **Checkpoint**: Wiadomo, jakie klasy i zmienne themingu będą używane w dalszych fazach.
 
@@ -42,11 +42,11 @@
 
 ### Implementation for User Story 1
 
-- [ ] T007 [P] [US1] Zdefiniować mapę używanych zmiennych HA (np. `--primary-text-color`, `--primary-background-color`) w `specs/001-ha-theming-classes/research.md`
-- [ ] T008 [P] [US1] Dodać/rozszerzyć moduł stylów karty w `src/card` tak, aby główne kolory (tło, tekst, akcenty) były powiązane z CSS variables HA
-- [ ] T009 [US1] Zastosować nowe style themingowe w `src/card/cumulative-comparison-chart.ts` (kontener karty, nagłówek, sekcje), tak aby korzystały z CSS variables zamiast stałych kolorów
-- [ ] T010 [US1] Zaktualizować kolory linii i tła wykresu w `src/card/chart-renderer.ts`, aby były spójne z motywem i zapewniały czytelność w trybie jasnym/ciemnym
-- [ ] T011 [US1] Ręcznie przetestować kartę w co najmniej 5 motywach HA (w tym domyślny jasny/ciemny) i udokumentować obserwacje w `specs/001-ha-theming-classes/quickstart.md` (sekcja testowania themingu)
+- [X] T007 [P] [US1] Zdefiniować mapę używanych zmiennych HA (np. `--primary-text-color`, `--primary-background-color`) w `specs/001-ha-theming-classes/research.md`
+- [X] T008 [P] [US1] Dodać/rozszerzyć moduł stylów karty w `src/card` tak, aby główne kolory (tło, tekst, akcenty) były powiązane z CSS variables HA
+- [X] T009 [US1] Zastosować nowe style themingowe w `src/card/cumulative-comparison-chart.ts` (kontener karty, nagłówek, sekcje), tak aby korzystały z CSS variables zamiast stałych kolorów
+- [X] T010 [US1] Zaktualizować kolory linii i tła wykresu w `src/card/chart-renderer.ts`, aby były spójne z motywem i zapewniały czytelność w trybie jasnym/ciemnym
+- [X] T011 [US1] Ręcznie przetestować kartę w co najmniej 5 motywach HA (w tym domyślny jasny/ciemny) i udokumentować obserwacje w `specs/001-ha-theming-classes/quickstart.md` (sekcja testowania themingu)
 
 **Checkpoint**: Karta wygląda poprawnie i jest czytelna w jasnym oraz ciemnym motywie HA.
 
@@ -60,10 +60,10 @@
 
 ### Implementation for User Story 2
 
-- [ ] T012 [P] [US2] Nadać/prozaktualizować klasy CSS głównych sekcji w `src/card/cumulative-comparison-chart.ts` (np. `.ebc-card`, `.ebc-header`, `.ebc-stats`, `.ebc-forecast`, `.ebc-chart`) zgodnie z ustaloną mapą
-- [ ] T013 [P] [US2] Upewnić się, że element `<canvas>`/kontener wykresu w `src/card/chart-renderer.ts` posiada stabilną, semantyczną klasę pozwalającą na manipulację wysokością/marginesami
-- [ ] T014 [US2] Utworzyć przykładowe fragmenty konfiguracji zewnętrznych stylów (np. Card‑Mod) w `specs/001-ha-theming-classes/contracts/classes-contract.md`, pokazujące, jak ukryć sekcję prognozy i zmienić wysokość wykresu
-- [ ] T015 [US2] Zweryfikować w przeglądarce (inspektor DOM), że struktura klas i hierarchia są czytelne oraz stabilne przy odświeżeniu karty i zmianie motywu
+- [X] T012 [P] [US2] Nadać/prozaktualizować klasy CSS głównych sekcji w `src/card/cumulative-comparison-chart.ts` (np. `.ebc-card`, `.ebc-header`, `.ebc-stats`, `.ebc-forecast`, `.ebc-chart`) zgodnie z ustaloną mapą
+- [X] T013 [P] [US2] Upewnić się, że element `<canvas>`/kontener wykresu w `src/card/chart-renderer.ts` posiada stabilną, semantyczną klasę pozwalającą na manipulację wysokością/marginesami
+- [X] T014 [US2] Utworzyć przykładowe fragmenty konfiguracji zewnętrznych stylów (np. Card‑Mod) w `specs/001-ha-theming-classes/contracts/classes-contract.md`, pokazując, jak ukryć sekcję prognozy i zmienić wysokość wykresu
+- [X] T015 [US2] Zweryfikować w przeglądarce (inspektor DOM), że struktura klas i hierarchia są czytelne oraz stabilne przy odświeżeniu karty i zmianie motywu
 
 **Checkpoint**: Zaawansowany użytkownik, dysponując klasami, może modyfikować layout sekcji bez dotykania logiki TypeScript.
 
@@ -77,10 +77,10 @@
 
 ### Implementation for User Story 3
 
-- [ ] T016 [P] [US3] Przejrzeć wszystkie istniejące klasy CSS w strukturze karty (DOM + moduł stylów) i zidentyfikować nazwy nie‑semantyczne lub mylące (lista w `specs/001-ha-theming-classes/research.md`)
-- [ ] T017 [US3] Wprowadzić spójny schemat nazewnictwa klas (prefiks, np. `.ebc-`, plus rola sekcji) w `src/card/cumulative-comparison-chart.ts` i powiązanych stylach
-- [ ] T018 [US3] Zaktualizować dokumentację w `specs/001-ha-theming-classes/quickstart.md`, dodając tabelę „Mapa sekcji karty → klasy CSS → zastosowanie”
-- [ ] T019 [US3] Przeprowadzić szybki code review samych klas i mapy w zespole (lub wewnętrznie), nanosząc ewentualne poprawki wynikające z feedbacku
+- [X] T016 [P] [US3] Przejrzeć wszystkie istniejące klasy CSS w strukturze karty (DOM + moduł stylów) i zidentyfikować nazwy nie‑semantyczne lub mylące (lista w `specs/001-ha-theming-classes/research.md`)
+- [X] T017 [US3] Wprowadzić spójny schemat nazewnictwa klas (prefiks, np. `.ebc-`, plus rola sekcji) w `src/card/cumulative-comparison-chart.ts` i powiązanych stylach
+- [X] T018 [US3] Zaktualizować dokumentację w `specs/001-ha-theming-classes/quickstart.md`, dodając tabelę „Mapa sekcji karty → klasy CSS → zastosowanie”
+- [X] T019 [US3] Przeprowadzić szybki code review samych klas i mapy w zespole (lub wewnętrznie), nanosząc ewentualne poprawki wynikające z feedbacku
 
 **Checkpoint**: Nazewnictwo klas jest spójne, opisane i gotowe na wsparcie społeczności oraz dalszy rozwój.
 
@@ -90,7 +90,7 @@
 
 **Purpose**: Dopracowanie dokumentacji, testów i dostępności związanej z themingiem i klasami.
 
-- [ ] T020 [P] Zaktualizować `README.md` o sekcję „Theming i klasy CSS” z krótkimi przykładami użycia
+- [X] T020 [P] Zaktualizować `README.md` o sekcję „Theming i klasy CSS” z krótkimi przykładami użycia
 - [ ] T021 [P] Dodać lub zaktualizować testy regresyjne (jeśli istnieją) sprawdzające poprawność klas/nazw sekcji w `tests/` (np. snapshot DOM lub prosty test struktury)
 - [ ] T022 Zweryfikować kontrast kolorów dla jasnego/ciemnego motywu przy pomocy wybranego narzędzia (ręcznie lub automatycznie) i zanotować wynik w `specs/001-ha-theming-classes/research.md`
 - [ ] T023 Wykonać finalny build (`npm run build`) i krótkie manualne smoke‑testy karty w HA z zastosowanymi zmianami themingu i klas
