@@ -1,0 +1,92 @@
+# Quickstart: Adding or Modifying Translations
+
+**Feature**: `002-i18n-localization`  
+**Audience**: Translation contributors and card developers
+
+---
+
+## How translations work
+
+All user-visible text lives in `src/translations/<lang>.json`.  
+The card reads `hass.locale.language` to pick the right file, falling back to `en` if a key is missing.
+
+---
+
+## Translate the card into a new language
+
+1. Copy `src/translations/en.json` to `src/translations/<lang>.json` (use a BCP 47 code, e.g., `de`, `fr`, `es`).
+2. Translate every value. Do **not** change keys.
+3. Preserve `{{variable}}` placeholders exactly as they appear – only the surrounding text changes.
+4. Build the card to verify: `npm run build`.
+5. Test by adding `language: <lang>` to the card YAML in HA.
+
+That's it. No code changes required outside the new JSON file.
+
+---
+
+## Override language for a single card
+
+```yaml
+type: custom:energy-burndown-card
+entity: sensor.energy_consumption_total
+comparison_mode: month_over_year
+language: pl          # override: show this card in Polish
+```
+
+---
+
+## Override number formatting for a single card
+
+```yaml
+type: custom:energy-burndown-card
+entity: sensor.energy_consumption_total
+comparison_mode: month_over_year
+number_format: comma  # override: use decimal comma (e.g. 1 234,5)
+```
+
+Valid values for `number_format`: `comma`, `decimal`, `language`, `system` (same as HA settings).
+
+---
+
+## Add a new translation key (developer workflow)
+
+1. Add the key to `src/translations/en.json` first (English is always the reference).
+2. Add the same key to `src/translations/pl.json` (and any other language files).
+3. In the rendering code, call `localize()` with the new key and an inline comment:
+
+```typescript
+// Displays the section title above the chart
+localize("chart.section_title")
+```
+
+4. For dynamic strings with variables, use `{{variableName}}` in the JSON value and pass the variable at call time:
+
+```typescript
+// Displays "Your consumption is X kWh higher than last year"
+localize("text_summary.higher", { diff: formattedDiff })
+```
+
+---
+
+## Debug missing translations
+
+Enable debug mode in the card YAML:
+
+```yaml
+debug: true
+```
+
+If a translation key is missing from both the active language and English, the card will:
+- Show a configuration error message in the UI.
+- Log to the browser console (F12): `[Energy Burndown] Missing translation key: "<key>" (language: "<lang>")`.
+
+---
+
+## File locations at a glance
+
+| File | Purpose |
+|------|---------|
+| `src/translations/en.json` | English dictionary (reference, all keys required) |
+| `src/translations/pl.json` | Polish dictionary |
+| `src/card/localize.ts` | `createLocalize()` factory, `resolveLocale()` helper |
+| `src/card/cumulative-comparison-chart.ts` | Calls `resolveLocale()` and `createLocalize()` on each render |

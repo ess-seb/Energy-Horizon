@@ -9,6 +9,8 @@ alwaysApply: true
 Auto-generated from all feature plans. Last updated: 2026-03-10
 
 ## Active Technologies
+- TypeScript 5 (strict mode) + LitElement 4, Vite (bundler), Chart.js (002-i18n-localization)
+- N/A – translations bundled statically at build time (Vite JSON import) (002-i18n-localization)
 
 - TypeScript (ES2020+, `strict` enabled) + Lit (`lit`, `lit/decorators.js`), Chart.js (core + line/tooltip/legend/gradient plugins), Home Assistant Lovelace card API typings, Vite bundler (001-energy-burndown-card)
 
@@ -29,6 +31,7 @@ npm test && npm run lint
 TypeScript (ES2020+, `strict` enabled): Follow standard conventions
 
 ## Recent Changes
+- 002-i18n-localization: Added TypeScript 5 (strict mode) + LitElement 4, Vite (bundler), Chart.js
 
 - 001-energy-burndown-card: Added TypeScript (ES2020+, `strict` enabled) + Lit (`lit`, `lit/decorators.js`), Chart.js (core + line/tooltip/legend/gradient plugins), Home Assistant Lovelace card API typings, Vite bundler
 
