@@ -30,5 +30,5 @@ describe("createLocalize", () => {
 
     expect(text).toContain("80");
   });
-}
+});
 

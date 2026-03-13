@@ -69,5 +69,5 @@ describe("computeForecast", () => {
     expect(forecastHigh.enabled).toBe(true);
     expect(forecastHigh.confidence).toBe("high");
   });
-}
+});
 
