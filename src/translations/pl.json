@@ -1,0 +1,23 @@
+{
+  "period.current": "Bieżący okres",
+  "period.reference": "Okres referencyjny",
+  "status.loading": "Ładowanie danych statystyk długoterminowych...",
+  "status.error_api": "Nie udało się pobrać danych statystyk długoterminowych.",
+  "status.error_generic": "Wystąpił błąd podczas wczytywania danych.",
+  "status.no_data": "Brak danych do wyświetlenia dla wybranego okresu.",
+  "summary.current_period": "Bieżący okres",
+  "summary.reference_period": "Okres referencyjny",
+  "summary.difference": "Różnica",
+  "summary.difference_percent": "Różnica [%]",
+  "summary.incomplete_reference": "Dane referencyjne dla tego dnia są niepełne…",
+  "forecast.current_forecast": "Prognoza bieżącego okresu",
+  "forecast.reference_consumption": "Zużycie w okresie referencyjnym",
+  "forecast.historical_value": "Wartość historyczna",
+  "forecast.confidence": "Poziom pewności prognozy: {{confidence}}.",
+  "text_summary.no_reference": "Brak wystarczających danych, aby porównać Twoje zużycie energii.",
+  "text_summary.similar": "Twoje zużycie jest na podobnym poziomie jak w tym samym okresie w poprzednim roku.",
+  "text_summary.higher": "Twoje zużycie jest o {{diff}} wyższe niż w tym samym okresie w poprzednim roku.",
+  "text_summary.lower": "Twoje zużycie jest o {{diff}} niższe niż w tym samym okresie w poprzednim roku.",
+  "error.missing_translation": "Brak tłumaczenia dla klucza: {{key}}"
+}
+
