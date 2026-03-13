@@ -11,6 +11,8 @@ export interface ResolvedLocale {
 
 type TranslationDictionary = Record<string, string>;
 
+export const MISSING_TRANSLATION_KEY = "error.missing_translation";
+
 export type LocalizeFunction = (
   key: string,
   vars?: Record<string, string | number>
