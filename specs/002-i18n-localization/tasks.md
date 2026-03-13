@@ -30,9 +30,9 @@ description: "Tasks for feature 002-i18n-localization – Energy Burndown Card"
 
 **Purpose**: Prepare the repository and environment for implementing localization.
 
-- [ ] T001 [P] Confirm `002-i18n-localization` branch is checked out and dependencies installed with `npm install` at repo root
-- [ ] T002 [P] Review existing Energy Burndown Card implementation in `src/card/` and current hardcoded strings inventory from `specs/002-i18n-localization/research.md`
-- [ ] T003 [P] Verify Vitest test runner is configured and working by running `npm test` at repo root
+- [X] T001 [P] Confirm `002-i18n-localization` branch is checked out and dependencies installed with `npm install` at repo root
+- [X] T002 [P] Review existing Energy Burndown Card implementation in `src/card/` and current hardcoded strings inventory from `specs/002-i18n-localization/research.md`
+- [X] T003 [P] Verify Vitest test runner is configured and working by running `npm test` at repo root
 
 ---
 
