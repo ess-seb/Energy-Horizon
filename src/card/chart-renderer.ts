@@ -62,7 +62,10 @@ export class ChartRenderer {
     this.chart = undefined;
   }
 
-  update(series: ComparisonSeries): void {
+  update(
+    series: ComparisonSeries,
+    labels: { current: string; reference: string }
+  ): void {
     const ctx = this.canvas.getContext("2d");
     if (!ctx) return;
 
@@ -93,7 +96,7 @@ export class ChartRenderer {
     const data = {
       datasets: [
         {
-          label: "Bieżący okres",
+          label: labels.current,
           data: currentData,
           borderColor: theme.currentLine,
           backgroundColor: "transparent",
@@ -104,7 +107,7 @@ export class ChartRenderer {
         ...(series.reference
           ? [
               {
-                label: "Okres referencyjny",
+                label: labels.reference,
                 data: referenceData,
                 borderColor: theme.referenceLine,
                 backgroundColor: "transparent",

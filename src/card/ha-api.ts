@@ -308,41 +308,37 @@ export function computeForecast(
 export function computeTextSummary(
   summary: SummaryStats
 ): TextSummary {
-  const { current_cumulative, reference_cumulative, difference, unit } =
-    summary;
+  const { reference_cumulative, difference, unit } = summary;
 
   if (reference_cumulative == null || difference == null) {
     return {
       trend: "unknown",
-      heading:
-        "Brak wystarczających danych z wcześniejszego okresu, aby porównać zużycie."
+      unit: unit
     };
   }
 
   const absDiff = Math.abs(difference);
-  const formatter = new Intl.NumberFormat(undefined, {
-    maximumFractionDigits: 2
-  });
-  const diffText = `${formatter.format(absDiff)} ${unit}`;
 
   if (absDiff < 0.01) {
     return {
       trend: "similar",
-      heading:
-        "Twoje zużycie jest na podobnym poziomie jak w tym samym okresie w poprzednim roku."
+      diffValue: absDiff,
+      unit
     };
   }
 
   if (difference > 0) {
     return {
       trend: "higher",
-      heading: `Twoje zużycie jest o ${diffText} wyższe niż w tym samym okresie w poprzednim roku.`
+      diffValue: absDiff,
+      unit
     };
   }
 
   return {
     trend: "lower",
-    heading: `Twoje zużycie jest o ${diffText} niższe niż w tym samym okresie w poprzednim roku.`
+    diffValue: absDiff,
+    unit
   };
 }
 

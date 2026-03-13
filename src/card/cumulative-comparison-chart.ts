@@ -10,6 +10,11 @@ import {
   computeTextSummary
 } from "./ha-api";
 import { ChartRenderer } from "./chart-renderer";
+import {
+  resolveLocale,
+  createLocalize,
+  numberFormatToLocale
+} from "./localize";
 import { energyBurndownCardStyles } from "./energy-burndown-card-styles";
 
 export class EnergyBurndownCard extends LitElement implements LovelaceCard {
@@ -60,7 +65,12 @@ export class EnergyBurndownCard extends LitElement implements LovelaceCard {
         }
 
         if (this._chartRenderer) {
-          this._chartRenderer.update(this._state.comparisonSeries);
+          const resolved = resolveLocale(this.hass, this._config);
+          const localize = createLocalize(resolved.language);
+          this._chartRenderer.update(this._state.comparisonSeries, {
+            current: localize("period.current"),
+            reference: localize("period.reference")
+          });
         }
       }
     }
@@ -70,8 +80,8 @@ export class EnergyBurndownCard extends LitElement implements LovelaceCard {
     if (!this._config || !this.hass) return;
 
     const now = new Date();
-    const timeZone = "UTC";
-    const period = buildComparisonPeriod(this._config, now, timeZone);
+    const resolved = resolveLocale(this.hass, this._config);
+    const period = buildComparisonPeriod(this._config, now, resolved.timeZone);
     const currentQuery = buildLtsQuery(period, this._config.entity);
     const referencePeriod: typeof period = {
       ...period,
@@ -196,7 +206,7 @@ export class EnergyBurndownCard extends LitElement implements LovelaceCard {
       console.error(e);
       this._state = {
         status: "error",
-        errorMessage: "Nie udało się pobrać danych statystyk długoterminowych."
+        errorMessage: "status.error_api"
       };
     }
   }
@@ -206,20 +216,24 @@ export class EnergyBurndownCard extends LitElement implements LovelaceCard {
       return html``;
     }
 
+    const resolved = resolveLocale(this.hass, this._config);
+    const localize = createLocalize(resolved.language);
+
     if (this._state.status === "loading") {
       return html`<ha-card class="ebc-card">
         <div class="loading">
           <ha-circular-progress active size="small"></ha-circular-progress>
-          <span>Ładowanie danych statystyk długoterminowych...</span>
+          <span>${localize("status.loading")}</span>
         </div>
       </ha-card>`;
     }
 
     if (this._state.status === "error") {
+      const messageKey =
+        this._state.errorMessage ?? "status.error_generic";
       return html`<ha-card class="ebc-card">
         <ha-alert alert-type="error">
-          ${this._state.errorMessage ??
-          "Wystąpił błąd podczas wczytywania danych."}
+          ${localize(messageKey)}
         </ha-alert>
       </ha-card>`;
     }
@@ -227,17 +241,19 @@ export class EnergyBurndownCard extends LitElement implements LovelaceCard {
     if (this._state.status === "no-data") {
       return html`<ha-card class="ebc-card">
         <ha-alert alert-type="info">
-          Brak danych do wyświetlenia dla wybranego okresu.
+          ${localize("status.no_data")}
         </ha-alert>
       </ha-card>`;
     }
 
-    const heading = this._state.textSummary?.heading;
+    const textSummary = this._state.textSummary;
     const summary = this._state.summary;
     const forecast = this._state.forecast;
 
-    const locale =
-      this.hass.locale?.language ?? this.hass.language ?? navigator.language;
+    const numberLocale = numberFormatToLocale(
+      resolved.numberFormat,
+      resolved.language
+    );
     const precision = this._config.precision ?? 1;
 
     // Jeśli z API nie przyszła jednostka, spróbuj użyć tej z encji HA.
@@ -246,12 +262,12 @@ export class EnergyBurndownCard extends LitElement implements LovelaceCard {
         unit_of_measurement?: string;
       })?.unit_of_measurement ?? "";
 
-    const numberFormatter = new Intl.NumberFormat(locale, {
+    const numberFormatter = new Intl.NumberFormat(numberLocale, {
       minimumFractionDigits: precision,
       maximumFractionDigits: precision
     });
 
-    const percentFormatter = new Intl.NumberFormat(locale, {
+    const percentFormatter = new Intl.NumberFormat(numberLocale, {
       maximumFractionDigits: 1
     });
 
@@ -288,6 +304,30 @@ export class EnergyBurndownCard extends LitElement implements LovelaceCard {
 
     const forecastUnit = forecast?.unit || displayUnit;
 
+    let heading: string | null = null;
+    if (textSummary) {
+      const diffText =
+        textSummary.diffValue != null
+          ? `${numberFormatter.format(textSummary.diffValue)} ${displayUnit}`
+          : undefined;
+
+      switch (textSummary.trend) {
+        case "higher":
+          heading = localize("text_summary.higher", diffText ? { diff: diffText } : undefined);
+          break;
+        case "lower":
+          heading = localize("text_summary.lower", diffText ? { diff: diffText } : undefined);
+          break;
+        case "similar":
+          heading = localize("text_summary.similar");
+          break;
+        case "unknown":
+        default:
+          heading = localize("text_summary.no_reference");
+          break;
+      }
+    }
+
     return html`<ha-card class="ebc-card">
       <div class="content ebc-content">
         ${heading ? html`<div class="heading ebc-header">${heading}</div>` : null}
@@ -295,35 +335,34 @@ export class EnergyBurndownCard extends LitElement implements LovelaceCard {
         ${summary
           ? html`<div class="summary ebc-stats">
               <div class="summary-row">
-                <span class="label">Bieżący okres</span>
+                <span class="label">${localize("summary.current_period")}</span>
                 <span class="value">${currentSummaryValue}</span>
               </div>
 
               ${referenceSummaryValue
                 ? html`<div class="summary-row">
-                    <span class="label">Okres referencyjny</span>
+                    <span class="label">${localize("summary.reference_period")}</span>
                     <span class="value">${referenceSummaryValue}</span>
                   </div>`
                 : null}
 
               ${differenceValue
                 ? html`<div class="summary-row">
-                    <span class="label">Różnica</span>
+                    <span class="label">${localize("summary.difference")}</span>
                     <span class="value">${differenceValue}</span>
                   </div>`
                 : null}
 
               ${differencePercentValue
                 ? html`<div class="summary-row">
-                    <span class="label">Różnica [%]</span>
+                    <span class="label">${localize("summary.difference_percent")}</span>
                     <span class="value">${differencePercentValue}</span>
                   </div>`
                 : null}
 
               ${summary.reference_cumulative == null
                 ? html`<div class="summary-note">
-                    Dane referencyjne dla tego dnia są niepełne – liczby
-                    porównawcze mogą być niedostępne lub przybliżone.
+                    ${localize("summary.incomplete_reference")}
                   </div>`
                 : null}
             </div>`
@@ -332,7 +371,7 @@ export class EnergyBurndownCard extends LitElement implements LovelaceCard {
         ${shouldShowForecast && forecast
           ? html`<div class="forecast ebc-forecast">
               <div class="summary-row">
-                <span class="label">Prognoza bieżącego okresu</span>
+                <span class="label">${localize("forecast.current_forecast")}</span>
                 <span class="value"
                   >${numberFormatter.format(
                     forecast.forecast_total ?? 0
@@ -341,7 +380,7 @@ export class EnergyBurndownCard extends LitElement implements LovelaceCard {
               </div>
               ${forecast.reference_total != null
                 ? html`<div class="summary-row">
-                    <span class="label">Zużycie w okresie referencyjnym</span>
+                    <span class="label">${localize("forecast.reference_consumption")}</span>
                     <span class="value"
                       >${numberFormatter.format(
                         forecast.reference_total
@@ -351,7 +390,7 @@ export class EnergyBurndownCard extends LitElement implements LovelaceCard {
                 : null}
               ${forecast.reference_total != null
                 ? html`<div class="summary-row">
-                    <span class="label">Wartość historyczna</span>
+                    <span class="label">${localize("forecast.historical_value")}</span>
                     <span class="value"
                       >${numberFormatter.format(
                         forecast.reference_total
@@ -360,7 +399,9 @@ export class EnergyBurndownCard extends LitElement implements LovelaceCard {
                   </div>`
                 : null}
               <div class="summary-note">
-                Poziom pewności prognozy: ${forecast.confidence}.
+                ${localize("forecast.confidence", {
+                  confidence: forecast.confidence
+                })}
               </div>
             </div>`
           : null}

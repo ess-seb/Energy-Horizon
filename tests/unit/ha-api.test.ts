@@ -150,7 +150,8 @@ describe("computeTextSummary", () => {
     const text = computeTextSummary(summary);
 
     expect(text.trend).toBe("higher");
-    expect(text.heading).toContain("wyższe");
+    expect(text.diffValue).toBeCloseTo(10);
+    expect(text.unit).toBe("kWh");
   });
 
   it("reports lower usage correctly", () => {
@@ -165,7 +166,8 @@ describe("computeTextSummary", () => {
     const text = computeTextSummary(summary);
 
     expect(text.trend).toBe("lower");
-    expect(text.heading).toContain("niższe");
+    expect(text.diffValue).toBeCloseTo(5);
+    expect(text.unit).toBe("kWh");
   });
 
   it("handles missing reference data", () => {
@@ -180,6 +182,8 @@ describe("computeTextSummary", () => {
     const text = computeTextSummary(summary as any);
 
     expect(text.trend).toBe("unknown");
+    expect(text.diffValue).toBeUndefined();
+    expect(text.unit).toBe("kWh");
   });
 });
 
