@@ -1,0 +1,85 @@
+import { describe, it, expect } from "vitest";
+import type { HomeAssistant } from "../../src/ha-types";
+import type { CardConfig } from "../../src/card/types";
+import { EnergyBurndownCard } from "../../src/card/cumulative-comparison-chart";
+import { resolveLocale, createLocalize } from "../../src/card/localize";
+
+function createBaseHass(language: string): HomeAssistant {
+  return {
+    language,
+    locale: {
+      language,
+      number_format: "language"
+    },
+    config: {
+      time_zone: "Europe/Warsaw"
+    },
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    connection: {
+      sendMessagePromise: async <T>() => Promise.resolve({} as T)
+    }
+  };
+}
+
+describe("EnergyBurndownCard localization", () => {
+  const baseConfig: CardConfig = {
+    type: "custom:energy-burndown-card",
+    entity: "sensor.energy",
+    comparison_mode: "year_over_year"
+  };
+
+  it("uses resolved locale language when localizing summary labels (en)", () => {
+    const hass = createBaseHass("en");
+    const card = new EnergyBurndownCard();
+    card.hass = hass;
+    card.setConfig(baseConfig);
+
+    const resolved = resolveLocale(card.hass, card._config);
+    const localize = createLocalize(resolved.language);
+
+    const label = (card as any)._localizeOrError(localize, "summary.current_period");
+
+    expect(label).toBe("Current period");
+  });
+
+  it("uses resolved locale language when localizing summary labels (pl)", () => {
+    const hass = createBaseHass("pl");
+    const card = new EnergyBurndownCard();
+    card.hass = hass;
+    card.setConfig(baseConfig);
+
+    const resolved = resolveLocale(card.hass, card._config);
+    const localize = createLocalize(resolved.language);
+
+    const label = (card as any)._localizeOrError(localize, "summary.current_period");
+
+    expect(label).toBe("Bieżący okres");
+  });
+
+  it("enters error state and uses error.missing_translation when key is missing", () => {
+    const hass = createBaseHass("en");
+    const card = new EnergyBurndownCard();
+    card.hass = hass;
+    card.setConfig({
+      ...baseConfig,
+      debug: true
+    });
+
+    const baseLocalize = (key: string, vars?: Record<string, string | number>) => {
+      if (key === "error.missing_translation") {
+        const k = vars?.key ?? "unknown";
+        return `Missing translation key: ${k}`;
+      }
+      // simulate missing translation by returning the key unchanged
+      return key;
+    };
+
+    const result = (card as any)._localizeOrError(baseLocalize, "missing.key");
+
+    expect(result).toBe("Missing translation key: missing.key");
+    expect((card as any)._state.status).toBe("error");
+    expect((card as any)._state.errorMessage).toBe("error.missing_translation");
+  });
+});
+
+

@@ -154,6 +154,53 @@ describe("computeTextSummary", () => {
     expect(text.unit).toBe("kWh");
   });
 
+  it("reports lower usage correctly for negative difference", () => {
+    const summary = {
+      current_cumulative: 5,
+      reference_cumulative: 10,
+      difference: -5,
+      differencePercent: -50,
+      unit: "kWh"
+    };
+
+    const text = computeTextSummary(summary);
+
+    expect(text.trend).toBe("lower");
+    expect(text.diffValue).toBeCloseTo(5);
+    expect(text.unit).toBe("kWh");
+  });
+
+  it("reports similar usage when difference is very small", () => {
+    const summary = {
+      current_cumulative: 10.004,
+      reference_cumulative: 10,
+      difference: 0.004,
+      differencePercent: 0.04,
+      unit: "kWh"
+    };
+
+    const text = computeTextSummary(summary);
+
+    expect(text.trend).toBe("similar");
+    expect(text.diffValue).toBeCloseTo(0.004);
+    expect(text.unit).toBe("kWh");
+  });
+
+  it("propagates unit without depending on locale", () => {
+    const summary = {
+      current_cumulative: 100,
+      reference_cumulative: 80,
+      difference: 20,
+      differencePercent: 25,
+      unit: "m³"
+    };
+
+    const text = computeTextSummary(summary);
+
+    expect(text.trend).toBe("higher");
+    expect(text.unit).toBe("m³");
+  });
+
   it("reports lower usage correctly", () => {
     const summary = {
       current_cumulative: 5,
