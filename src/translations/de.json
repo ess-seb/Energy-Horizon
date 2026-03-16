@@ -1,0 +1,22 @@
+{
+  "period.current": "Aktueller Zeitraum",
+  "period.reference": "Referenzzeitraum",
+  "status.loading": "Lade Langzeitstatistiken…",
+  "status.error_api": "Langzeitstatistiken konnten nicht geladen werden.",
+  "status.error_generic": "Beim Laden der Daten ist ein Fehler aufgetreten.",
+  "status.no_data": "Für den gewählten Zeitraum sind keine Daten vorhanden.",
+  "summary.current_period": "Aktueller Zeitraum",
+  "summary.reference_period": "Referenzzeitraum",
+  "summary.difference": "Differenz",
+  "summary.difference_percent": "Differenz [%]",
+  "summary.incomplete_reference": "Referenzdaten für diesen Tag sind unvollständig…",
+  "forecast.current_forecast": "Prognose aktueller Zeitraum",
+  "forecast.reference_consumption": "Verbrauch im Referenzzeitraum",
+  "forecast.historical_value": "Historischer Wert",
+  "forecast.confidence": "Prognose-Konfidenz: {{confidence}}.",
+  "text_summary.no_reference": "Es gibt noch nicht genug Referenzdaten, um Ihren Verbrauch zu vergleichen.",
+  "text_summary.similar": "Ihr Energieverbrauch entspricht in etwa dem gleichen Zeitraum des Vorjahres.",
+  "text_summary.higher": "Ihr Energieverbrauch liegt {{diff}} über dem gleichen Zeitraum des Vorjahres.",
+  "text_summary.lower": "Ihr Energieverbrauch liegt {{diff}} unter dem gleichen Zeitraum des Vorjahres.",
+  "error.missing_translation": "Fehlender Übersetzungsschlüssel: {{key}}"
+}

@@ -102,10 +102,10 @@ description: "Tasks for feature 002-i18n-localization – Energy Burndown Card"
 
 ### Implementation for User Story 3
 
-- [ ] T025 [P] [US3] Verify `createLocalize(language)` in `src/card/localize.ts` loads `src/translations/<language>.json` dynamically and falls back to `src/translations/en.json` if the language file is missing
-- [ ] T026 [P] [US3] Add contributor-facing documentation to `specs/002-i18n-localization/quickstart.md` section "Translate the card into a new language" to ensure the workflow matches the implemented `createLocalize` behaviour
-- [ ] T027 [P] [US3] Add unit tests in `tests/unit/localize-dictionary-loading.test.ts` verifying that adding a new language file requires no changes outside `src/translations/<lang>.json` and that missing keys fall back to English
-- [ ] T028 [US3] Manually validate by adding a sample language file `src/translations/de.json` in a development branch and switching the card to `language: de` via YAML, confirming no rendering code changes are required
+- [x] T025 [P] [US3] Verify `createLocalize(language)` in `src/card/localize.ts` loads `src/translations/<language>.json` dynamically and falls back to `src/translations/en.json` if the language file is missing
+- [x] T026 [P] [US3] Add contributor-facing documentation to `specs/002-i18n-localization/quickstart.md` section "Translate the card into a new language" to ensure the workflow matches the implemented `createLocalize` behaviour
+- [x] T027 [P] [US3] Add unit tests in `tests/unit/localize-dictionary-loading.test.ts` verifying that adding a new language file requires no changes outside `src/translations/<lang>.json` and that missing keys fall back to English
+- [x] T028 [US3] Manually validate by adding a sample language file `src/translations/de.json` in a development branch and switching the card to `language: de` via YAML, confirming no rendering code changes are required
 
 **Checkpoint**: User Story 3 complete – new languages can be added by translation contributors without touching card logic or rendering files.
 

@@ -14,13 +14,15 @@ The card reads `hass.locale.language` to pick the right file, falling back to `e
 
 ## Translate the card into a new language
 
+The card loads all JSON files from `src/translations/` at build time. To add a new language:
+
 1. Copy `src/translations/en.json` to `src/translations/<lang>.json` (use a BCP 47 code, e.g., `de`, `fr`, `es`).
 2. Translate every value. Do **not** change keys.
 3. Preserve `{{variable}}` placeholders exactly as they appear – only the surrounding text changes.
 4. Build the card to verify: `npm run build`.
 5. Test by adding `language: <lang>` to the card YAML in HA.
 
-That's it. No code changes required outside the new JSON file.
+**No code changes are required.** The card discovers the new file automatically via `src/card/localize.ts`; `createLocalize(language)` uses any `src/translations/<language>.json` present in the project. If a key is missing in the new file, the card falls back to the English string from `en.json`.
 
 ---
 
@@ -94,5 +96,6 @@ If a translation key is missing from both the active language and English, the c
 |------|---------|
 | `src/translations/en.json` | English dictionary (reference, all keys required) |
 | `src/translations/pl.json` | Polish dictionary |
-| `src/card/localize.ts` | `createLocalize()` factory, `resolveLocale()` helper |
+| `src/translations/de.json` | German dictionary (sample; add more `<lang>.json` as needed) |
+| `src/card/localize.ts` | `createLocalize()` factory, `resolveLocale()` helper; loads all `src/translations/*.json` at build time |
 | `src/card/cumulative-comparison-chart.ts` | Calls `resolveLocale()` and `createLocalize()` on each render |

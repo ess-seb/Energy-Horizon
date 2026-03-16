@@ -18,10 +18,29 @@ export type LocalizeFunction = (
   vars?: Record<string, string | number>
 ) => string;
 
-import en from "../translations/en.json";
-import pl from "../translations/pl.json";
-
 const FALLBACK_LANGUAGE = "en";
+
+/**
+ * All translation files under src/translations/*.json are loaded at build time.
+ * Adding a new language requires only adding a new JSON file; no code changes.
+ */
+const translationModules = import.meta.glob<{ default: TranslationDictionary }>(
+  "../translations/*.json",
+  { eager: true }
+);
+
+const DICTIONARIES: Record<string, TranslationDictionary> = Object.create(null);
+for (const path of Object.keys(translationModules)) {
+  const match = path.match(/\/([^/]+)\.json$/);
+  if (match) {
+    const lang = match[1];
+    const mod = translationModules[path];
+    const dict = mod?.default;
+    if (dict && typeof dict === "object") {
+      DICTIONARIES[lang] = dict;
+    }
+  }
+}
 
 const VALID_NUMBER_FORMATS: readonly NumberFormat[] = [
   "comma",
@@ -38,11 +57,6 @@ function isValidNumberFormat(
     (VALID_NUMBER_FORMATS as readonly string[]).includes(value)
   );
 }
-
-const DICTIONARIES: Record<string, TranslationDictionary> = {
-  en,
-  pl
-};
 
 function hasDictionary(language: string): boolean {
   return Object.prototype.hasOwnProperty.call(DICTIONARIES, language);
