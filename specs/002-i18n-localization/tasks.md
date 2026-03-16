@@ -68,11 +68,11 @@ description: "Tasks for feature 002-i18n-localization – Energy Burndown Card"
 - [X] T014 [US1] Integrate `resolveLocale(hass, config)` into `src/card/cumulative-comparison-chart.ts` to derive language, number format, and time zone for each render
 - [X] T015 [US1] Replace all hardcoded Polish UI strings in `src/card/cumulative-comparison-chart.ts` with calls to `localize()` using descriptive keys from `src/translations/en.json`
 - [X] T016 [US1] Ensure number and date formatting in `src/card/cumulative-comparison-chart.ts` uses `ResolvedLocale` and `numberFormatToLocale()` for `Intl.NumberFormat` and date formatting
-- [ ] T017 [US1] Implement error state handling for missing translations in `src/card/cumulative-comparison-chart.ts` using `error.missing_translation` behaviour from `src/card/localize.ts`
-- [ ] T018 [P] [US1] Add unit tests for `computeTextSummary` in `tests/unit/ha-api-text-summary.test.ts` verifying logic is locale-agnostic and returns correct numeric diff and trend
-- [ ] T019 [P] [US1] Add rendering-level tests or snapshot tests (if feasible) in `tests/unit/cumulative-comparison-chart-localization.test.ts` to verify `hass.locale` changes update labels and formatted values without YAML overrides
+- [X] T017 [US1] Implement error state handling for missing translations in `src/card/cumulative-comparison-chart.ts` using `error.missing_translation` behaviour from `src/card/localize.ts`
+- [X] T018 [P] [US1] Add unit tests for `computeTextSummary` in `tests/unit/ha-api.test.ts` (describe `computeTextSummary`) verifying logic is locale-agnostic and returns correct numeric diff and trend
+- [X] T019 [P] [US1] Add rendering-level tests or snapshot tests (if feasible) in `tests/unit/cumulative-comparison-chart-localization.test.ts` to verify `hass.locale` changes update labels and formatted values without YAML overrides
 
-**Checkpoint**: User Story 1 fully functional – card respects HA locale automatically, with all UI text sourced from translation dictionaries and logic code free of UI strings.
+**Checkpoint**: User Story 1 fully functional – card respects HA locale automatically, with all UI text sourced from translation dictionaries and logic code free of UI strings. Tests in `cumulative-comparison-chart-localization.test.ts` cover locale-driven labels (en/pl), error state for missing keys, unsupported-locale fallback, and YAML overrides.
 
 ---
 
@@ -178,7 +178,7 @@ description: "Tasks for feature 002-i18n-localization – Energy Burndown Card"
 
 ```bash
 # Parallel tasks for User Story 1 (once Phase 2 is complete):
-Task: "T018 [P] [US1] Add unit tests for computeTextSummary in tests/unit/ha-api-text-summary.test.ts"
+Task: "T018 [P] [US1] Add unit tests for computeTextSummary in tests/unit/ha-api.test.ts"
 Task: "T019 [P] [US1] Add rendering-level tests in tests/unit/cumulative-comparison-chart-localization.test.ts"
 ```
 
