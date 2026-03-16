@@ -7,7 +7,7 @@
 
 Feature wprowadza architektoniczne rozdzielenie **warstwy wizualnej** (style, layout, typografia) od **logiki karty** (pobieranie danych z HA, obliczenia, przygotowanie serii do wykresu) w `Energy Horizon Card`.  
 Docelowo karta ma:
-- korzystać z **dedykowanego modułu stylów** (np. `energy-burndown-card-styles.ts`),
+- korzystać z **dedykowanego modułu stylów** (np. `energy-horizon-card-styles.ts`),
 - mieć **czytelną strukturę HTML** z semantycznymi klasami (`.ebc-card`, `.ebc-header`, `.ebc-stats`, `.ebc-forecast`, `.ebc-chart`),
 - utrzymywać logikę w osobnych plikach (`cumulative-comparison-chart.ts`, `ha-api.ts`, `chart-renderer.ts`) bez zależności od konkretnych implementacji stylów.
 
@@ -35,7 +35,7 @@ Zmiany koncentrują się na refaktoryzacji istniejącej karty (TypeScript + LitE
 **Constraints**:  
 - Zgodność z motywami HA (jasny/ciemny) i integracją themingu z feature’u `001-ha-theming-classes`  
 - Zachowanie istniejącego publicznego API karty (konfiguracja YAML, nazwa custom elementu)  
-- Brak zmian w strukturze bundlu artefaktu (`dist/energy-burndown-card.js`) poza refaktoryzacją wewnętrzną  
+- Brak zmian w strukturze bundlu artefaktu (`dist/energy-horizon-card.js`) poza refaktoryzacją wewnętrzną  
 **Scale/Scope**:  
 - Pojedyncza karta, ale z ambicją bycia wzorcem dla kolejnych kart w projekcie (architektura styl/logika powinna być łatwa do reużycia)
 
@@ -89,13 +89,13 @@ src/
 │   ├── cumulative-comparison-chart.ts   # Główny komponent karty (logika + render HTML)
 │   ├── chart-renderer.ts               # Logika integracji z Chart.js (bez styli CSS)
 │   ├── ha-api.ts                       # Logika komunikacji z API HA i obróbki danych
-│   ├── energy-burndown-card-styles.ts  # [NOWY] Moduł stylów karty (warstwa wizualna)
+│   ├── energy-horizon-card-styles.ts  # [NOWY] Moduł stylów karty (warstwa wizualna)
 │   └── index.ts                        # Rejestracja custom elementu, eksporty
 ```
 
 **Structure Decision**:  
 Projekt pozostaje **pojedynczym frontendowym modułem** w katalogu `src/card/`.  
-Nowy plik `energy-burndown-card-styles.ts` agreguje wszystkie style karty (w tym powiązane z themingiem HA) i jest importowany przez `cumulative-comparison-chart.ts` jako `static styles`.  
+Nowy plik `energy-horizon-card-styles.ts` agreguje wszystkie style karty (w tym powiązane z themingiem HA) i jest importowany przez `cumulative-comparison-chart.ts` jako `static styles`.  
 Pliki `ha-api.ts` i `chart-renderer.ts` są traktowane jako czysto logiczne – nie implementują styli, operują wyłącznie na danych, klasach i elementach DOM.
 
 ## Phase 0: Research (research.md)
@@ -117,7 +117,7 @@ W `data-model.md` należy zdefiniować co najmniej dwa główne byty:
 
 - **StyleLayer** (warstwa stylów karty):  
   - odpowiedzialność: kolory, typografia, spacing, layout, responsywność, stany hover/aktywny,  
-  - implementacja: `energy-burndown-card-styles.ts` eksportujący `CSSResult`/`css` dla LitElement,  
+  - implementacja: `energy-horizon-card-styles.ts` eksportujący `CSSResult`/`css` dla LitElement,  
   - brak zależności od logiki danych.
 
 - **CardComponent** (główny komponent karty):  
@@ -143,7 +143,7 @@ To jest „kontrakt wewnętrzny” w projekcie, ale bardzo ważny dla kontrybuto
 
 `quickstart.md` powinien wyjaśniać w kilku krokach:
 
-1. Gdzie znajduje się plik stylów (`src/card/energy-burndown-card-styles.ts`).  
+1. Gdzie znajduje się plik stylów (`src/card/energy-horizon-card-styles.ts`).  
 2. Jak zmienić podstawowe aspekty wyglądu (kolory, marginesy, typografię) poprzez edycję tego pliku.  
 3. Jak bezpiecznie zmienić layout (np. kolejność sekcji) modyfikując `render()` w `cumulative-comparison-chart.ts` bez ingerencji w logikę.  
 4. Jak przetestować zmiany w HA (przeładowanie zasobów, otwarcie dashboardu, sprawdzenie konsoli).
@@ -151,7 +151,7 @@ To jest „kontrakt wewnętrzny” w projekcie, ale bardzo ważny dla kontrybuto
 ## Complexity Tracking
 
 Nie są planowane odstępstwa od konstytucji ani wprowadzanie dodatkowych warstw złożoności ponad:
-- jeden moduł stylów (`energy-burndown-card-styles.ts`),  
+- jeden moduł stylów (`energy-horizon-card-styles.ts`),  
 - istniejące moduły logiki (`ha-api.ts`, `chart-renderer.ts`, `cumulative-comparison-chart.ts`).
 
 Tabela pozostaje pusta – brak naruszeń wymagających uzasadnienia.

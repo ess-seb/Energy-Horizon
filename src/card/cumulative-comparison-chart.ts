@@ -488,11 +488,11 @@ export class EnergyHorizonCard extends LitElement implements LovelaceCard {
   }
 }
 
-customElements.define("energy-burndown-card", EnergyBurndownCard);
+customElements.define("energy-horizon-card", EnergyBurndownCard);
 
 declare global {
   interface HTMLElementTagNameMap {
-    "energy-burndown-card": EnergyBurndownCard;
+    "energy-horizon-card": EnergyBurndownCard;
   }
 }
 

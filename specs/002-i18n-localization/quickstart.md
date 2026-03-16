@@ -41,7 +41,7 @@ Invalid or unsupported values fall back to those defaults. With `debug: true`, t
 ### Override language
 
 ```yaml
-type: custom:energy-burndown-card
+type: custom:energy-horizon-card
 entity: sensor.energy_consumption_total
 comparison_mode: month_over_year
 language: pl          # override: show this card in Polish
@@ -52,7 +52,7 @@ Use a language code that has a translation file in `src/translations/` (e.g. `en
 ### Override number formatting
 
 ```yaml
-type: custom:energy-burndown-card
+type: custom:energy-horizon-card
 entity: sensor.energy_consumption_total
 comparison_mode: month_over_year
 number_format: comma  # override: use decimal comma (e.g. 1 234,5)

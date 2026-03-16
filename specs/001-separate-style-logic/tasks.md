@@ -42,11 +42,11 @@
 
 ### Implementation for User Story 1
 
-- [X] T007 [P] [US1] Utworzyć nowy moduł stylów karty w `src/card/energy-burndown-card-styles.ts` z eksportem zawierającym dotychczasowe style karty
-- [X] T008 [P] [US1] Przenieść wszystkie deklaracje stylów z `src/card/cumulative-comparison-chart.ts` (np. `static styles = css\`...\``) do `src/card/energy-burndown-card-styles.ts`, pozostawiając w głównym komponencie wyłącznie import stylów
-- [X] T009 [US1] Zaktualizować `src/card/cumulative-comparison-chart.ts`, aby importował styl z `src/card/energy-burndown-card-styles.ts` i używał go jako `static styles`, bez dodatkowych inline‑styli
+- [X] T007 [P] [US1] Utworzyć nowy moduł stylów karty w `src/card/energy-horizon-card-styles.ts` z eksportem zawierającym dotychczasowe style karty
+- [X] T008 [P] [US1] Przenieść wszystkie deklaracje stylów z `src/card/cumulative-comparison-chart.ts` (np. `static styles = css\`...\``) do `src/card/energy-horizon-card-styles.ts`, pozostawiając w głównym komponencie wyłącznie import stylów
+- [X] T009 [US1] Zaktualizować `src/card/cumulative-comparison-chart.ts`, aby importował styl z `src/card/energy-horizon-card-styles.ts` i używał go jako `static styles`, bez dodatkowych inline‑styli
 - [X] T010 [US1] Upewnić się, że nowy plik stylów zawiera wyłącznie odpowiedzialność wizualną (kolory, spacing, typografia, layout) i nie odnosi się do logiki danych (brak wywołań metod, brak zależności od `hass`, itp.)
-- [X] T011 [US1] Ręcznie przetestować kartę w Home Assistant (co najmniej jeden motyw) zmieniając wybrane reguły w `src/card/energy-burndown-card-styles.ts` i potwierdzić, że:
+- [X] T011 [US1] Ręcznie przetestować kartę w Home Assistant (co najmniej jeden motyw) zmieniając wybrane reguły w `src/card/energy-horizon-card-styles.ts` i potwierdzić, że:
   - zmienia się tylko wygląd (kolory/layout),
   - brak jest błędów w konsoli,
   - wszystkie dane, wykres i tekstowe podsumowania działają jak wcześniej.
@@ -76,13 +76,13 @@
 
 **Goal**: Logika pobierania danych i obliczeń jest całkowicie oddzielona od implementacji stylów; zmiany w logice nie wymagają ingerencji w plik stylów i odwrotnie.
 
-**Independent Test**: Tester wprowadza modyfikację w logice (np. w `src/card/ha-api.ts` lub algorytmie prognozy) i potwierdza, że nie trzeba dotykać `src/card/energy-burndown-card-styles.ts`, a wygląd karty pozostaje niezmieniony.
+**Independent Test**: Tester wprowadza modyfikację w logice (np. w `src/card/ha-api.ts` lub algorytmie prognozy) i potwierdza, że nie trzeba dotykać `src/card/energy-horizon-card-styles.ts`, a wygląd karty pozostaje niezmieniony.
 
 ### Implementation for User Story 3
 
 - [X] T016 [P] [US3] Zidentyfikować wszystkie miejsca, w których logika karty potencjalnie odnosi się do konkretnych klas CSS lub szczegółów stylów (np. w `src/card/cumulative-comparison-chart.ts`, `src/card/chart-renderer.ts`, `src/card/ha-api.ts`)
 - [X] T017 [US3] Usunąć lub zrefaktoryzować takie zależności tak, aby logika operowała wyłącznie na danych i strukturze (np. elementach DOM, danych wejściowych/wyjściowych), a nie na nazwach klas lub konkretnych implementacjach stylów
-- [X] T018 [US3] Zweryfikować, że zmiany w pliku `src/card/energy-burndown-card-styles.ts` (np. dodanie nowej klasy wizualnej, zmiana kolorów) nie wymagają zmian w `src/card/ha-api.ts` ani w kodzie generującym serie do wykresu
+- [X] T018 [US3] Zweryfikować, że zmiany w pliku `src/card/energy-horizon-card-styles.ts` (np. dodanie nowej klasy wizualnej, zmiana kolorów) nie wymagają zmian w `src/card/ha-api.ts` ani w kodzie generującym serie do wykresu
 - [X] T019 [US3] Dodać krótką notatkę do `specs/001-separate-style-logic/spec.md` (np. w „Success Criteria” lub „Key Entities”), opisując granicę odpowiedzialności między modułem stylów a modułami logiki
 
 **Checkpoint**: Logika danych i stylizacja są luźno powiązane (przez klasy/strukturę HTML), ale nie współdzielą implementacji; refaktoryzacja jednej warstwy nie wymusza zmian w drugiej.
