@@ -48,7 +48,7 @@ card_mod:
 ### Zmiana marginesów wokół statystyk
 
 ```yaml
-type: custom:energy-burndown-card
+type: custom:energy-horizon-card
 entity: sensor.energy_consumption_total
 comparison_mode: year_over_year
 card_mod:

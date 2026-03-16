@@ -11709,5 +11709,5 @@ An.properties = {
   _state: { state: !0 }
 }, An.styles = wg;
 let wr = An;
-customElements.define("energy-burndown-card", EnergyBurndownCard);
+customElements.define("energy-horizon-card", EnergyBurndownCard);
 //# sourceMappingURL=energy-horizon-card.js.map

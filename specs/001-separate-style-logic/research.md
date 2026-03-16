@@ -35,7 +35,7 @@ Rozważane warianty:
 
 ### Decyzja
 
-**Decyzja**: Używamy **osobnego modułu TS** (`energy-burndown-card-styles.ts`), który eksportuje `css` / `CSSResult` konsumowany przez `cumulative-comparison-chart.ts` jako `static styles`.  
+**Decyzja**: Używamy **osobnego modułu TS** (`energy-horizon-card-styles.ts`), który eksportuje `css` / `CSSResult` konsumowany przez `cumulative-comparison-chart.ts` jako `static styles`.  
 Jest to najprostsze rozwiązanie, które jednocześnie:
 - spełnia wymagania separacji stylów od logiki,  
 - pozostaje kompatybilne z dotychczasowym sposobem pisania styli w LitElement,  
@@ -96,11 +96,11 @@ Logice NIE wolno:
 **Ryzyko 3**: Zwiększenie liczby plików utrudnia orientację początkującym.  
 **Mitigacja**:  
 - `quickstart.md` wskazuje jednoznacznie, gdzie jest logika, a gdzie style,  
-- nazwa modułu styli jest silnie powiązana z kartą (`energy-burndown-card-styles.ts`).
+- nazwa modułu styli jest silnie powiązana z kartą (`energy-horizon-card-styles.ts`).
 
 ## 5. Podsumowanie decyzji
 
-- **Decyzja 1**: Używamy **osobnego modułu TS z `css`** jako warstwy styli (`energy-burndown-card-styles.ts`).  
+- **Decyzja 1**: Używamy **osobnego modułu TS z `css`** jako warstwy styli (`energy-horizon-card-styles.ts`).  
 - **Decyzja 2**: Główny komponent karty (`cumulative-comparison-chart.ts`) importuje moduł styli i deklaruje go jako `static styles`, nie przechowując styli inline.  
 - **Decyzja 3**: Logika (w tym integracja z Chart.js i HA API) pozostaje w osobnych plikach i nie zawiera bezpośrednich styli.  
 - **Decyzja 4**: Kontrakt między stylami a logiką (klasy `.ebc-*`, sekcje layoutu) jest udokumentowany w katalogu `contracts/` oraz w `quickstart.md`.

@@ -20,7 +20,7 @@ describe("resolveLocale", () => {
   };
 
   const baseConfig: CardConfig = {
-    type: "custom:energy-burndown-card",
+    type: "custom:energy-horizon-card",
     entity: "sensor.energy",
     comparison_mode: "year_over_year"
   };

@@ -10,7 +10,7 @@ Karta automatycznie korzysta z motywów Home Assistant (jasny/ciemny) poprzez CS
 
 **Jak przetestować:**
 
-1. Włącz kartę `energy-burndown-card` na dashboardzie.  
+1. Włącz kartę `energy-horizon-card` na dashboardzie.  
 2. Przełącz interfejs HA między motywem jasnym i ciemnym.  
 3. Sprawdź, że:
    - tekst i wykres są czytelne w obu motywach,
@@ -39,7 +39,7 @@ Klasy te można wykorzystywać w zewnętrznych stylach (np. Card‑Mod), aby:
 ## 3. Szybki test z Card‑Mod (przykład)
 
 ```yaml
-type: custom:energy-burndown-card
+type: custom:energy-horizon-card
 entity: sensor.energy_consumption_total
 comparison_mode: year_over_year
 card_mod:

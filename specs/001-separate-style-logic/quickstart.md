@@ -5,7 +5,7 @@ Ten dokument pokazuje, jak w praktyce korzystać z separacji **stylów** i **log
 ## 1. Gdzie znajdują się style, a gdzie logika?
 
 - **Styl karty (warstwa wizualna)**  
-  - Plik: `src/card/energy-burndown-card-styles.ts`  
+  - Plik: `src/card/energy-horizon-card-styles.ts`  
   - Zawiera: deklaracje `css\`...\`` / `CSSResult` używane przez LitElement (`static styles`).  
   - Odpowiada za: kolory, typografię, spacing, layout, responsywność.
 
@@ -18,11 +18,11 @@ Ten dokument pokazuje, jak w praktyce korzystać z separacji **stylów** i **log
     - `src/card/ha-api.ts` – mapowanie i przetwarzanie danych z Home Assistant,  
     - `src/card/chart-renderer.ts` – integracja z Chart.js.  
 
-Jeśli chcesz **tylko zmienić wygląd**, zwykle wystarczy edytować `energy-burndown-card-styles.ts`.
+Jeśli chcesz **tylko zmienić wygląd**, zwykle wystarczy edytować `energy-horizon-card-styles.ts`.
 
 ## 2. Zmiana kolorów i typografii karty
 
-1. Otwórz `src/card/energy-burndown-card-styles.ts`.  
+1. Otwórz `src/card/energy-horizon-card-styles.ts`.  
 2. Zlokalizuj reguły odpowiadające za globalny wygląd karty, np. selektor `.ebc-card` lub `.ebc-header`.  
 3. Zmień wartości styli tak, aby korzystały z pożądanych kolorów (najlepiej poprzez CSS variables HA, np. `var(--primary-color)`, `var(--secondary-text-color)`).  
 4. Zbuduj projekt (`npm run build`) i przeładuj zasoby karty w HA (lub odśwież stronę z dashboardem).
@@ -42,7 +42,7 @@ Wygląd karty (kolory, fonty) zmienia się, ale:
    - prognoza – element z klasą `.ebc-forecast`,  
    - wykres – element z klasą `.ebc-chart`.  
 4. Zmień kolejność tych bloków w `render()`, zgodnie z pożądanym layoutem (np. przesuń sekcję prognozy nad wykres).  
-5. Jeśli to konieczne, dopracuj marginesy/wysokości w `energy-burndown-card-styles.ts`.
+5. Jeśli to konieczne, dopracuj marginesy/wysokości w `energy-horizon-card-styles.ts`.
 
 **Oczekiwany efekt**:  
 Kolejność sekcji zmienia się, ale:
@@ -58,13 +58,13 @@ Jeśli pracujesz nad:
 
 to:
 - edytuj odpowiednio `ha-api.ts`, `chart-renderer.ts` lub logikę w `cumulative-comparison-chart.ts`,  
-- **nie modyfikuj** `energy-burndown-card-styles.ts`, chyba że wprowadzasz zupełnie nową sekcję UI, która wymaga nowych klas.
+- **nie modyfikuj** `energy-horizon-card-styles.ts`, chyba że wprowadzasz zupełnie nową sekcję UI, która wymaga nowych klas.
 
 ## 5. Szybki checklist dla bezpiecznych zmian wizualnych
 
 Przed commitem zmian wizualnych:
 
-- [ ] Zmiany wprowadzone wyłącznie w `energy-burndown-card-styles.ts` **lub** w strukturze HTML `render()` (`cumulative-comparison-chart.ts`).  
+- [ ] Zmiany wprowadzone wyłącznie w `energy-horizon-card-styles.ts` **lub** w strukturze HTML `render()` (`cumulative-comparison-chart.ts`).  
 - [ ] Żaden z plików logiki (`ha-api.ts`, `chart-renderer.ts`) nie został zmodyfikowany, jeśli zmiana dotyczy tylko wyglądu.  
 - [ ] Karta buduje się (`npm run build`), a dashboard ładuje się bez błędów JS.  
 - [ ] W losowo wybranej konfiguracji karty sprawdziłeś, że dane nadal mają sens (zużycie, porównanie, prognoza).
