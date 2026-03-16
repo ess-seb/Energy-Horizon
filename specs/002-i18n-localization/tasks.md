@@ -84,11 +84,11 @@ description: "Tasks for feature 002-i18n-localization – Energy Burndown Card"
 
 ### Implementation for User Story 2
 
-- [ ] T020 [P] [US2] Extend `resolveLocale(hass, config)` in `src/card/localize.ts` to prioritise `config.language` and `config.number_format` over `hass.locale` values and defaults
-- [ ] T021 [US2] Ensure `CardConfig` in `src/card/types.ts` exposes `language?` and `number_format?` to the card component and that `src/card/cumulative-comparison-chart.ts` passes YAML overrides into `resolveLocale`
-- [ ] T022 [US2] Implement validation and safe fallback for invalid `language` and `number_format` values in `src/card/localize.ts`, logging warnings when `config.debug === true`
-- [ ] T023 [P] [US2] Add unit tests in `tests/unit/localize-locale-resolution.test.ts` covering YAML overrides for `language` and `number_format` and verifying that they take precedence over HA global settings
-- [ ] T024 [US2] Update documentation snippet in `specs/002-i18n-localization/quickstart.md` if needed to reflect final `language` and `number_format` override behaviour
+- [x] T020 [P] [US2] Extend `resolveLocale(hass, config)` in `src/card/localize.ts` to prioritise `config.language` and `config.number_format` over `hass.locale` values and defaults
+- [x] T021 [US2] Ensure `CardConfig` in `src/card/types.ts` exposes `language?` and `number_format?` to the card component and that `src/card/cumulative-comparison-chart.ts` passes YAML overrides into `resolveLocale`
+- [x] T022 [US2] Implement validation and safe fallback for invalid `language` and `number_format` values in `src/card/localize.ts`, logging warnings when `config.debug === true`
+- [x] T023 [P] [US2] Add unit tests in `tests/unit/localize-locale-resolution.test.ts` covering YAML overrides for `language` and `number_format` and verifying that they take precedence over HA global settings
+- [x] T024 [US2] Update documentation snippet in `specs/002-i18n-localization/quickstart.md` if needed to reflect final `language` and `number_format` override behaviour
 
 **Checkpoint**: User Story 2 complete – per-card locale overrides work independently of global HA settings and can be tested by YAML-only configuration changes.
 
