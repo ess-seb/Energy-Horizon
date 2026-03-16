@@ -80,6 +80,44 @@ describe("EnergyBurndownCard localization", () => {
     expect((card as any)._state.status).toBe("error");
     expect((card as any)._state.errorMessage).toBe("error.missing_translation");
   });
+
+  it("unsupported hass locale shows English labels via dictionary fallback", () => {
+    const hass = createBaseHass("en");
+    (hass as { language: string }).language = "xx";
+    if (hass.locale) hass.locale.language = "xx";
+    const card = new EnergyBurndownCard();
+    card.hass = hass;
+    card.setConfig(baseConfig);
+
+    const resolved = resolveLocale(card.hass, card._config);
+    const localize = createLocalize(resolved.language);
+
+    // createLocalize("xx") falls back to en when xx has no dictionary
+    expect((card as any)._localizeOrError(localize, "summary.current_period")).toBe("Current period");
+  });
+
+  it("YAML language override overrides hass locale", () => {
+    const hass = createBaseHass("en");
+    const card = new EnergyBurndownCard();
+    card.hass = hass;
+    card.setConfig({ ...baseConfig, language: "pl" });
+
+    const resolved = resolveLocale(card.hass, card._config);
+    const localize = createLocalize(resolved.language);
+
+    expect(resolved.language).toBe("pl");
+    expect((card as any)._localizeOrError(localize, "summary.current_period")).toBe("Bieżący okres");
+  });
+
+  it("renders nothing when hass is missing (safe empty state)", () => {
+    const card = new EnergyBurndownCard();
+    (card as { hass?: HomeAssistant }).hass = undefined as unknown as HomeAssistant;
+    card.setConfig(baseConfig);
+
+    const fragment = (card as any).render();
+    // When hass is missing, render() returns empty template
+    expect(fragment?.strings?.join("")).toBe("");
+  });
 });
 
 

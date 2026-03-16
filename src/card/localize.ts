@@ -76,8 +76,13 @@ function interpolateTemplate(
   });
 }
 
+/**
+ * Resolves language, number format, and time zone from HA and card config.
+ * Handles missing or partial hass (e.g. during card init): returns safe defaults
+ * (en, system, UTC) when hass is undefined.
+ */
 export function resolveLocale(
-  hass: HomeAssistant,
+  hass: HomeAssistant | null | undefined,
   config: CardConfig
 ): ResolvedLocale {
   const configLanguage = config.language;
@@ -94,8 +99,8 @@ export function resolveLocale(
             }
             return FALLBACK_LANGUAGE;
           })()
-      : hass.locale?.language ||
-        hass.language ||
+      : hass?.locale?.language ||
+        hass?.language ||
         FALLBACK_LANGUAGE;
 
   const configNumberFormat = config.number_format;
@@ -112,10 +117,10 @@ export function resolveLocale(
             }
             return "system";
           })()
-      : (hass.locale?.number_format as NumberFormat | undefined) ?? "system";
+      : (hass?.locale?.number_format as NumberFormat | undefined) ?? "system";
 
   const timeZone =
-    hass.config?.time_zone ||
+    hass?.config?.time_zone ||
     // fall back to UTC if HA does not provide a time zone
     "UTC";
 

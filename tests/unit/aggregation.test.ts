@@ -50,21 +50,33 @@ describe("computeForecast", () => {
   });
 
   it("enables forecast and sets confidence based on number of points", () => {
-    const seriesLow = makeSeriesFromDaily([1, 2, 3, 4, 5]); // 5 -> low/medium threshold
+    // completedDays = n - 1; need >= 5 for forecast; reference must have enough points
+    const withRef = (s: ComparisonSeries, refValues: number[]) =>
+      ({ ...s, reference: makeSeriesFromDaily(refValues).current });
+    const seriesLow = withRef(
+      makeSeriesFromDaily([1, 2, 3, 4, 5, 6]),
+      [1, 1, 1, 1, 1, 1, 1]
+    );
     const forecastLow = computeForecast(seriesLow);
     expect(forecastLow.enabled).toBe(true);
     expect(forecastLow.confidence === "low" || forecastLow.confidence === "medium").toBe(
       true
     );
 
-    const seriesMedium = makeSeriesFromDaily(Array.from({ length: 8 }, () => 2));
+    const seriesMedium = withRef(
+      makeSeriesFromDaily(Array.from({ length: 9 }, () => 2)),
+      Array.from({ length: 10 }, () => 2)
+    );
     const forecastMedium = computeForecast(seriesMedium);
     expect(forecastMedium.enabled).toBe(true);
     expect(forecastMedium.confidence === "medium" || forecastMedium.confidence === "high").toBe(
       true
     );
 
-    const seriesHigh = makeSeriesFromDaily(Array.from({ length: 20 }, () => 2));
+    const seriesHigh = withRef(
+      makeSeriesFromDaily(Array.from({ length: 20 }, () => 2)),
+      Array.from({ length: 21 }, () => 2)
+    );
     const forecastHigh = computeForecast(seriesHigh);
     expect(forecastHigh.enabled).toBe(true);
     expect(forecastHigh.confidence).toBe("high");

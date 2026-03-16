@@ -15,6 +15,7 @@ A Lovelace card for Home Assistant that compares cumulative energy usage between
 - **Forecast** – Predicted total usage for the current period based on observed data, with confidence level
 - **Flexible periods** – Year-over-year or month-over-year comparison
 - **Aggregation** – Daily, weekly, or monthly aggregation of data
+- **Localization (i18n)** – Card follows your Home Assistant language and number format. Optional per-card overrides: `language` and `number_format` in YAML. Supported languages include English, Polish, and German (others can be added via translation files).
 
 ## Requirements
 
@@ -72,6 +73,8 @@ comparison_mode: year_over_year
 | `show_forecast`   | boolean  | `true`             | Show forecast of total usage for current period                            |
 | `precision`       | number   | `1`                | Decimal places for numeric values                                          |
 | `title`           | string   | -                  | Optional card title                                                        |
+| `language`        | string   | from HA            | Override dashboard language for this card only (e.g. `en`, `pl`, `de`)     |
+| `number_format`   | string   | from HA            | Override number format: `comma`, `decimal`, `language`, or `system`         |
 | `debug`           | boolean  | `false`            | Log API query/response to browser console (F12) for troubleshooting        |
 
 ### Example configurations
@@ -91,6 +94,15 @@ entity: sensor.energy_consumption_total
 comparison_mode: month_over_year
 aggregation: day
 show_forecast: true
+```
+
+**Language override (e.g. show this card in Polish while dashboard is in English):**
+```yaml
+type: custom:energy-burndown-card
+entity: sensor.energy_consumption_total
+comparison_mode: year_over_year
+language: pl
+number_format: comma
 ```
 
 ## Supported entities

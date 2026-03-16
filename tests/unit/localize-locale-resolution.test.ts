@@ -150,6 +150,49 @@ describe("resolveLocale", () => {
     expect(warnSpy).not.toHaveBeenCalled();
     warnSpy.mockRestore();
   });
+
+  it("returns safe defaults when hass is undefined (card init)", () => {
+    const resolved = resolveLocale(undefined, baseConfig);
+
+    expect(resolved.language).toBe("en");
+    expect(resolved.numberFormat).toBe("system");
+    expect(resolved.timeZone).toBe("UTC");
+  });
+
+  it("returns safe defaults when hass is null", () => {
+    const resolved = resolveLocale(null, baseConfig);
+
+    expect(resolved.language).toBe("en");
+    expect(resolved.numberFormat).toBe("system");
+    expect(resolved.timeZone).toBe("UTC");
+  });
+
+  it("handles partial hass.locale (missing locale object)", () => {
+    const hassNoLocale = { ...baseHass, locale: undefined };
+    const resolved = resolveLocale(hassNoLocale, baseConfig);
+
+    expect(resolved.language).toBe("en");
+    expect(resolved.numberFormat).toBe("system");
+    expect(resolved.timeZone).toBe("Europe/Warsaw");
+  });
+
+  it("handles partial hass.locale (language set, number_format missing)", () => {
+    const hassPartial = {
+      ...baseHass,
+      locale: { language: "pl" }
+    };
+    const resolved = resolveLocale(hassPartial, baseConfig);
+
+    expect(resolved.language).toBe("pl");
+    expect(resolved.numberFormat).toBe("system");
+  });
+
+  it("handles missing hass.config (time zone fallback to UTC)", () => {
+    const hassNoConfig = { ...baseHass, config: undefined };
+    const resolved = resolveLocale(hassNoConfig, baseConfig);
+
+    expect(resolved.timeZone).toBe("UTC");
+  });
 });
 
 describe("numberFormatToLocale", () => {

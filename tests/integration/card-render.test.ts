@@ -1,6 +1,7 @@
 import { describe, it, expect } from "vitest";
 import "../helpers/setup-dom";
-import "../../src/index";
+// Ensure custom element is defined before tests run (side-effect registration)
+import "../../src/card/cumulative-comparison-chart";
 import type { HomeAssistant } from "../../src/ha-types";
 
 describe("energy-burndown-card integration", () => {
