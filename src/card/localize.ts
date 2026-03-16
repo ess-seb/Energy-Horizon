@@ -23,10 +23,30 @@ import pl from "../translations/pl.json";
 
 const FALLBACK_LANGUAGE = "en";
 
+const VALID_NUMBER_FORMATS: readonly NumberFormat[] = [
+  "comma",
+  "decimal",
+  "language",
+  "system"
+];
+
+function isValidNumberFormat(
+  value: unknown
+): value is NumberFormat {
+  return (
+    typeof value === "string" &&
+    (VALID_NUMBER_FORMATS as readonly string[]).includes(value)
+  );
+}
+
 const DICTIONARIES: Record<string, TranslationDictionary> = {
   en,
   pl
 };
+
+function hasDictionary(language: string): boolean {
+  return Object.prototype.hasOwnProperty.call(DICTIONARIES, language);
+}
 
 function interpolateTemplate(
   template: string,
@@ -46,16 +66,39 @@ export function resolveLocale(
   hass: HomeAssistant,
   config: CardConfig
 ): ResolvedLocale {
-  const language =
-    config.language ||
-    hass.locale?.language ||
-    hass.language ||
-    FALLBACK_LANGUAGE;
+  const configLanguage = config.language;
+  const language: string =
+    configLanguage !== undefined && configLanguage !== ""
+      ? hasDictionary(configLanguage)
+        ? configLanguage
+        : (() => {
+            if (config.debug) {
+              // eslint-disable-next-line no-console
+              console.warn(
+                `[Energy Burndown] Unsupported config.language "${configLanguage}", falling back to "${FALLBACK_LANGUAGE}"`
+              );
+            }
+            return FALLBACK_LANGUAGE;
+          })()
+      : hass.locale?.language ||
+        hass.language ||
+        FALLBACK_LANGUAGE;
 
+  const configNumberFormat = config.number_format;
   const numberFormat: NumberFormat =
-    (config.number_format as NumberFormat | undefined) ||
-    (hass.locale?.number_format as NumberFormat | undefined) ||
-    "system";
+    configNumberFormat !== undefined
+      ? isValidNumberFormat(configNumberFormat)
+        ? configNumberFormat
+        : (() => {
+            if (config.debug) {
+              // eslint-disable-next-line no-console
+              console.warn(
+                `[Energy Burndown] Invalid config.number_format "${String(configNumberFormat)}", falling back to "system"`
+              );
+            }
+            return "system";
+          })()
+      : (hass.locale?.number_format as NumberFormat | undefined) ?? "system";
 
   const timeZone =
     hass.config?.time_zone ||

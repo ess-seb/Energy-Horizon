@@ -24,7 +24,13 @@ That's it. No code changes required outside the new JSON file.
 
 ---
 
-## Override language for a single card
+## Override language and number format for a single card
+
+Card YAML keys `language` and `number_format` override the global Home Assistant locale for that card only. Priority: **card config (YAML) → `hass.locale` → safe defaults** (`language` → `"en"`, `number_format` → `"system"`).
+
+Invalid or unsupported values fall back to those defaults. With `debug: true`, the card logs a console warning when a fallback is used.
+
+### Override language
 
 ```yaml
 type: custom:energy-burndown-card
@@ -33,9 +39,9 @@ comparison_mode: month_over_year
 language: pl          # override: show this card in Polish
 ```
 
----
+Use a language code that has a translation file in `src/translations/` (e.g. `en`, `pl`). Unsupported values fall back to English.
 
-## Override number formatting for a single card
+### Override number formatting
 
 ```yaml
 type: custom:energy-burndown-card
@@ -44,7 +50,7 @@ comparison_mode: month_over_year
 number_format: comma  # override: use decimal comma (e.g. 1 234,5)
 ```
 
-Valid values for `number_format`: `comma`, `decimal`, `language`, `system` (same as HA settings).
+Valid values for `number_format`: `comma`, `decimal`, `language`, `system` (same as HA settings). Invalid values fall back to `system`.
 
 ---
 
