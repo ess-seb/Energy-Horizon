@@ -125,8 +125,8 @@ export class EnergyHorizonCard extends LitElement implements LovelaceCard {
     try {
       if (this._config.debug) {
         // eslint-disable-next-line no-console
-        console.log("[Energy Burndown] API Query (current):", currentQuery);
-        console.log("[Energy Burndown] API Query (reference):", referenceQuery);
+        console.log("[Energy Horizon] API Query (current):", currentQuery);
+        console.log("[Energy Horizon] API Query (reference):", referenceQuery);
       }
 
       const [currentResponse, referenceResponse] = await Promise.all([
@@ -146,31 +146,31 @@ export class EnergyHorizonCard extends LitElement implements LovelaceCard {
           (data as { results?: Record<string, unknown> }).results ??
           (data as Record<string, unknown>);
         // eslint-disable-next-line no-console
-        console.log("[Energy Burndown] API Response (current, raw):", currentResponse);
+        console.log("[Energy Horizon] API Response (current, raw):", currentResponse);
         if (results && typeof results === "object") {
           const keys = Object.keys(results);
           // eslint-disable-next-line no-console
           console.log(
-            "[Energy Burndown] Results keys (available statistic_ids):",
+            "[Energy Horizon] Results keys (available statistic_ids):",
             keys
           );
           const entityData = results[this._config.entity];
           // eslint-disable-next-line no-console
           console.log(
-            `[Energy Burndown] Data for entity "${this._config.entity}":`,
+            `[Energy Horizon] Data for entity "${this._config.entity}":`,
             entityData
               ? `${Array.isArray(entityData) ? entityData.length : 0} points`
               : "not found"
           );
           // eslint-disable-next-line no-console
           console.log(
-            "[Energy Burndown] Reference API Response (raw):",
+            "[Energy Horizon] Reference API Response (raw):",
             referenceResponse
           );
         } else {
           // eslint-disable-next-line no-console
           console.log(
-            "[Energy Burndown] No results in response or invalid structure"
+            "[Energy Horizon] No results in response or invalid structure"
           );
         }
       }
@@ -186,7 +186,7 @@ export class EnergyHorizonCard extends LitElement implements LovelaceCard {
         if (this._config.debug) {
           // eslint-disable-next-line no-console
           console.log(
-            "[Energy Burndown] current series could not be built – check entity ID and results structure above"
+            "[Energy Horizon] current series could not be built – check entity ID and results structure above"
           );
         }
         this._state = { status: "no-data" };
@@ -488,11 +488,11 @@ export class EnergyHorizonCard extends LitElement implements LovelaceCard {
   }
 }
 
-customElements.define("energy-horizon-card", EnergyBurndownCard);
+customElements.define("energy-horizon-card", EnergyHorizonCard);
 
 declare global {
   interface HTMLElementTagNameMap {
-    "energy-horizon-card": EnergyBurndownCard;
+    "energy-horizon-card": EnergyHorizonCard;
   }
 }
 
