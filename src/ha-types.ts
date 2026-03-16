@@ -8,13 +8,13 @@ export interface HomeAssistant {
     time_zone?: string;
   };
   connection: {
-    sendMessagePromise<T = unknown>(msg: Record<string, unknown>): Promise<T>;
+    sendMessagePromise<T = unknown>(_msg: Record<string, unknown>): Promise<T>;
   };
 }
 
 export interface LovelaceCard extends HTMLElement {
   hass: HomeAssistant;
-  setConfig(config: unknown): void;
+  setConfig(_config: unknown): void;
   getCardSize?(): number;
 }
 

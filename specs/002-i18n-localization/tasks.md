@@ -133,11 +133,11 @@ description: "Tasks for feature 002-i18n-localization – Energy Burndown Card"
 
 **Purpose**: Improvements that affect multiple user stories and overall i18n quality.
 
-- [ ] T034 [P] Review translation copy in `src/translations/en.json` and `src/translations/pl.json` for clarity, tone, and consistency with Home Assistant UI
-- [ ] T035 [P] Add or refine Vitest snapshot tests in `tests/unit/` to cover common dashboard scenarios (different locales, overrides, missing keys)
-- [ ] T036 Ensure edge cases from `spec.md` (missing `hass`, partial `hass.locale`, corrupted translation files) are handled gracefully in `src/card/localize.ts` and `src/card/cumulative-comparison-chart.ts`
-- [ ] T037 [P] Update README or HACS documentation snippet (if present) to mention localization support and configuration options
-- [ ] T038 Run `npm test && npm run lint` at repo root and fix any remaining localization-related issues
+- [x] T034 [P] Review translation copy in `src/translations/en.json` and `src/translations/pl.json` for clarity, tone, and consistency with Home Assistant UI
+- [x] T035 [P] Add or refine Vitest snapshot tests in `tests/unit/` to cover common dashboard scenarios (different locales, overrides, missing keys)
+- [x] T036 Ensure edge cases from `spec.md` (missing `hass`, partial `hass.locale`, corrupted translation files) are handled gracefully in `src/card/localize.ts` and `src/card/cumulative-comparison-chart.ts`
+- [x] T037 [P] Update README or HACS documentation snippet (if present) to mention localization support and configuration options
+- [x] T038 Run `npm test && npm run lint` at repo root and fix any remaining localization-related issues
 
 ---
 

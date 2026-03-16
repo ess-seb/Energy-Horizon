@@ -29,7 +29,10 @@ export class ChartRenderer {
   private chart?: Chart;
   private lastHash?: string;
 
-  constructor(private readonly canvas: HTMLCanvasElement) {}
+  constructor(canvas: HTMLCanvasElement) {
+    this.canvas = canvas;
+  }
+  private readonly canvas: HTMLCanvasElement;
 
   private getThemeColors(): {
     currentLine: string;

@@ -34,7 +34,7 @@ export class EnergyBurndownCard extends LitElement implements LovelaceCard {
   static styles = energyBurndownCardStyles;
 
   private _localizeOrError(
-    baseLocalize: (key: string, vars?: Record<string, string | number>) => string,
+    baseLocalize: (_key: string, _vars?: Record<string, string | number>) => string,
     key: string,
     vars?: Record<string, string | number>
   ): string {

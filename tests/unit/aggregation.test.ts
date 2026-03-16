@@ -4,10 +4,10 @@ import type { ComparisonSeries } from "../../src/card/types";
 
 function makeSeriesFromDaily(values: number[]): ComparisonSeries {
   const start = new Date("2024-01-01T00:00:00Z").getTime();
-
   const points = values.map((v, idx) => ({
     timestamp: start + idx * 24 * 60 * 60 * 1000,
-    value: v
+    value: v,
+    rawValue: v
   }));
 
   return {
