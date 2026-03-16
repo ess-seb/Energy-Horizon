@@ -1,13 +1,13 @@
-# Implementation Plan: Energy Burndown Cumulative Comparison Card
+# Implementation Plan: Energy Horizon Cumulative Comparison Card
 
-**Branch**: `001-energy-burndown-card` | **Date**: 2026-03-10 | **Spec**: `specs/001-energy-burndown-card/spec.md`
-**Input**: Feature specification from `/specs/001-energy-burndown-card/spec.md`
+**Branch**: `001-energy-horizon-card` | **Date**: 2026-03-10 | **Spec**: `specs/001-energy-horizon-card/spec.md`
+**Input**: Feature specification from `/specs/001-energy-horizon-card/spec.md`
 
 **Note**: Plan prepared for a custom Lovelace card implemented in TypeScript + LitElement, using Chart.js and Home Assistant Long-Term Statistics over WebSocket.
 
 ## Summary
 
-Energy Burndown Cumulative Comparison Card dostarcza użytkownikowi jeden, syntetyczny wykres porównujący skumulowane zużycie energii w bieżącym okresie z analogicznym okresem historycznym (np. rok do roku, miesiąc do miesiąca) oraz prosty tekstowy panel ze skumulowanymi wartościami i prognozą końcowego zużycia.  
+Energy Horizon Cumulative Comparison Card dostarcza użytkownikowi jeden, syntetyczny wykres porównujący skumulowane zużycie energii w bieżącym okresie z analogicznym okresem historycznym (np. rok do roku, miesiąc do miesiąca) oraz prosty tekstowy panel ze skumulowanymi wartościami i prognozą końcowego zużycia.  
 Technicznie karta będzie pojedynczym web komponentem LitElement, budowanym przez Vite jako bundle do wykorzystania w Home Assistant, wykorzystującym Chart.js (z gradientami i markerami) oraz WebSocket API `recorder/statistics_during_period` do pobierania wstępnie zagregowanych statystyk długoterminowych bez lokalnego przetwarzania tysięcy punktów w przeglądarce.
 
 ## Technical Context

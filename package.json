@@ -1,7 +1,7 @@
 {
-  "name": "energy-burndown-card",
+  "name": "energy-horizon-card",
   "version": "0.1.0",
-  "description": "Custom Home Assistant Lovelace card for cumulative energy usage comparison (Energy Burndown).",
+  "description": "Custom Home Assistant Lovelace card for cumulative energy usage comparison (Energy Horizon).",
   "type": "module",
   "scripts": {
     "dev": "vite",

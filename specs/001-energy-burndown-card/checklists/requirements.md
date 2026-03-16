@@ -1,8 +1,8 @@
-# Specification Quality Checklist: Energy Burndown Cumulative Comparison Card
+# Specification Quality Checklist: Energy Horizon Cumulative Comparison Card
 
 **Purpose**: Validate specification completeness and quality before proceeding to planning  
 **Created**: 2026-03-05  
-**Feature**: `specs/001-energy-burndown-card/spec.md`
+**Feature**: `specs/001-energy-horizon-card/spec.md`
 
 ## Content Quality
 

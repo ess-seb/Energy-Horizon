@@ -65,7 +65,7 @@ When a key is absent from both the active language and `en`:
 |-----------|---------|
 | Card render | Blocked – card enters `"error"` state |
 | UI message | `localize("error.missing_translation", { key })` is used; this key is a hardcoded safety string, never looked up dynamically |
-| Console log | If `config.debug === true`: logs `[Energy Burndown] Missing translation key: "<key>" (language: "<lang>")` |
+| Console log | If `config.debug === true`: logs `[Energy Horizon] Missing translation key: "<key>" (language: "<lang>")` |
 | Return value | The raw `key` string is returned so any partial render that occurs during transition to error state shows a readable placeholder |
 
 **`error.missing_translation` is the only translation key that must never be absent**. It is hardcoded as a constant string in `localize.ts` and never looked up from JSON.

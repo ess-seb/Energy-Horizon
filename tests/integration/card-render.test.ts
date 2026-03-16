@@ -3,21 +3,21 @@ import "../helpers/setup-dom";
 import "../../src/index";
 import type { HomeAssistant } from "../../src/ha-types";
 
-describe("energy-burndown-card integration", () => {
+describe("energy-horizon-card integration", () => {
   it("can be instantiated without crashing", () => {
-    const el = document.createElement("energy-burndown-card");
+    const el = document.createElement("energy-horizon-card");
     document.body.appendChild(el);
     expect(el.shadowRoot).toBeDefined();
   });
 
   it("renders loading state when state is loading", () => {
-    const el = document.createElement("energy-burndown-card") as import("../../src/card/cumulative-comparison-chart").EnergyBurndownCard & { setConfig: (c: unknown) => void; hass: HomeAssistant; _state: unknown };
+    const el = document.createElement("energy-horizon-card") as import("../../src/card/cumulative-comparison-chart").EnergyHorizonCard & { setConfig: (c: unknown) => void; hass: HomeAssistant; _state: unknown };
     document.body.appendChild(el);
     if (typeof (el as { setConfig?: unknown }).setConfig !== "function") {
       // Custom element not defined in this env (e.g. JSDOM); skip assertion
       return;
     }
-    el.setConfig({ type: "custom:energy-burndown-card", entity: "sensor.energy", comparison_mode: "year_over_year" });
+    el.setConfig({ type: "custom:energy-horizon-card", entity: "sensor.energy", comparison_mode: "year_over_year" });
     el.hass = {
       language: "pl",
       connection: {
@@ -35,10 +35,10 @@ describe("energy-burndown-card integration", () => {
   });
 
   it("renders error state with message", () => {
-    const el = document.createElement("energy-burndown-card") as import("../../src/card/cumulative-comparison-chart").EnergyBurndownCard & { setConfig: (c: unknown) => void; hass: HomeAssistant; _state: unknown };
+    const el = document.createElement("energy-horizon-card") as import("../../src/card/cumulative-comparison-chart").EnergyHorizonCard & { setConfig: (c: unknown) => void; hass: HomeAssistant; _state: unknown };
     document.body.appendChild(el);
     if (typeof (el as { setConfig?: unknown }).setConfig !== "function") return;
-    el.setConfig({ type: "custom:energy-burndown-card", entity: "sensor.energy", comparison_mode: "year_over_year" });
+    el.setConfig({ type: "custom:energy-horizon-card", entity: "sensor.energy", comparison_mode: "year_over_year" });
     el.hass = {
       language: "pl",
       connection: {
@@ -57,10 +57,10 @@ describe("energy-burndown-card integration", () => {
   });
 
   it("renders no-data state with info alert", () => {
-    const el = document.createElement("energy-burndown-card") as import("../../src/card/cumulative-comparison-chart").EnergyBurndownCard & { setConfig: (c: unknown) => void; hass: HomeAssistant; _state: unknown };
+    const el = document.createElement("energy-horizon-card") as import("../../src/card/cumulative-comparison-chart").EnergyHorizonCard & { setConfig: (c: unknown) => void; hass: HomeAssistant; _state: unknown };
     document.body.appendChild(el);
     if (typeof (el as { setConfig?: unknown }).setConfig !== "function") return;
-    el.setConfig({ type: "custom:energy-burndown-card", entity: "sensor.energy", comparison_mode: "year_over_year" });
+    el.setConfig({ type: "custom:energy-horizon-card", entity: "sensor.energy", comparison_mode: "year_over_year" });
     el.hass = {
       language: "pl",
       connection: {

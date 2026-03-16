@@ -92,7 +92,7 @@ debug: true
 
 If a translation key is missing from both the active language and English, the card will:
 - Show a configuration error message in the UI.
-- Log to the browser console (F12): `[Energy Burndown] Missing translation key: "<key>" (language: "<lang>")`.
+- Log to the browser console (F12): `[Energy Horizon] Missing translation key: "<key>" (language: "<lang>")`.
 
 ---
 

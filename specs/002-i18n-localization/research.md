@@ -1,4 +1,4 @@
-# Research: i18n / l10n – Energy Burndown Card
+# Research: i18n / l10n – Energy Horizon Card
 
 **Feature**: `002-i18n-localization`  
 **Date**: 2026-03-10
@@ -45,7 +45,7 @@
 
 **Findings**:
 - Vite (the project bundler) bundles statically imported JSON files into the output `.js` as part of the module graph.
-- Since the card is a single-file Lovelace resource, all translations must be bundled into `dist/energy-burndown-card.js`.
+- Since the card is a single-file Lovelace resource, all translations must be bundled into `dist/energy-horizon-card.js`.
 - Dynamic `import()` or `fetch()` for JSON files would require network access after card load, which is unreliable in all HA deployment scenarios (local, container, HACS).
 - Static imports mean the bundle size grows by approximately 1–5 KB per language – acceptable given there are only ~25 translation keys currently.
 

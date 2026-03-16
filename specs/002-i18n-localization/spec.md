@@ -8,7 +8,7 @@
 
 ### User Story 1 – Automatic locale from Home Assistant (Priority: P1)
 
-A user opens the Energy Burndown Card on their Home Assistant dashboard. The card automatically reads the language and locale settings from the global HA object (`hass`) and displays all labels, numbers, and dates formatted according to those settings – without any manual configuration in the card YAML.
+A user opens the Energy Horizon Card on their Home Assistant dashboard. The card automatically reads the language and locale settings from the global HA object (`hass`) and displays all labels, numbers, and dates formatted according to those settings – without any manual configuration in the card YAML.
 
 **Why this priority**: This is the baseline experience for all users. Any user who does not touch the card YAML should still see a correctly localized card. Failing this story means every user must manually configure the language.
 
@@ -24,7 +24,7 @@ A user opens the Energy Burndown Card on their Home Assistant dashboard. The car
 
 ### User Story 2 – YAML config overrides global locale (Priority: P2)
 
-A user wants the Energy Burndown Card to display in Polish even though their HA dashboard language is English (or vice versa). They add `language: pl` (and/or `number_format: comma`) to the card's YAML configuration.
+A user wants the Energy Horizon Card to display in Polish even though their HA dashboard language is English (or vice versa). They add `language: pl` (and/or `number_format: comma`) to the card's YAML configuration.
 
 **Why this priority**: Power users often run multi-language households or want one specific card to use a different language from the rest of the dashboard. This override capability is explicitly required.
 

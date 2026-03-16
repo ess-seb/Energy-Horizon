@@ -34,7 +34,7 @@ const CARD_SOURCE_FILES = [
   "ha-api.ts",
   "localize.ts",
   "types.ts",
-  "energy-burndown-card-styles.ts"
+  "energy-horizon-card-styles.ts"
 ];
 
 describe("localize static text guard (US4)", () => {

@@ -1,9 +1,9 @@
 ---
 
-description: "Tasks for feature 002-i18n-localization – Energy Burndown Card"
+description: "Tasks for feature 002-i18n-localization – Energy Horizon Card"
 ---
 
-# Tasks: i18n / l10n – Energy Burndown Card
+# Tasks: i18n / l10n – Energy Horizon Card
 
 **Input**: Design documents from `/specs/002-i18n-localization/`  
 **Prerequisites**: `plan.md`, `spec.md`, `research.md`, `data-model.md`, `contracts/localize-api.md`, `quickstart.md`
@@ -31,7 +31,7 @@ description: "Tasks for feature 002-i18n-localization – Energy Burndown Card"
 **Purpose**: Prepare the repository and environment for implementing localization.
 
 - [X] T001 [P] Confirm `002-i18n-localization` branch is checked out and dependencies installed with `npm install` at repo root
-- [X] T002 [P] Review existing Energy Burndown Card implementation in `src/card/` and current hardcoded strings inventory from `specs/002-i18n-localization/research.md`
+- [X] T002 [P] Review existing Energy Horizon Card implementation in `src/card/` and current hardcoded strings inventory from `specs/002-i18n-localization/research.md`
 - [X] T003 [P] Verify Vitest test runner is configured and working by running `npm test` at repo root
 
 ---
@@ -57,7 +57,7 @@ description: "Tasks for feature 002-i18n-localization – Energy Burndown Card"
 
 ## Phase 3: User Story 1 – Automatic locale from Home Assistant (Priority: P1) 🎯 MVP
 
-**Goal**: When a user adds the Energy Burndown Card without any YAML overrides, the card automatically reads language, number format, and time zone from `hass.locale` / `hass.config` and displays all labels, numbers, and dates using that locale.
+**Goal**: When a user adds the Energy Horizon Card without any YAML overrides, the card automatically reads language, number format, and time zone from `hass.locale` / `hass.config` and displays all labels, numbers, and dates using that locale.
 
 **Independent Test**: Configure HA with Polish or English locale. Add the card without extra YAML keys. Verify that labels, numbers, and dates appear in the correct language and format, and that unsupported HA locales fall back to English (`en`) without errors.
 
@@ -192,7 +192,7 @@ Task: "T019 [P] [US1] Add rendering-level tests in tests/unit/cumulative-compari
 2. Complete Phase 2: Foundational (CRITICAL – blocks all stories).
 3. Complete Phase 3: User Story 1.
 4. **STOP and VALIDATE**: Run tests and perform manual checks for HA locales `pl` and `en` to confirm automatic localization works without YAML overrides.
-5. Deploy/demo as the MVP Energy Burndown Card with localization.
+5. Deploy/demo as the MVP Energy Horizon Card with localization.
 
 ### Incremental Delivery
 

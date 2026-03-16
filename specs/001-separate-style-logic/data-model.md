@@ -2,7 +2,7 @@
 
 ## Overview
 
-Ten feature nie wprowadza nowych bytów domenowych (danych energii), ale definiuje **architektoniczny model** odpowiedzialności wewnątrz karty `Energy Burndown Card`.  
+Ten feature nie wprowadza nowych bytów domenowych (danych energii), ale definiuje **architektoniczny model** odpowiedzialności wewnątrz karty `Energy Horizon Card`.  
 Kluczowe jednostki to:
 
 - `StyleLayer` – moduł stylów karty,  
@@ -14,7 +14,7 @@ Kluczowe jednostki to:
 ### 1. StyleLayer
 
 - **Nazwa**: `StyleLayer`  
-- **Implementacja**: `src/card/energy-burndown-card-styles.ts`  
+- **Implementacja**: `src/card/energy-horizon-card-styles.ts`  
 - **Rola**:  
   - definiuje wygląd karty (`css` / `CSSResult`) na potrzeby LitElement,  
   - korzysta z motywów HA poprzez CSS variables (`--primary-color`, `--accent-color`, `--secondary-text-color`, `--divider-color`, itd.),  
@@ -38,7 +38,7 @@ Kluczowe jednostki to:
 - **Nazwa**: `CardComponent`  
 - **Implementacja**: `src/card/cumulative-comparison-chart.ts`  
 - **Rola**:  
-  - reprezentuje główny web component karty (`custom:energy-burndown-card`),  
+  - reprezentuje główny web component karty (`custom:energy-horizon-card`),  
   - obsługuje konfigurację z HA (`setConfig`, `hass`),  
   - koordynuje pobieranie danych, obliczenia i renderowanie UI (współpracuje z `LogicModules`),  
   - definiuje strukturę HTML i przypisuje semantyczne klasy `.ebc-*`.
@@ -54,7 +54,7 @@ Kluczowe jednostki to:
 
 **Powiązania:**
 
-- Importuje `StyleLayer` (`energy-burndown-card-styles.ts`) i przypisuje go do `static styles`.  
+- Importuje `StyleLayer` (`energy-horizon-card-styles.ts`) i przypisuje go do `static styles`.  
 - Korzysta z `LogicModules` do pobierania danych i przygotowania serii wykresu.  
 - Nie implementuje własnych styli poza przypisaniem `static styles`.
 
@@ -79,7 +79,7 @@ Kluczowe jednostki to:
 ## Relationships
 
 ```text
-StyleLayer (energy-burndown-card-styles.ts)
+StyleLayer (energy-horizon-card-styles.ts)
     ↑  (static styles)
 CardComponent (cumulative-comparison-chart.ts)
     ↕  (dane, wywołania funkcji)

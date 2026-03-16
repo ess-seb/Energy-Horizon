@@ -16,9 +16,9 @@ import {
   numberFormatToLocale,
   MISSING_TRANSLATION_KEY
 } from "./localize";
-import { energyBurndownCardStyles } from "./energy-burndown-card-styles";
+import { energyHorizonCardStyles } from "./energy-horizon-card-styles";
 
-export class EnergyBurndownCard extends LitElement implements LovelaceCard {
+export class EnergyHorizonCard extends LitElement implements LovelaceCard {
   static properties = {
     hass: { type: Object, attribute: false },
     _config: { state: true },
@@ -31,7 +31,7 @@ export class EnergyBurndownCard extends LitElement implements LovelaceCard {
 
   private _chartRenderer?: ChartRenderer;
 
-  static styles = energyBurndownCardStyles;
+  static styles = energyHorizonCardStyles;
 
   private _localizeOrError(
     baseLocalize: (_key: string, _vars?: Record<string, string | number>) => string,
@@ -44,7 +44,7 @@ export class EnergyBurndownCard extends LitElement implements LovelaceCard {
       if (this._config?.debug) {
         // eslint-disable-next-line no-console
         console.warn(
-          `[Energy Burndown] Missing translation key: "${key}" (language: "${resolveLocale(
+          `[Energy Horizon] Missing translation key: "${key}" (language: "${resolveLocale(
             this.hass,
             this._config
           ).language}")`

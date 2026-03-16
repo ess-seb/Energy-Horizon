@@ -3,7 +3,7 @@
 ## Cel researchu
 
 Celem tego dokumentu jest:
-- doprecyzowanie przyjętego podejścia do rozdzielenia warstwy **stylów** od **logiki** w `Energy Burndown Card`,  
+- doprecyzowanie przyjętego podejścia do rozdzielenia warstwy **stylów** od **logiki** w `Energy Horizon Card`,  
 - zebranie minimalnego kontekstu technicznego potrzebnego do bezpiecznej refaktoryzacji istniejącej karty,  
 - wyjaśnienie relacji tego feature’u do wcześniejszego `001-ha-theming-classes`.
 

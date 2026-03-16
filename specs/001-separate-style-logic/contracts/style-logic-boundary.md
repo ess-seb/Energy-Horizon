@@ -7,7 +7,7 @@ Ten dokument definiuje **stabilną granicę** pomiędzy:
 - modułem **stylów** karty (`StyleLayer`), a  
 - modułami **logiki** (`CardComponent` + `LogicModules`)
 
-w ramach `Energy Burndown Card`.
+w ramach `Energy Horizon Card`.
 
 Ma on pomóc:
 - kontrybutorom w zrozumieniu co można, a czego nie należy robić w poszczególnych plikach,  
@@ -18,22 +18,22 @@ Ma on pomóc:
 
 Kontrakt dotyczy następujących plików:
 
-- `src/card/energy-burndown-card-styles.ts` – moduł stylów (`StyleLayer`),  
+- `src/card/energy-horizon-card-styles.ts` – moduł stylów (`StyleLayer`),  
 - `src/card/cumulative-comparison-chart.ts` – główny komponent karty (`CardComponent`),  
 - `src/card/ha-api.ts`, `src/card/chart-renderer.ts` – moduły logiki (`LogicModules`).
 
-## Zasady dla StyleLayer (`energy-burndown-card-styles.ts`)
+## Zasady dla StyleLayer (`energy-horizon-card-styles.ts`)
 
 **Dozwolone:**
 
 - Definiowanie styli przy użyciu `css` / `CSSResult` (LitElement).  
 - Stylowanie elementów za pomocą klas i selektorów:
-  - `.ebc-card` – główny kontener `ha-card`,  
-  - `.ebc-content` – wewnętrzny kontener zawartości,  
-  - `.ebc-header` – sekcja nagłówka,  
-  - `.ebc-stats` – sekcja statystyk liczbowych,  
-  - `.ebc-forecast` – sekcja prognozy,  
-  - `.ebc-chart` – sekcja wykresu (kontener `<canvas>`).  
+  - `.ehc-card` – główny kontener `ha-card`,  
+  - `.ehc-content` – wewnętrzny kontener zawartości,  
+  - `.ehc-header` – sekcja nagłówka,  
+  - `.ehc-stats` – sekcja statystyk liczbowych,  
+  - `.ehc-forecast` – sekcja prognozy,  
+  - `.ehc-chart` – sekcja wykresu (kontener `<canvas>`).  
 - Używanie CSS variables Home Assistanta (np. `--primary-color`, `--accent-color`, `--secondary-text-color`, `--divider-color`) do powiązania wyglądu z motywem.  
 - Kontrolowanie layoutu, typografii, spacingu, kolorów, responsywności.
 
@@ -51,7 +51,7 @@ Kontrakt dotyczy następujących plików:
 
 **Dozwolone:**
 
-- Importowanie `StyleLayer` z `energy-burndown-card-styles.ts` i przypisanie go jako `static styles`.  
+- Importowanie `StyleLayer` z `energy-horizon-card-styles.ts` i przypisanie go jako `static styles`.  
 - Definiowanie struktury HTML w metodzie `render()` z użyciem klas `.ebc-*`:
   - otaczanie sekcji wewnątrz kontenerów z tymi klasami,  
   - zmiana kolejności sekcji (np. `.ebc-forecast` nad `.ebc-chart`) przy zachowaniu spójności z layoutem.  
@@ -64,7 +64,7 @@ Kontrakt dotyczy następujących plików:
 **Zabronione:**
 
 - Implementowanie rozbudowanych styli inline w `render()` (np. `style="..."` jako główny mechanizm layoutu).  
-- Definiowanie długich bloków `css\`...\`` bezpośrednio w tym pliku – całość styli powinna trafić do `energy-burndown-card-styles.ts`, poza ewentualnymi minimalnymi wyjątkami (np. tymczasowe style eksperymentalne, które później zostaną przeniesione).  
+- Definiowanie długich bloków `css\`...\`` bezpośrednio w tym pliku – całość styli powinna trafić do `energy-horizon-card-styles.ts`, poza ewentualnymi minimalnymi wyjątkami (np. tymczasowe style eksperymentalne, które później zostaną przeniesione).  
 - Poleganie na szczegółach implementacji styli (np. „to działa, bo `.ebc-chart` ma konkretny `margin-top`”) przy projektowaniu logiki; logika powinna opierać się na strukturze i danych, nie na numerach pikseli.
 
 ## Zasady dla LogicModules (`ha-api.ts`, `chart-renderer.ts`, ... )
@@ -98,7 +98,7 @@ Poniższa tabela opisuje obecne powiązania pomiędzy sekcjami karty a klasami C
 
 Zmiany w tej tabeli (np. dodanie nowej głównej sekcji) powinny być synchronizowane pomiędzy:
 - `cumulative-comparison-chart.ts` (HTML),  
-- `energy-burndown-card-styles.ts` (CSS),  
+- `energy-horizon-card-styles.ts` (CSS),  
 - dokumentacją (np. `quickstart.md`).
 
 ## Przykładowe scenariusze zmian
@@ -106,7 +106,7 @@ Zmiany w tej tabeli (np. dodanie nowej głównej sekcji) powinny być synchroniz
 ### 1. Zmiana kolorów i typografii karty
 
 - **Modyfikowane pliki**:  
-  - `src/card/energy-burndown-card-styles.ts`  
+  - `src/card/energy-horizon-card-styles.ts`  
 - **NIE modyfikujemy**:  
   - `cumulative-comparison-chart.ts`,  
   - `ha-api.ts`,  
@@ -118,7 +118,7 @@ Zmiany w tej tabeli (np. dodanie nowej głównej sekcji) powinny być synchroniz
   - `src/card/cumulative-comparison-chart.ts` (zmiana kolejności bloków w `render()`)  
 - **NIE modyfikujemy**:  
   - `ha-api.ts` (algorytm prognozy),  
-  - `energy-burndown-card-styles.ts` (poza ewentualną korektą marginesów, jeśli potrzebna).
+  - `energy-horizon-card-styles.ts` (poza ewentualną korektą marginesów, jeśli potrzebna).
 
 ### 3. Zmiana algorytmu forecastu / obliczeń
 
@@ -126,7 +126,7 @@ Zmiany w tej tabeli (np. dodanie nowej głównej sekcji) powinny być synchroniz
   - `src/card/ha-api.ts` (logika forecastu),  
   - ewentualnie `chart-renderer.ts` (sposób prezentacji serii).  
 - **NIE modyfikujemy**:  
-  - `src/card/energy-burndown-card-styles.ts` (wygląd),  
+  - `src/card/energy-horizon-card-styles.ts` (wygląd),  
   - `cumulative-comparison-chart.ts` (layout sekcji), poza sytuacjami dodania nowej sekcji danych.
 
 ## Weryfikacja kontraktu

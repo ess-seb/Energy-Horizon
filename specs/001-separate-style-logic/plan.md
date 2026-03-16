@@ -5,7 +5,7 @@
 
 ## Summary
 
-Feature wprowadza architektoniczne rozdzielenie **warstwy wizualnej** (style, layout, typografia) od **logiki karty** (pobieranie danych z HA, obliczenia, przygotowanie serii do wykresu) w `Energy Burndown Card`.  
+Feature wprowadza architektoniczne rozdzielenie **warstwy wizualnej** (style, layout, typografia) od **logiki karty** (pobieranie danych z HA, obliczenia, przygotowanie serii do wykresu) w `Energy Horizon Card`.  
 Docelowo karta ma:
 - korzystać z **dedykowanego modułu stylów** (np. `energy-burndown-card-styles.ts`),
 - mieć **czytelną strukturę HTML** z semantycznymi klasami (`.ebc-card`, `.ebc-header`, `.ebc-stats`, `.ebc-forecast`, `.ebc-chart`),
@@ -43,7 +43,7 @@ Zmiany koncentrują się na refaktoryzacji istniejącej karty (TypeScript + LitE
 
 *GATE: Must pass before Phase 0 research. Re-check after Phase 1 design.*
 
-Zgodnie z „Energy Burndown Lovelace Card Constitution”:
+Zgodnie z „Energy Horizon Lovelace Card Constitution”:
 
 - **I. Zgodność z ekosystemem Home Assistant i HACS**  
   - Zmiany dotyczą wyłącznie struktury wewnętrznej karty; API Lovelace, integracja z HACS i zasady konfiguracji pozostają niezmienione.  

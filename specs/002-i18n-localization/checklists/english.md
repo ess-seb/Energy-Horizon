@@ -1,4 +1,4 @@
-# English Requirements Quality Checklist: i18n / l10n – Energy Burndown Card
+# English Requirements Quality Checklist: i18n / l10n – Energy Horizon Card
 
 **Purpose**: Validate the quality, clarity, and coverage of English-language requirements, strings, and related documentation for the i18n / l10n feature before and during implementation review.  
 **Created**: 2026-03-13  

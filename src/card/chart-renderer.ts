@@ -40,7 +40,7 @@ export class ChartRenderer {
     grid: string;
   } {
     const host =
-      (this.canvas.closest(".ebc-card") as HTMLElement | null) ??
+      (this.canvas.closest(".ehc-card") as HTMLElement | null) ??
       (this.canvas.closest("ha-card") as HTMLElement | null) ??
       this.canvas;
     const styles = getComputedStyle(host);

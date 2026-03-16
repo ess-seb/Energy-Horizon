@@ -16,7 +16,7 @@
     - Kolor tekstów pomocniczych (etykiety, notki)
 
 - **CssClassMap**
-  - Źródło: struktura DOM karty (`energy-burndown-card`)
+  - Źródło: struktura DOM karty (`energy-horizon-card`)
   - Klasy głównych sekcji:
     - `.ebc-card` – kontener karty (`ha-card`)
     - `.ebc-content` – główna zawartość karty (wnętrze z nagłówkiem, statystykami i wykresem)

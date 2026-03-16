@@ -1,6 +1,6 @@
 import { css } from "lit";
 
-export const energyBurndownCardStyles = css`
+export const energyHorizonCardStyles = css`
   :host {
     display: block;
   }

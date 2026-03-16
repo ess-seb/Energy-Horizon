@@ -1,11 +1,11 @@
 ---
 
-description: "Tasks for implementing Energy Burndown Cumulative Comparison Card"
+description: "Tasks for implementing Energy Horizon Cumulative Comparison Card"
 ---
 
-# Tasks: Energy Burndown Cumulative Comparison Card
+# Tasks: Energy Horizon Cumulative Comparison Card
 
-**Input**: Design documents from `/specs/001-energy-burndown-card/`  
+**Input**: Design documents from `/specs/001-energy-horizon-card/`  
 **Prerequisites**: `plan.md`, `spec.md`, `research.md`, `data-model.md`
 
 **Tests**: Dodajemy podstawowe zadania testowe dla krytycznej logiki (agregacje, prognoza, mapowanie LTS), zgodnie z konstytucją jakości.
@@ -117,13 +117,13 @@ description: "Tasks for implementing Energy Burndown Cumulative Comparison Card"
 
 **Purpose**: Usprawnienia oraz dopracowanie całości rozwiązania.
 
-- [ ] T028 [P] Uzupełnij dokumentację w `specs/001-energy-burndown-card/quickstart.md` o finalne przykłady konfiguracji oraz zrzuty ekranu (jeśli dostępne)
+- [ ] T028 [P] Uzupełnij dokumentację w `specs/001-energy-horizon-card/quickstart.md` o finalne przykłady konfiguracji oraz zrzuty ekranu (jeśli dostępne)
 - [ ] T029 [P] Dodaj dodatkowe testy jednostkowe dla edge case’ów (brak danych LTS, różne jednostki, rok przestępny) w `tests/unit/ha-api.test.ts`
 - [ ] T030 Przejrzyj i uprość kod (refaktoryzacja, usunięcie duplikacji) w `src/card/*`
 - [ ] T031 [P] Zweryfikuj wydajność renderowania karty przy typowych zakresach danych i popraw ewentualne wąskie gardła (np. konfiguracja Chart.js) w `src/card/chart-renderer.ts`
 - [ ] T032 [P] Zweryfikuj zachowanie themingu i trybów dark/light na różnych motywach HA (dostosuj `theme-utils.ts` w razie potrzeby)
 - [x] T033 [P] Zaimplementuj formatowanie dat i liczb zgodnie z sekcją „Locale & Formatting” w `plan.md` (wykorzystanie `hass.locale` / `hass.language` z `Intl.DateTimeFormat` / `Intl.NumberFormat`) w `src/card/cumulative-comparison-chart.ts`
-- [ ] T034 [P] Zweryfikuj, że użycie `<ha-alert>` i `<ha-circular-progress>` w `src/card/cumulative-comparison-chart.ts` jest zgodne z kontraktem opisanym w `specs/001-energy-burndown-card/contracts/ui.md` i wprowadź ewentualne poprawki
+- [ ] T034 [P] Zweryfikuj, że użycie `<ha-alert>` i `<ha-circular-progress>` w `src/card/cumulative-comparison-chart.ts` jest zgodne z kontraktem opisanym w `specs/001-energy-horizon-card/contracts/ui.md` i wprowadź ewentualne poprawki
 
 ---
 

@@ -1,4 +1,4 @@
-# Energy Burndown Card
+# Energy Horizon Card
 [![Buy Me A Coffee](https://img.buymeacoffee.com/button-api/?text=Buy+me+a+coffee&emoji=&slug=hello.sebastian&button_colour=FFDD00&font_colour=000000&font_family=Lato&outline_colour=000000&coffee_colour=ffffff)](https://www.buymeacoffee.com/hello.sebastian)
 
 A Lovelace card for Home Assistant that compares cumulative energy usage between the current period and a corresponding historical period (year-over-year or month-over-year), with a chart, summary stats, and optional forecast.
@@ -29,12 +29,12 @@ A Lovelace card for Home Assistant that compares cumulative energy usage between
 
 1. In HACS, go to **Frontend** and click **Add repository**
 2. Add the URL of this repository
-3. Install **Energy Burndown Card**
+3. Install **Energy Horizon Card**
 4. Restart Home Assistant
 
 ### Manual
 
-1. Download `energy-burndown-card.js` from the [latest release](/releases)
+1. Download `energy-horizon-card.js` from the [latest release](/releases)
 2. Place it in `config/www/` (or your `www` folder)
 3. Add the resource in your dashboard configuration (see below)
 
@@ -45,18 +45,18 @@ A Lovelace card for Home Assistant that compares cumulative energy usage between
 In **Settings → Dashboards → Resources** (or your Lovelace YAML), add:
 
 ```yaml
-url: /local/energy-burndown-card.js
+url: /local/energy-horizon-card.js
 type: module
 ```
 
-*(If using HACS, the URL will typically be `/hacsfiles/energy-burndown-card/energy-burndown-card.js`)*
+*(If using HACS, the URL will typically be `/hacsfiles/energy-horizon-card/energy-horizon-card.js`)*
 
 ### 2. Add the card
 
 Use the visual editor (add card → Manual) or YAML:
 
 ```yaml
-type: custom:energy-burndown-card
+type: custom:energy-horizon-card
 entity: sensor.your_energy_statistic
 comparison_mode: year_over_year
 ```
@@ -65,7 +65,7 @@ comparison_mode: year_over_year
 
 | Option            | Type     | Default            | Description                                                                 |
 |-------------------|----------|--------------------|-----------------------------------------------------------------------------|
-| `type`            | string   | required           | Must be `custom:energy-burndown-card`                                      |
+| `type`            | string   | required           | Must be `custom:energy-horizon-card`                                      |
 | `entity`          | string   | required           | Statistics entity ID (e.g. `sensor.grid_consumption`)                       |
 | `comparison_mode` | string   | required           | `year_over_year` or `month_over_year`                                      |
 | `aggregation`     | string   | `day`              | `day`, `week`, or `month`                                                  |
@@ -81,7 +81,7 @@ comparison_mode: year_over_year
 
 **Year-over-year comparison:**
 ```yaml
-type: custom:energy-burndown-card
+type: custom:energy-horizon-card
 entity: sensor.energy_consumption_total
 comparison_mode: year_over_year
 aggregation: day
@@ -89,7 +89,7 @@ aggregation: day
 
 **Month-over-year (current month vs. same month last year):**
 ```yaml
-type: custom:energy-burndown-card
+type: custom:energy-horizon-card
 entity: sensor.energy_consumption_total
 comparison_mode: month_over_year
 aggregation: day
@@ -98,7 +98,7 @@ show_forecast: true
 
 **Language override (e.g. show this card in Polish while dashboard is in English):**
 ```yaml
-type: custom:energy-burndown-card
+type: custom:energy-horizon-card
 entity: sensor.energy_consumption_total
 comparison_mode: year_over_year
 language: pl
@@ -125,26 +125,26 @@ Advanced users can further customize the layout using CSS classes exposed on the
 
 | Section            | CSS class      |
 |--------------------|----------------|
-| Whole card         | `.ebc-card`    |
-| Card content       | `.ebc-content` |
-| Text heading       | `.ebc-header`  |
-| Numeric summary    | `.ebc-stats`   |
-| Forecast section   | `.ebc-forecast`|
-| Chart container    | `.ebc-chart`   |
+| Whole card         | `.ehc-card`    |
+| Card content       | `.ehc-content` |
+| Text heading       | `.ehc-header`  |
+| Numeric summary    | `.ehc-stats`   |
+| Forecast section   | `.ehc-forecast`|
+| Chart container    | `.ehc-chart`   |
 
 Example (with Card-Mod) – hide forecast section and increase chart height:
 
 ```yaml
-type: custom:energy-burndown-card
+type: custom:energy-horizon-card
 entity: sensor.energy_consumption_total
 comparison_mode: year_over_year
 card_mod:
   style: |
-    .ebc-forecast {
+    .ehc-forecast {
       display: none;
     }
 
-    .ebc-chart {
+    .ehc-chart {
       height: 260px;
     }
 ```
@@ -191,7 +191,7 @@ The confidence level is derived only from the number of **completed days**:
 
 ```bash
 npm install
-npm run build    # Output: dist/energy-burndown-card.js
+npm run build    # Output: dist/energy-horizon-card.js
 npm run dev      # Local dev server
 npm test
 npm run lint

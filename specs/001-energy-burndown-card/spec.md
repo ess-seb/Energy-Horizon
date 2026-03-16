@@ -1,9 +1,9 @@
-# Feature Specification: Energy Burndown Cumulative Comparison Card
+# Feature Specification: Energy Horizon Cumulative Comparison Card
 
-**Feature Branch**: `001-energy-burndown-card`  
+**Feature Branch**: `001-energy-horizon-card`  
 **Created**: 2026-03-05  
 **Status**: In Progress (implementation ongoing; Phase 3–5 mostly implemented, Phase 6 polish pending)  
-**Input**: User description: Energy Burndown – karta do porównania skumulowanego zużycia energii w czasie bieżącym vs okres historyczny (miesiąc/rok) z wizualnym trendem i prostymi wnioskami.
+**Input**: User description: Energy Horizon – karta do porównania skumulowanego zużycia energii w czasie bieżącym vs okres historyczny (miesiąc/rok) z wizualnym trendem i prostymi wnioskami.
 
 ## User Scenarios & Testing *(mandatory)*
 
@@ -110,7 +110,7 @@ Użytkownik chciałby zobaczyć przewidywaną łączną wartość zużycia energ
 
 ### Functional Requirements
 
-- **FR-001**: System MUST allow users to add the Energy Burndown Cumulative Comparison Card to any Lovelace dashboard and configure it poprzez wskazanie encji z danymi energii oraz wybranie typu okresu porównawczego (rok do roku lub miesiąc do miesiąca).
+- **FR-001**: System MUST allow users to add the Energy Horizon Cumulative Comparison Card to any Lovelace dashboard and configure it poprzez wskazanie encji z danymi energii oraz wybranie typu okresu porównawczego (rok do roku lub miesiąc do miesiąca).
 - **FR-002**: System MUST compute and display two cumulative series of energy usage over time: one for the current period and one for the corresponding historical period, using wspólną oś czasu, tak aby możliwe było bezpośrednie porównanie kształtu obu linii.
 - **FR-003**: Users MUST be able to read current cumulative values for both the current period and the corresponding reference period date in a clear textual summary (np. dwie wartości z opisem okresów i jednostką), niezależnie od tego, czy są w stanie odczytać je z samego wykresu.
 - **FR-004**: System MUST provide an estimate of the total cumulative energy usage for the full current period, based on observed data so far, and present it obok łącznej wartości z okresu referencyjnego, w sposób zrozumiały dla użytkownika (wraz z jednostką).

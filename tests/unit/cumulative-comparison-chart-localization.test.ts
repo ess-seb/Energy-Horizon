@@ -1,7 +1,7 @@
 import { describe, it, expect } from "vitest";
 import type { HomeAssistant } from "../../src/ha-types";
 import type { CardConfig } from "../../src/card/types";
-import { EnergyBurndownCard } from "../../src/card/cumulative-comparison-chart";
+import { EnergyHorizonCard } from "../../src/card/cumulative-comparison-chart";
 import { resolveLocale, createLocalize } from "../../src/card/localize";
 
 function createBaseHass(language: string): HomeAssistant {
@@ -21,16 +21,16 @@ function createBaseHass(language: string): HomeAssistant {
   };
 }
 
-describe("EnergyBurndownCard localization", () => {
+describe("EnergyHorizonCard localization", () => {
   const baseConfig: CardConfig = {
-    type: "custom:energy-burndown-card",
+    type: "custom:energy-horizon-card",
     entity: "sensor.energy",
     comparison_mode: "year_over_year"
   };
 
   it("uses resolved locale language when localizing summary labels (en)", () => {
     const hass = createBaseHass("en");
-    const card = new EnergyBurndownCard();
+    const card = new EnergyHorizonCard();
     card.hass = hass;
     card.setConfig(baseConfig);
 
@@ -44,7 +44,7 @@ describe("EnergyBurndownCard localization", () => {
 
   it("uses resolved locale language when localizing summary labels (pl)", () => {
     const hass = createBaseHass("pl");
-    const card = new EnergyBurndownCard();
+    const card = new EnergyHorizonCard();
     card.hass = hass;
     card.setConfig(baseConfig);
 
@@ -58,7 +58,7 @@ describe("EnergyBurndownCard localization", () => {
 
   it("enters error state and uses error.missing_translation when key is missing", () => {
     const hass = createBaseHass("en");
-    const card = new EnergyBurndownCard();
+    const card = new EnergyHorizonCard();
     card.hass = hass;
     card.setConfig({
       ...baseConfig,
@@ -85,7 +85,7 @@ describe("EnergyBurndownCard localization", () => {
     const hass = createBaseHass("en");
     (hass as { language: string }).language = "xx";
     if (hass.locale) hass.locale.language = "xx";
-    const card = new EnergyBurndownCard();
+    const card = new EnergyHorizonCard();
     card.hass = hass;
     card.setConfig(baseConfig);
 
@@ -98,7 +98,7 @@ describe("EnergyBurndownCard localization", () => {
 
   it("YAML language override overrides hass locale", () => {
     const hass = createBaseHass("en");
-    const card = new EnergyBurndownCard();
+    const card = new EnergyHorizonCard();
     card.hass = hass;
     card.setConfig({ ...baseConfig, language: "pl" });
 
@@ -110,7 +110,7 @@ describe("EnergyBurndownCard localization", () => {
   });
 
   it("renders nothing when hass is missing (safe empty state)", () => {
-    const card = new EnergyBurndownCard();
+    const card = new EnergyHorizonCard();
     (card as { hass?: HomeAssistant }).hass = undefined as unknown as HomeAssistant;
     card.setConfig(baseConfig);
 

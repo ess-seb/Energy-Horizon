@@ -8,8 +8,8 @@ export default defineConfig({
     sourcemap: true,
     lib: {
       entry: "src/index.ts",
-      name: "EnergyBurndownCard",
-      fileName: "energy-burndown-card",
+      name: "EnergyHorizonCard",
+      fileName: "energy-horizon-card",
       formats: ["es"]
     },
     rollupOptions: {

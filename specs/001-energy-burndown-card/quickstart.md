@@ -1,4 +1,4 @@
-# Quickstart: Energy Burndown Cumulative Comparison Card
+# Quickstart: Energy Horizon Cumulative Comparison Card
 
 ## 1. Wymagania wstępne
 
@@ -14,7 +14,7 @@
 1. Otwórz HACS → `Frontend`.
 2. Dodaj repozytorium karty (gdy będzie opublikowane) jako:
    - Typ: `Lovelace`.
-3. Zainstaluj kartę `Energy Burndown Cumulative Comparison Card`.
+3. Zainstaluj kartę `Energy Horizon Cumulative Comparison Card`.
 4. Po instalacji:
    - Upewnij się, że zasób karty jest dodany w `Ustawienia → Panele → Zasoby` (lub automatycznie przez HACS).
 
@@ -25,14 +25,14 @@
 1. Przejdź do wybranego dashboardu Lovelace.
 2. Wejdź w tryb edycji → `Dodaj kartę`.
 3. Wybierz:
-   - `Karta niestandardowa` → `Energy Burndown Cumulative Comparison Card`  
+   - `Karta niestandardowa` → `Energy Horizon Cumulative Comparison Card`  
      **lub**  
    - `Konfiguracja YAML` i wklej konfigurację (poniżej).
 
 ### Przykładowa konfiguracja YAML (rok do roku)
 
 ```yaml
-type: custom:energy-burndown-card
+type: custom:energy-horizon-card
 entity: sensor.house_total_energy
 title: Zużycie energii – rok do roku
 comparison_mode: year_over_year
@@ -44,7 +44,7 @@ precision: 1
 ### Przykładowa konfiguracja YAML (miesiąc do miesiąca rok do roku)
 
 ```yaml
-type: custom:energy-burndown-card
+type: custom:energy-horizon-card
 entity: sensor.house_total_energy
 title: Zużycie energii – miesiąc vs rok temu
 comparison_mode: month_over_year

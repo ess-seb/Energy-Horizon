@@ -1,6 +1,6 @@
 # Quickstart: Jak zmieniać wygląd karty bez dotykania logiki
 
-Ten dokument pokazuje, jak w praktyce korzystać z separacji **stylów** i **logiki** w `Energy Burndown Card` po wdrożeniu feature’u `001-separate-style-logic`.
+Ten dokument pokazuje, jak w praktyce korzystać z separacji **stylów** i **logiki** w `Energy Horizon Card` po wdrożeniu feature’u `001-separate-style-logic`.
 
 ## 1. Gdzie znajdują się style, a gdzie logika?
 

@@ -1,4 +1,4 @@
-# Quickstart – Theming i klasy CSS karty Energy Burndown
+# Quickstart – Theming i klasy CSS karty Energy Horizon
 
 ## 1. Podstawowe użycie themingu HA
 

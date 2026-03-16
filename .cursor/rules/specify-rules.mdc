@@ -4,7 +4,7 @@ globs: ["**/*"]
 alwaysApply: true
 ---
 
-# Energy-Burndown Development Guidelines
+# Energy-Horizon Development Guidelines
 
 Auto-generated from all feature plans. Last updated: 2026-03-10
 
@@ -12,7 +12,7 @@ Auto-generated from all feature plans. Last updated: 2026-03-10
 - TypeScript 5 (strict mode) + LitElement 4, Vite (bundler), Chart.js (002-i18n-localization)
 - N/A – translations bundled statically at build time (Vite JSON import) (002-i18n-localization)
 
-- TypeScript (ES2020+, `strict` enabled) + Lit (`lit`, `lit/decorators.js`), Chart.js (core + line/tooltip/legend/gradient plugins), Home Assistant Lovelace card API typings, Vite bundler (001-energy-burndown-card)
+- TypeScript (ES2020+, `strict` enabled) + Lit (`lit`, `lit/decorators.js`), Chart.js (core + line/tooltip/legend/gradient plugins), Home Assistant Lovelace card API typings, Vite bundler (001-energy-horizon-card)
 
 ## Project Structure
 
@@ -33,7 +33,7 @@ TypeScript (ES2020+, `strict` enabled): Follow standard conventions
 ## Recent Changes
 - 002-i18n-localization: Added TypeScript 5 (strict mode) + LitElement 4, Vite (bundler), Chart.js
 
-- 001-energy-burndown-card: Added TypeScript (ES2020+, `strict` enabled) + Lit (`lit`, `lit/decorators.js`), Chart.js (core + line/tooltip/legend/gradient plugins), Home Assistant Lovelace card API typings, Vite bundler
+- 001-energy-horizon-card: Added TypeScript (ES2020+, `strict` enabled) + Lit (`lit`, `lit/decorators.js`), Chart.js (core + line/tooltip/legend/gradient plugins), Home Assistant Lovelace card API typings, Vite bundler
 
 <!-- MANUAL ADDITIONS START -->
 <!-- MANUAL ADDITIONS END -->

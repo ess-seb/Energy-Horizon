@@ -1,4 +1,4 @@
-# Research & Decisions: Energy Burndown Cumulative Comparison Card
+# Research & Decisions: Energy Horizon Cumulative Comparison Card
 
 ## Scope
 

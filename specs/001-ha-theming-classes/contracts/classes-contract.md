@@ -1,8 +1,8 @@
-# UI Contract – CSS klasy karty Energy Burndown
+# UI Contract – CSS klasy karty Energy Horizon
 
 ## Cel
 
-Ten kontrakt opisuje, jakie klasy CSS są stabilnie wystawione przez kartę `energy-burndown-card`, tak aby użytkownicy mogli:
+Ten kontrakt opisuje, jakie klasy CSS są stabilnie wystawione przez kartę `energy-horizon-card`, tak aby użytkownicy mogli:
 
 - ukrywać wybrane sekcje (np. prognozę),
 - zmieniać ich rozmiar (np. wysokość wykresu),
@@ -10,24 +10,24 @@ Ten kontrakt opisuje, jakie klasy CSS są stabilnie wystawione przez kartę `ene
 
 ## Stabilne klasy CSS
 
-- `.ebc-card` – główny kontener karty (`ha-card`)
-- `.ebc-content` – wnętrze karty zawierające nagłówek, statystyki i wykres
-- `.ebc-header` – nagłówek z tekstowym opisem trendu
-- `.ebc-stats` – sekcja statystyk liczbowych (bieżący / referencyjny okres, różnice)
-- `.ebc-forecast` – sekcja prognozy (jeśli włączona)
-- `.ebc-chart` – kontener wykresu (obszar `<canvas>`)
+- `.ehc-card` – główny kontener karty (`ha-card`)
+- `.ehc-content` – wnętrze karty zawierające nagłówek, statystyki i wykres
+- `.ehc-header` – nagłówek z tekstowym opisem trendu
+- `.ehc-stats` – sekcja statystyk liczbowych (bieżący / referencyjny okres, różnice)
+- `.ehc-forecast` – sekcja prognozy (jeśli włączona)
+- `.ehc-chart` – kontener wykresu (obszar `<canvas>`)
 
 ## Przykłady użycia (np. z Card‑Mod)
 
 ### Ukrycie sekcji prognozy
 
 ```yaml
-type: custom:energy-burndown-card
+type: custom:energy-horizon-card
 entity: sensor.energy_consumption_total
 comparison_mode: year_over_year
 card_mod:
   style: |
-    .ebc-forecast {
+    .ehc-forecast {
       display: none;
     }
 ```
@@ -35,7 +35,7 @@ card_mod:
 ### Zwiększenie wysokości wykresu
 
 ```yaml
-type: custom:energy-burndown-card
+type: custom:energy-horizon-card
 entity: sensor.energy_consumption_total
 comparison_mode: month_over_year
 card_mod:

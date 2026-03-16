@@ -94,7 +94,7 @@ export function resolveLocale(
             if (config.debug) {
               // eslint-disable-next-line no-console
               console.warn(
-                `[Energy Burndown] Unsupported config.language "${configLanguage}", falling back to "${FALLBACK_LANGUAGE}"`
+                `[Energy Horizon] Unsupported config.language "${configLanguage}", falling back to "${FALLBACK_LANGUAGE}"`
               );
             }
             return FALLBACK_LANGUAGE;
@@ -112,7 +112,7 @@ export function resolveLocale(
             if (config.debug) {
               // eslint-disable-next-line no-console
               console.warn(
-                `[Energy Burndown] Invalid config.number_format "${String(configNumberFormat)}", falling back to "system"`
+                `[Energy Horizon] Invalid config.number_format "${String(configNumberFormat)}", falling back to "system"`
               );
             }
             return "system";

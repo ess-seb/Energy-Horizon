@@ -1,4 +1,4 @@
-# Energy Burndown Lovelace Card Constitution
+# Energy Horizon Lovelace Card Constitution
 
 Konstytucja dotyczy rozwoju, utrzymania i ewolucji uniwersalnych kart Lovelace dla Home Assistant, dystrybuowanych jako integracje HACS. Ma charakter ogólny i powinna być stosowana niezależnie od konkretnego typu karty czy wizualizowanych danych.
 

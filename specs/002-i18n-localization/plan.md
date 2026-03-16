@@ -1,4 +1,4 @@
-# Implementation Plan: i18n / l10n – Energy Burndown Card
+# Implementation Plan: i18n / l10n – Energy Horizon Card
 
 **Spec**: [link]
 **Branch**: `002-i18n-localization` | **Date**: 2026-03-10 | **Spec**: [spec.md](./spec.md)
@@ -7,7 +7,7 @@
 
 ## Summary
 
-Add full localization support to the Energy Burndown Card. The card will automatically read language, number format, and time zone from `hass.locale` / `hass.config`, with optional per-card YAML overrides (`language`, `number_format`). All 23 currently hardcoded Polish strings are migrated to per-language JSON dictionaries (`src/translations/en.json`, `src/translations/pl.json`). Dynamic phrases use `{{variable}}` interpolation. A new `localize.ts` module provides the `createLocalize()` factory and `resolveLocale()` helper. Logic code (`ha-api.ts`) is decoupled from UI strings: `computeTextSummary` returns trend enum + numeric diff; the component assembles the display string. The card re-renders reactively on `hass.locale` change; missing translation keys trigger a card error state with optional debug console output.
+Add full localization support to the Energy Horizon Card. The card will automatically read language, number format, and time zone from `hass.locale` / `hass.config`, with optional per-card YAML overrides (`language`, `number_format`). All 23 currently hardcoded Polish strings are migrated to per-language JSON dictionaries (`src/translations/en.json`, `src/translations/pl.json`). Dynamic phrases use `{{variable}}` interpolation. A new `localize.ts` module provides the `createLocalize()` factory and `resolveLocale()` helper. Logic code (`ha-api.ts`) is decoupled from UI strings: `computeTextSummary` returns trend enum + numeric diff; the component assembles the display string. The card re-renders reactively on `hass.locale` change; missing translation keys trigger a card error state with optional debug console output.
 
 ---
 
@@ -20,7 +20,7 @@ Add full localization support to the Energy Burndown Card. The card will automat
 **Target Platform**: Home Assistant Lovelace (browser, Web Component)  
 **Project Type**: HACS Lovelace card (single-file web component)  
 **Performance Goals**: No impact on render performance; translation lookup is O(1) dictionary access  
-**Constraints**: All translations bundled in `dist/energy-burndown-card.js`; no runtime fetch  
+**Constraints**: All translations bundled in `dist/energy-horizon-card.js`; no runtime fetch  
 **Scale/Scope**: ~23 translation keys; 2 mandatory languages (pl, en)
 
 ---
@@ -69,7 +69,7 @@ src/
 │   ├── ha-api.ts                 ← MODIFIED – computeTextSummary returns trend + diff (no heading string)
 │   ├── cumulative-comparison-chart.ts  ← MODIFIED – resolveLocale() + createLocalize() + replace all hardcoded strings
 │   ├── chart-renderer.ts         ← MODIFIED – accept localized period labels as parameters
-│   ├── energy-burndown-card-styles.ts  ← unchanged
+│   ├── energy-horizon-card-styles.ts  ← unchanged
 │   └── theme-utils.ts            ← unchanged
 ├── ha-types.ts           ← MODIFIED – extend HomeAssistant.locale and add config.time_zone
 └── index.ts              ← unchanged

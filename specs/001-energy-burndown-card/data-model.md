@@ -1,4 +1,4 @@
-# Data Model: Energy Burndown Cumulative Comparison Card
+# Data Model: Energy Horizon Cumulative Comparison Card
 
 ## Overview
 
@@ -17,7 +17,7 @@ Reprezentuje konfigurację pojedynczej instancji karty w dashboardzie Lovelace.
 
 Fields:
 - `type: string`  
-  - Identyfikator karty Lovelace (np. `"custom:energy-burndown-card"`).
+  - Identyfikator karty Lovelace (np. `"custom:energy-horizon-card"`).
 - `entity: string`  
   - Id encji energii (np. `sensor.house_total_energy`), dla której mają być pobierane statystyki LTS.
 - `title?: string`  
