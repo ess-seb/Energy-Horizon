@@ -12,7 +12,6 @@
   "summary.incomplete_reference": "Referenzdaten für diesen Tag sind unvollständig…",
   "forecast.current_forecast": "Prognose aktueller Zeitraum",
   "forecast.reference_consumption": "Verbrauch im Referenzzeitraum",
-  "forecast.historical_value": "Historischer Wert",
   "forecast.confidence": "Prognose-Konfidenz: {{confidence}}.",
   "text_summary.no_reference": "Es gibt noch nicht genug Referenzdaten, um Ihren Verbrauch zu vergleichen.",
   "text_summary.similar": "Ihr Energieverbrauch entspricht in etwa dem gleichen Zeitraum des Vorjahres.",

@@ -134,10 +134,10 @@
 
 **Purpose**: Final verification, lint, and build before PR.
 
-- [ ] T026 [P] Run `npm test` (full suite) and fix any failing tests introduced by the changes above
-- [ ] T027 [P] Run `npm run lint` and fix all TypeScript/ESLint errors in modified files
-- [ ] T028 Run `npm run build` and verify `dist/energy-horizon-card.js` builds without errors or type warnings
-- [ ] T029 Manually smoke-test the card in a Home Assistant instance (or `index.html` dev harness): verify title, icon, signed diffs, no "Historical value" row, and period labels are all present and correct
+- [x] T026 [P] Run `npm test` (full suite) and fix any failing tests introduced by the changes above
+- [x] T027 [P] Run `npm run lint` and fix all TypeScript/ESLint errors in modified files
+- [x] T028 Run `npm run build` and verify `dist/energy-horizon-card.js` builds without errors or type warnings
+- [x] T029 Manually smoke-test the card in a Home Assistant instance (or `index.html` dev harness): verify title, icon, signed diffs, no "Historical value" row, and period labels are all present and correct
 
 ---
 
