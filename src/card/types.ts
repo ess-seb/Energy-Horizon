@@ -118,5 +118,7 @@ export interface ChartRendererConfig {
   forecastTotal?: number;
   unit: string;
   periodLabel: string;
+  /** Timestamp of reference period start (for aligning reference series on timeline). */
+  referencePeriodStart?: number;
 }
 

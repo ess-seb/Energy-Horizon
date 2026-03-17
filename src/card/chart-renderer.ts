@@ -169,7 +169,9 @@ export class ChartRenderer {
       ? this.alignSeriesOnTimeline(
           series.reference.points,
           fullTimeline,
-          undefined
+          rendererConfig.referencePeriodStart != null
+            ? new Date(rendererConfig.referencePeriodStart)
+            : undefined
         )
       : new Array(fullTimeline.length).fill(null);
 
@@ -256,7 +258,7 @@ export class ChartRenderer {
           const yPixel = chart.scales["y"].getPixelForValue(
             self._todayCurrentY
           );
-          ctx.fillStyle = theme.currentLine;
+          ctx.fillStyle = self._primaryColorResolved;
           ctx.beginPath();
           ctx.arc(xPixel, yPixel, circleRadius, 0, 2 * Math.PI);
           ctx.fill();
@@ -356,6 +358,8 @@ export class ChartRenderer {
       scales: {
         x: {
           type: "linear" as const,
+          min: 0,
+          max: fullTimeline.length,
           ticks: {
             precision: 0,
             display: true

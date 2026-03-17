@@ -294,7 +294,7 @@ export class EnergyHorizonCard extends LitElement implements LovelaceCard {
   private _buildRendererConfig(): ChartRendererConfig {
     if (!this._state.period) {
       return {
-        primaryColor: this._config.primary_color || "#03a9f4",
+        primaryColor: this._config.primary_color ?? "",
         fillCurrent: this._config.fill_current ?? true,
         fillReference: this._config.fill_reference ?? false,
         fillCurrentOpacity: clampOpacity(this._config.fill_current_opacity),
@@ -320,7 +320,7 @@ export class EnergyHorizonCard extends LitElement implements LovelaceCard {
     const unit = (entityState?.attributes as { unit_of_measurement?: string })?.unit_of_measurement ?? "";
 
     return {
-      primaryColor: this._config.primary_color || "#03a9f4",
+      primaryColor: this._config.primary_color ?? "",
       fillCurrent: this._config.fill_current ?? true,
       fillReference: this._config.fill_reference ?? false,
       fillCurrentOpacity: clampOpacity(this._config.fill_current_opacity),
@@ -328,7 +328,8 @@ export class EnergyHorizonCard extends LitElement implements LovelaceCard {
       showForecast: this._config.show_forecast ?? false,
       forecastTotal: this._state.forecast?.forecast_total,
       unit,
-      periodLabel
+      periodLabel,
+      referencePeriodStart: period.reference_start.getTime()
     };
   }
 
