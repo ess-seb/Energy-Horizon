@@ -12,7 +12,6 @@
   "summary.incomplete_reference": "Dane referencyjne dla tego dnia są niepełne…",
   "forecast.current_forecast": "Prognoza bieżącego okresu",
   "forecast.reference_consumption": "Zużycie w okresie referencyjnym",
-  "forecast.historical_value": "Wartość historyczna",
   "forecast.confidence": "Poziom pewności prognozy: {{confidence}}.",
   "text_summary.no_reference": "Brak wystarczających danych, aby porównać Twoje zużycie energii.",
   "text_summary.similar": "Twoje zużycie jest na podobnym poziomie jak w tym samym okresie w poprzednim roku.",

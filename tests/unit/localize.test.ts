@@ -13,14 +13,14 @@ describe("createLocalize", () => {
   it("falls back to English when key is missing in active language", () => {
     const localize = createLocalize("pl");
 
-    const text = localize("forecast.historical_value");
+    const text = localize("forecast.reference_consumption");
 
     // Both languages define this key; simulate fallback by requesting a bogus language
     const englishLocalize = createLocalize("en");
-    const english = englishLocalize("forecast.historical_value");
+    const english = englishLocalize("forecast.reference_consumption");
 
     expect(text).not.toBe("");
-    expect(english).toContain("Historical value");
+    expect(english).toContain("Consumption in reference period");
   });
 
   it("performs variable interpolation", () => {
