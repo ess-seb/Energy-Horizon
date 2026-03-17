@@ -64,12 +64,12 @@
 
 ### Implementation for User Story 2
 
-- [ ] T011 [US2] Add `.ebc-icon` CSS rule to `src/card/energy-horizon-card-styles.ts`. Style: `display: inline-flex; --mdc-icon-size: 24px;` to size the `<ha-icon>` element consistently.
-- [ ] T012 [US2] In `src/card/cumulative-comparison-chart.ts`, inside `render()`, compute:
+- [x] T011 [US2] Add `.ebc-icon` CSS rule to `src/card/energy-horizon-card-styles.ts`. Style: `display: inline-flex; --mdc-icon-size: 24px;` to size the `<ha-icon>` element consistently.
+- [x] T012 [US2] In `src/card/cumulative-comparison-chart.ts`, inside `render()`, compute:
   - `const showIcon = this._config.show_icon !== false;`
   - `const effectiveIcon = this._config.icon?.trim() || (entityState?.attributes.icon as string | undefined);`
   - Inside the `.ebc-title-row` container (from T009), prepend `html\`<ha-icon class="ebc-icon" icon=${effectiveIcon}></ha-icon>\`` only when `showIcon && !!effectiveIcon`. Update the header guard condition to: `(showTitle && !!effectiveTitle) || (showIcon && !!effectiveIcon)`.
-- [ ] T013 [US2] Add icon test cases to `tests/unit/card-header-resolution.test.ts`. Cover: no `icon` config, entity has `icon` attribute → entity icon used; `icon: "mdi:flash"` → `"mdi:flash"` as `effectiveIcon`; `show_icon: false` → `showIcon` flag is `false`; entity has no icon and no `icon` config → `effectiveIcon` is `undefined`; both `show_title: false` + `show_icon: false` → header guard evaluates to `false`.
+- [x] T013 [US2] Add icon test cases to `tests/unit/card-header-resolution.test.ts`. Cover: no `icon` config, entity has `icon` attribute → entity icon used; `icon: "mdi:flash"` → `"mdi:flash"` as `effectiveIcon`; `show_icon: false` → `showIcon` flag is `false`; entity has no icon and no `icon` config → `effectiveIcon` is `undefined`; both `show_title: false` + `show_icon: false` → header guard evaluates to `false`.
 
 **Checkpoint**: `npm test` passes; icon appears next to title, falls back to entity icon, disappears on `show_icon: false`, and entire header row is omitted when both flags are false.
 
