@@ -253,7 +253,7 @@ export class ChartRenderer {
         ctx.restore();
 
         // Draw filled circles at today's values
-        const circleRadius = 5;
+        const circleRadius = 3;
         if (self._todayCurrentY !== undefined) {
           const yPixel = chart.scales["y"].getPixelForValue(
             self._todayCurrentY
@@ -281,6 +281,7 @@ export class ChartRenderer {
           label: labels.current,
           data: currentData,
           borderColor: this._primaryColorResolved,
+          borderWidth: 1.5,
           backgroundColor: rendererConfig.fillCurrent
             ? this.colorWithOpacity(
                 this._primaryColorResolved,
@@ -298,6 +299,7 @@ export class ChartRenderer {
                 label: labels.reference,
                 data: referenceData,
                 borderColor: theme.referenceLine,
+                borderWidth: 1.5,
                 backgroundColor: rendererConfig.fillReference
                   ? this.colorWithOpacity(
                       theme.referenceLine,
@@ -306,7 +308,7 @@ export class ChartRenderer {
                   : "transparent",
                 fill: rendererConfig.fillReference ? "origin" : false,
                 pointRadius: 0,
-                borderDash: [4, 2],
+                //borderDash: [4, 2],
                 tension: 0.3,
                 spanGaps: false
               }
@@ -325,7 +327,8 @@ export class ChartRenderer {
                   { x: fullTimeline.length - 1, y: rendererConfig.forecastTotal }
                 ] as ChartPoint[],
                 borderColor: this._primaryColorResolved,
-                borderDash: [6, 3],
+                borderWidth: 1.5,
+                borderDash: [3, 6],
                 pointRadius: 0,
                 fill: false,
                 spanGaps: true,
