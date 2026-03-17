@@ -58,5 +58,22 @@ export const energyHorizonCardStyles = css`
     position: relative;
     height: 200px;
   }
+
+  .ebc-title-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 12px;
+  }
+
+  .ebc-title {
+    font-weight: 500;
+    color: var(--primary-text-color);
+  }
+
+  .ebc-icon {
+    display: inline-flex;
+    --mdc-icon-size: 24px;
+  }
 `;
 

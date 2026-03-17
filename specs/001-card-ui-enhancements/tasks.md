@@ -44,13 +44,13 @@
 
 ### Implementation for User Story 1
 
-- [ ] T008 [US1] Add `.ebc-title-row` and `.ebc-title` CSS rules to `src/card/energy-horizon-card-styles.ts`. `.ebc-title-row` is a flex row container (`display: flex; align-items: center; gap: 8px`); `.ebc-title` sets font weight and color via `var(--primary-text-color)`.
-- [ ] T009 [US1] In `src/card/cumulative-comparison-chart.ts`, inside `render()`, compute:
+- [x] T008 [US1] Add `.ebc-title-row` and `.ebc-title` CSS rules to `src/card/energy-horizon-card-styles.ts`. `.ebc-title-row` is a flex row container (`display: flex; align-items: center; gap: 8px`); `.ebc-title` sets font weight and color via `var(--primary-text-color)`.
+- [x] T009 [US1] In `src/card/cumulative-comparison-chart.ts`, inside `render()`, compute:
   - `const showTitle = this._config.show_title !== false;`
   - `const entityState = this.hass?.states?.[this._config.entity];`
   - `const effectiveTitle = (this._config.title?.trim() || entityState?.attributes.friendly_name as string | undefined || this._config.entity) as string;`
   - Render a `<div class="ebc-title-row">` containing `<span class="ebc-title">${effectiveTitle}</span>` only when `showTitle && !!effectiveTitle`. Wrap the whole header in a guard: if neither title nor icon should show, omit the `.ebc-title-row` container entirely (FR-009).
-- [ ] T010 [US1] Write unit tests for title resolution logic in `tests/unit/card-header-resolution.test.ts` (new file). Cover: no `title` config → `friendly_name` is used; `title: "My Solar"` → `"My Solar"` returned; `title: ""` → `friendly_name` fallback; entity has no `friendly_name` → entity ID fallback; `show_title: false` → `showTitle` flag is `false`.
+- [x] T010 [US1] Write unit tests for title resolution logic in `tests/unit/card-header-resolution.test.ts` (new file). Cover: no `title` config → `friendly_name` is used; `title: "My Solar"` → `"My Solar"` returned; `title: ""` → `friendly_name` fallback; entity has no `friendly_name` → entity ID fallback; `show_title: false` → `showTitle` flag is `false`.
 
 **Checkpoint**: `npm test` passes; card shows entity `friendly_name` by default, custom title when configured, and nothing when `show_title: false`.
 

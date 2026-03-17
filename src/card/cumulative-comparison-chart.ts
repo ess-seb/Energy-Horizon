@@ -284,6 +284,19 @@ export class EnergyHorizonCard extends LitElement implements LovelaceCard {
     const summary = this._state.summary;
     const forecast = this._state.forecast;
 
+    const showTitle = this._config.show_title !== false;
+    const entityState = this.hass?.states?.[this._config.entity];
+    const effectiveTitle = (
+      this._config.title?.trim() ||
+      (entityState?.attributes.friendly_name as string | undefined) ||
+      this._config.entity
+    ) as string;
+
+    const showIcon = this._config.show_icon !== false;
+    const effectiveIcon = this._config.icon?.trim() || (entityState?.attributes.icon as string | undefined);
+
+    const shouldRenderHeader = (showTitle && !!effectiveTitle) || (showIcon && !!effectiveIcon);
+
     const numberLocale = numberFormatToLocale(
       resolved.numberFormat,
       resolved.language
@@ -372,6 +385,17 @@ export class EnergyHorizonCard extends LitElement implements LovelaceCard {
 
     return html`<ha-card class="ebc-card">
       <div class="content ebc-content">
+        ${shouldRenderHeader
+          ? html`<div class="ebc-title-row">
+              ${showIcon && !!effectiveIcon
+                ? html`<ha-icon class="ebc-icon" icon=${effectiveIcon}></ha-icon>`
+                : null}
+              ${showTitle && !!effectiveTitle
+                ? html`<span class="ebc-title">${effectiveTitle}</span>`
+                : null}
+            </div>`
+          : null}
+
         ${heading ? html`<div class="heading ebc-header">${heading}</div>` : null}
 
         ${summary
