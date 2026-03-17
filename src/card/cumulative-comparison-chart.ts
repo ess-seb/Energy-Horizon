@@ -122,7 +122,17 @@ export class EnergyHorizonCard extends LitElement implements LovelaceCard {
         if (this._chartRenderer) {
           const resolved = resolveLocale(this.hass, this._config);
           const localize = createLocalize(resolved.language);
-          this._chartRenderer.update(this._state.comparisonSeries, {
+          this._chartRenderer.update(this._state.comparisonSeries, [], {
+            primaryColor: "",
+            fillCurrent: true,
+            fillReference: false,
+            fillCurrentOpacity: 30,
+            fillReferenceOpacity: 30,
+            showForecast: false,
+            forecastTotal: undefined,
+            unit: "",
+            periodLabel: ""
+          }, {
             current: this._localizeOrError(localize, "period.current"),
             reference: this._localizeOrError(localize, "period.reference")
           });

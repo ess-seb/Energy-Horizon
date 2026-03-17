@@ -15,6 +15,11 @@ export interface CardConfig {
   debug?: boolean;
   language?: string;
   number_format?: "comma" | "decimal" | "language" | "system";
+  fill_current?: boolean;
+  fill_reference?: boolean;
+  fill_current_opacity?: number;
+  fill_reference_opacity?: number;
+  primary_color?: string;
 }
 
 export interface ComparisonPeriod {
@@ -101,5 +106,17 @@ export interface CardState {
   forecast?: ForecastStats;
   textSummary?: TextSummary;
   period?: ComparisonPeriod;
+}
+
+export interface ChartRendererConfig {
+  primaryColor: string;
+  fillCurrent: boolean;
+  fillReference: boolean;
+  fillCurrentOpacity: number;
+  fillReferenceOpacity: number;
+  showForecast: boolean;
+  forecastTotal?: number;
+  unit: string;
+  periodLabel: string;
 }
 

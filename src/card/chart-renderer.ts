@@ -10,7 +10,7 @@ import {
   Filler
 } from "chart.js";
 import "chartjs-adapter-date-fns";
-import type { ComparisonSeries } from "./types";
+import type { ComparisonSeries, ChartRendererConfig } from "./types";
 
 /** Labels must be pre-localized by the card; this module does not use translation files. */
 
@@ -24,6 +24,10 @@ Chart.register(
   Legend,
   Filler
 );
+
+// Internal type used in Phase 3 for chart data points
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+type ChartPoint = { x: number; y: number | null };
 
 export class ChartRenderer {
   private chart?: Chart;
@@ -70,8 +74,11 @@ export class ChartRenderer {
   /** @param labels - Pre-localized legend labels from the card (e.g. period.current / period.reference). */
   update(
     series: ComparisonSeries,
+    fullTimeline: number[],
+    rendererConfig: ChartRendererConfig,
     labels: { current: string; reference: string }
   ): void {
+    // TODO: implement in Phase 3
     const ctx = this.canvas.getContext("2d");
     if (!ctx) return;
 
@@ -89,7 +96,8 @@ export class ChartRenderer {
 
     const hash = JSON.stringify({
       c: currentData,
-      r: referenceData
+      r: referenceData,
+      cfg: rendererConfig
     });
 
     if (this.lastHash === hash && this.chart) {
