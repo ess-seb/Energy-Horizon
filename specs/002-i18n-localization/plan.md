@@ -70,7 +70,7 @@ src/
 │   ├── cumulative-comparison-chart.ts  ← MODIFIED – resolveLocale() + createLocalize() + replace all hardcoded strings
 │   ├── chart-renderer.ts         ← MODIFIED – accept localized period labels as parameters
 │   ├── energy-horizon-card-styles.ts  ← unchanged
-│   └── theme-utils.ts            ← unchanged
+│   └── (no theme-utils.ts)       ← theming jest częścią `chart-renderer.ts` w aktualnym kodzie
 ├── ha-types.ts           ← MODIFIED – extend HomeAssistant.locale and add config.time_zone
 └── index.ts              ← unchanged
 ```

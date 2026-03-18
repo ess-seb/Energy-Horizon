@@ -75,10 +75,10 @@ specs/001-energy-horizon-card/
 src/
 ├── card/
 │   ├── cumulative-comparison-chart.ts  # Główny komponent karty (LitElement + LovelaceCard)
-│   ├── chart-renderer.ts               # Klasa odpowiedzialna za inicjalizację i aktualizację Chart.js
+│   ├── chart-renderer.ts               # Inicjalizacja i aktualizacja Chart.js (w tym odczyt kolorów z CSS HA dla spójnego themingu)
 │   ├── ha-api.ts                       # Serwis komunikacji z WebSocket API HA (LTS statistics)
 │   ├── types.ts                        # Wspólne typy TS: konfiguracja, modele danych, odpowiedzi API
-│   └── theme-utils.ts                  # Pomocnicze funkcje do mapowania zmiennych CSS HA na kolory Chart.js
+│   └── (no theme-utils.ts)             # Theming Chart.js realizowany w `chart-renderer.ts` (jedno miejsce odpowiedzialności)
 ├── index.ts                            # Punkt wejścia bundla karty (rejestracja custom elementu)
 └── vite-env.d.ts                       # Deklaracje środowiska Vite, jeśli potrzebne
 
@@ -86,7 +86,7 @@ tests/
 ├── unit/
 │   ├── ha-api.test.ts                  # Testy mapowania i walidacji odpowiedzi LTS
 │   ├── aggregation.test.ts             # Testy obliczeń skumulowanych serii i prognoz
-│   └── theme-utils.test.ts             # Testy mapowania themingu
+│   └── (no theme-utils.test.ts)        # Theming jest częścią `chart-renderer.ts` (testy ewentualnie pod `chart-renderer.*.test.ts`)
 └── integration/
     └── card-render.test.ts             # Podstawowe testy renderowania karty (bez pełnego HA)
 

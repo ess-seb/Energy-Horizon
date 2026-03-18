@@ -124,13 +124,14 @@ Podział na dedykowane moduły:
 - Źródło kolorów:
   - Zmienne CSS HA: `var(--primary-color)`, `var(--secondary-text-color)`, `var(--accent-color)`, `var(--ha-card-background)`, itp.
 - Mechanizm:
-  - `theme-utils.ts` będzie:
-    - Odczytywał aktualne wartości zmiennych CSS z elementu hosta (np. `getComputedStyle(this)`) lub `document.documentElement`.
-    - Mapował je na obiekty kolorów używane przez Chart.js (kolory linii, wypełnienia gradientów, siatki, osi).
+  - Jednym miejscem odpowiedzialności za theming Chart.js jest `src/card/chart-renderer.ts`:
+    - Odczytuje aktualne wartości zmiennych CSS z elementu hosta karty (np. przez `getComputedStyle(host)` dla `ha-card` / `.ehc-card`).
+    - Mapuje je na kolory używane przez Chart.js (np. kolory linii, siatki, markerów).
+  - Osobny plik `theme-utils.ts` nie jest wymagany; jeśli logika themingu zacznie się rozrastać lub będzie potrzebna w kilku miejscach, można ją później wydzielić do osobnego modułu.
 - Reagowanie na zmianę motywu:
   - Karta będzie nasłuchiwać zmian motywu HA (np. przez aktualizację `hass.themes` / zmianę `hass`).
   - Przy zmianie:
-    - Oblicza nowe kolory poprzez `theme-utils`.
+    - `ChartRenderer` ponownie rozwiązuje kolory z CSS variables.
     - Aktualizuje konfigurację Chart.js i wywołuje `.update()`.
 
 ### Rationale

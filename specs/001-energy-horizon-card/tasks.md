@@ -61,8 +61,8 @@ description: "Tasks for implementing Energy Horizon Cumulative Comparison Card"
 
 - [x] T011 [P] [US1] Zaimplementuj serwis WebSocket LTS w `src/card/ha-api.ts` (budowa zapytań `recorder/statistics_during_period`, defensywne parsowanie odpowiedzi)
 - [x] T012 [P] [US1] Zaimplementuj funkcje przeliczania serii na skumulowane (`CumulativeSeries`) i budowę `ComparisonSeries` w `src/card/ha-api.ts`
-- [x] T013 [P] [US1] Utwórz klasę `ChartRenderer` inicjalizującą i aktualizującą Chart.js w `src/card/chart-renderer.ts` (line chart, gradienty, markery, tooltip/legend)
-- [x] T014 [P] [US1] Zaimplementuj `theme-utils` do odczytu zmiennych HA i mapowania na kolory/gradienty Chart.js w `src/card/theme-utils.ts`
+- [x] T013 [P] [US1] Utwórz klasę `ChartRenderer` inicjalizującą i aktualizującą Chart.js w `src/card/chart-renderer.ts` (line chart, gradienty, markery, tooltip/legend; **theming przez odczyt CSS variables HA w `ChartRenderer`**)
+- [x] T014 [P] [US1] Theming wykresu: odczyt zmiennych CSS HA i mapowanie na kolory/siatkę Chart.js jest realizowane w `src/card/chart-renderer.ts` (metoda w stylu `getThemeColors()`); osobny plik `theme-utils.ts` nie jest wymagany
 - [x] T015 [US1] Rozszerz `cumulative-comparison-chart.ts` o pełny lifecycle: `setConfig`, `hass` setter, `getCardSize`, zarządzanie stanem `CardState` (loading/error/no-data/ready) i inicjalizację `ha-api` + `ChartRenderer`
 - [x] T016 [US1] Zaimplementuj logikę wariantów okresu (rok‑do‑roku / miesiąc‑do‑roku) i wyznaczanie zakresów czasu w oparciu o `CardConfig` i `ComparisonPeriod` w `src/card/ha-api.ts`
 - [x] T017 [US1] Zaimplementuj layout `render()` w `cumulative-comparison-chart.ts` (spinner podczas ładowania, `<ha-alert>` dla błędów/braku danych, `<canvas>` dla wykresu) w `src/card/cumulative-comparison-chart.ts`
@@ -121,7 +121,7 @@ description: "Tasks for implementing Energy Horizon Cumulative Comparison Card"
 - [ ] T029 [P] Dodaj dodatkowe testy jednostkowe dla edge case’ów (brak danych LTS, różne jednostki, rok przestępny) w `tests/unit/ha-api.test.ts`
 - [ ] T030 Przejrzyj i uprość kod (refaktoryzacja, usunięcie duplikacji) w `src/card/*`
 - [ ] T031 [P] Zweryfikuj wydajność renderowania karty przy typowych zakresach danych i popraw ewentualne wąskie gardła (np. konfiguracja Chart.js) w `src/card/chart-renderer.ts`
-- [ ] T032 [P] Zweryfikuj zachowanie themingu i trybów dark/light na różnych motywach HA (dostosuj `theme-utils.ts` w razie potrzeby)
+- [ ] T032 [P] Zweryfikuj zachowanie themingu i trybów dark/light na różnych motywach HA (dostosuj logikę odczytu CSS variables i mapowania w `src/card/chart-renderer.ts` w razie potrzeby)
 - [x] T033 [P] Zaimplementuj formatowanie dat i liczb zgodnie z sekcją „Locale & Formatting” w `plan.md` (wykorzystanie `hass.locale` / `hass.language` z `Intl.DateTimeFormat` / `Intl.NumberFormat`) w `src/card/cumulative-comparison-chart.ts`
 - [ ] T034 [P] Zweryfikuj, że użycie `<ha-alert>` i `<ha-circular-progress>` w `src/card/cumulative-comparison-chart.ts` jest zgodne z kontraktem opisanym w `specs/001-energy-horizon-card/contracts/ui.md` i wprowadź ewentualne poprawki
 
@@ -149,7 +149,7 @@ description: "Tasks for implementing Energy Horizon Cumulative Comparison Card"
 - Wszystkie zadania oznaczone `[P]` mogą być realizowane równolegle (inne pliki, brak bezpośrednich zależności).
 - Po ukończeniu Phase 2:
   - Można równolegle rozwijać:
-    - `ha-api.ts`, `chart-renderer.ts`, `theme-utils.ts` oraz testy.
+    - `ha-api.ts`, `chart-renderer.ts` (w tym theming) oraz testy.
 - Po ukończeniu US1:
   - US2 (sekcja podsumowania) i US3 (prognoza) mogą być rozwijane równolegle przez różnych developerów.
 
