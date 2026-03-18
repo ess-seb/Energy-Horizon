@@ -145,7 +145,7 @@ areaStyle: rendererConfig.fillCurrent
 
 ---
 
-## 5. Null handling — connectNulls: false
+## 5. Null handling (solid series) — connectNulls: false
 
 ### Decision
 ```ts
@@ -154,11 +154,27 @@ areaStyle: rendererConfig.fillCurrent
 
 ### Rationale
 - ECharts `LineChart` ma opcję `connectNulls` na poziomie serii — domyślnie `false`, ale lepiej jawnie zaznaczyć.
-- Wartości `null` w tablicy `data` tworzą przerwy w linii — identycznie z Chart.js `spanGaps: false`. Spełnia FR-002.
+- Wartości `null` w tablicy `data` tworzą przerwy w linii dla **serii „solid”** — identycznie z Chart.js `spanGaps: false`. Spełnia FR-002.
 
 ---
 
-## 6. Oś Y — dokładnie 5 ticków
+## 6. Null gap overlay (dashed interpolation) — `connect_nulls`
+
+### Decision
+Gdy w YAML ustawiono flagę logiczną `connect_nulls: true` (domyślnie), renderer dodaje dodatkową serię „overlay”:
+ - linia przerywana (`lineStyle.type: 'dashed'`)
+ - bez wypełnienia (`areaStyle.opacity: 0`)
+ - interpolowane wartości liczone wyłącznie w obrębie każdej spójnej „luki” `null` (pomiędzy dwoma sąsiadującymi punktami non-null)
+
+Flaga jest przepinana do renderera jako `rendererConfig.connectNulls` i bramkowana warunkowo (overlay jest opcjonalny).
+
+### Rationale
+- Seria „solid” nadal ma gapy w miejscach `null` (przez `connectNulls: false`), więc wymaganie FR-002 pozostaje spełnione.
+- Overlay dostarcza wizualnej wskazówki „jak mogłaby przebiegać” seria przez brakujące punkty, ale nie zmienia tego, że prawdziwe dane są niedostępne.
+
+---
+
+## 7. Oś Y — dokładnie 5 ticków
 
 ### Decision
 ```ts

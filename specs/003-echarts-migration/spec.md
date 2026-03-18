@@ -95,7 +95,8 @@ Użytkownik wielokrotnie przebudowuje kartę (np. przez odświeżenie widoku w H
 **Migracja renderowania – zachowanie 1:1 z 001-chart-updates:**
 
 - **FR-001**: Renderer MUSI wyświetlać na osi poziomej wszystkie sloty `fullTimeline` (0..N-1), niezależnie od dostępności danych, zachowując pełną oś czasu okresu (FR-001 z 001-chart-updates).
-- **FR-002**: Linie serii MUSZĄ przerywać się (gap) w slotach, gdzie wartość wynosi `null` — punkty po obu stronach luki NIE MOGĄ być połączone (FR-002 z 001-chart-updates, `connectNulls: false` lub ekwiwalent ECharts).
+- **FR-002**: Linie serii MUSZĄ przerywać się (gap) w slotach, gdzie wartość wynosi `null` (solid series). W implementacji służy do tego `connectNulls: false` na serii liniowej.
+  Gdy w YAML ustawiono flagę logiczną `connect_nulls: true` (domyślnie), renderer może dodatkowo narysować **przerywaną, interpolowaną** warstwę „overlay” przez luki `null` (aby wizualnie zasugerować przebieg), ale nie usuwa to gapów w serii „solid” (FR-002 z 001-chart-updates + ekwiwalent ECharts).
 - **FR-003**: Marker „dziś" MUSI być zrealizowany wyłącznie przez wbudowane mechanizmy ECharts: pionowa linia przerywana przez `markLine`, kropki przez `markPoint` lub dane z efektem punktowym — bez żadnych bezpośrednich operacji Canvas API.
 - **FR-004**: Pionowa linia przerywana markera „dziś" MUSI biec od y=0 do wyższej z dwóch wartości (bieżąca lub referencyjna). Wartości `null` są traktowane jako nieobecne (nie jako zero) — jeśli dokładnie jedna seria ma `null` w slocie dzisiejszym, linia biegnie do wartości serii niezerowej. Gdy obie serie mają `null` — do górnej krawędzi obszaru wykresu.
 - **FR-005**: Wypełnienie (area) pod każdą serią MUSI być realizowane przez `areaStyle` ECharts z niezależnym kryciem (`opacity`) dla każdej serii, nie wpływając na krycie samej linii.
@@ -121,7 +122,7 @@ Użytkownik wielokrotnie przebudowuje kartę (np. przez odświeżenie widoku w H
 
 - **EChartsRenderer**: Nowa klasa renderera (`src/card/echarts-renderer.ts`) implementująca interfejs `ChartRenderer`. Odpowiada za: inicjalizację instancji ECharts, transformację danych wejściowych (`ComparisonSeries`, `fullTimeline`, `ChartRendererConfig`) do formatu `EChartsOption`, aktualizację wykresu (`setOption`) i zwalnianie zasobów (`dispose`).
 - **EChartsOption (adapter)**: Wewnętrzna funkcja/metoda budująca obiekt konfiguracji ECharts na podstawie danych wejściowych. Wejście: `ComparisonSeries`, `fullTimeline: number[]`, `ChartRendererConfig`, `labels`. Wyjście: `ECOption` (typ z `echarts/core`).
-- **ChartRendererConfig**: Istniejący typ — pozostaje bez zmian. Zawiera: `primaryColor`, `fillCurrent`, `fillCurrentOpacity`, `fillReference`, `fillReferenceOpacity`, `showForecast`, `forecastTotal`, `referencePeriodStart`, `periodLabel`, `unit`.
+- **ChartRendererConfig**: Istniejący typ — pozostaje bez zmian. Zawiera: `primaryColor`, `fillCurrent`, `fillCurrentOpacity`, `fillReference`, `fillReferenceOpacity`, `connectNulls`, `showForecast`, `forecastTotal`, `referencePeriodStart`, `periodLabel`, `unit`.
 
 ---
 
