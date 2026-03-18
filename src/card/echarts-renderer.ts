@@ -193,11 +193,15 @@ export class EChartsRenderer {
     const yMax = this.niceMax(dataMax, 4);
 
     const xMax = Math.max(fullTimeline.length - 1, 0);
+    // Use an interval that places ticks at exactly 0, 25%, 50%, 75% and max.
+    // With interval=1 and 365 ticks ECharts' hideOverlap misdetects collisions
+    // between empty-string labels and hides edge (0 / max) labels entirely.
+    const xInterval = xMax > 0 ? Math.max(1, Math.round(xMax / 4)) : 1;
     const xLabelStops = new Set<number>([
       0,
-      Math.round(xMax * 0.25),
-      Math.round(xMax * 0.5),
-      Math.round(xMax * 0.75),
+      xInterval,
+      xInterval * 2,
+      xInterval * 3,
       xMax
     ]);
     const formatXAxisLabel = (value: number): string => {
@@ -489,7 +493,7 @@ export class EChartsRenderer {
         type: 'value',
         min: 0,
         max: xMax,
-        interval: 1,
+        interval: xInterval,
         // For `value` axis ECharts typings expect a tuple; [0,0] means "no gap".
         boundaryGap: [0, 0],
         splitLine: { show: false },
