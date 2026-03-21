@@ -212,9 +212,11 @@ The model runs only if all of the following hold:
 
 The split between “elapsed” and “remainder” in the **reference** series uses **timestamps**, not array positions—so missing statistics in the middle of the period do not skew **B** and **C** the way a pure day-index split would.
 
+For **year-over-year** and **month-over-year**, reference points come from a different calendar period (e.g. 2024 vs 2025). Before comparing with the cutoff, reference timestamps are **aligned to the current period axis** (same alignment as the chart): `refAlignedTs = refTimestamp + (currentStart − referenceStart)`. This ensures the "elapsed" portion **B** corresponds to the same portion of the period as the current series.
+
 - **cutoff** = start of current series + (time span from first to last **completed** current point).
-- **splitIdx** = last reference point with `timestamp ≤ cutoff`.
-- If no reference point falls before/on cutoff, the forecast is disabled.
+- **splitIdx** = last reference point whose **aligned** timestamp is `≤ cutoff`.
+- If no such reference point exists, the forecast is disabled.
 
 ### Symbols and formula
 
