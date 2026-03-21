@@ -16,6 +16,7 @@ A Lovelace card for Home Assistant that compares cumulative energy usage between
 - **Flexible periods** – Year-over-year or month-over-year comparison
 - **Aggregation** – Daily, weekly, or monthly aggregation of data
 - **Localization (i18n)** – Card follows your Home Assistant language and number format. Optional per-card overrides: `language` and `number_format` in YAML. Supported languages include English, Polish, and German (others can be added via translation files).
+- **Smart unit scaling** – Automatic or manual SI prefix scaling (Wh → kWh, A → mA, etc.) for readable chart labels and summary. Avoids „walls of zeros” on axes. Supports `auto`, `none`, or forced prefix (`k`, `M`, `G`, `m`, `µ`). Time units (h, min, s) and non-scalable units (%, °C) are left unchanged.
 
 ## Requirements
 
@@ -85,6 +86,7 @@ comparison_mode: year_over_year
 | `fill_reference`  | boolean  | `false`            | Show semi-transparent fill under the reference series line                 |
 | `fill_current_opacity` | number | `30`              | Opacity of current series fill (0–100)                                     |
 | `fill_reference_opacity` | number | `30`             | Opacity of reference series fill (0–100)                                   |
+| `unit_display`     | object  | `{ force_prefix: 'auto' }` | SI unit scaling. `force_prefix`: `auto` (default) = choose prefix from data; `none` = raw values from HA; `k`, `M`, `G`, `m`, `u` = force specific prefix. Optional `precision` overrides card `precision` for scaled values. |
 | `debug`           | boolean  | `false`            | Log API query/response to browser console (F12) for troubleshooting        |
 
 ### Example configurations
@@ -147,6 +149,25 @@ fill_current_opacity: 20       # Adjust transparency (0–100, default: 30)
 fill_reference: true           # Show fill under reference series (default: false)
 fill_reference_opacity: 15     # Reference series transparency (0–100, default: 30)
 show_forecast: true            # Forecast line on chart + summary when enabled (use false to hide all)
+```
+
+**Smart unit scaling (auto kWh for Wh entities):**
+```yaml
+type: custom:energy-horizon-card
+entity: sensor.energy_consumption_total
+comparison_mode: year_over_year
+
+# Unit scaling (optional — defaults to auto)
+unit_display:
+  force_prefix: auto    # auto = pick best prefix from data; none = raw values; k/m/M/G/u = force
+  precision: 2          # optional override for scaled values
+```
+
+**Force specific unit prefix:**
+```yaml
+unit_display:
+  force_prefix: k       # always show kWh (e.g. 500 Wh → 0.5 kWh)
+# or: force_prefix: none  # no scaling, show raw values from HA
 ```
 
 ## Supported entities
@@ -247,6 +268,24 @@ If the year-over-year ratio is extreme (**rawTrend &lt; 0.3** or **rawTrend &gt;
 
 Details and acceptance criteria for this logic live in [`specs/001-compute-forecast/`](specs/001-compute-forecast/) (spec, plan, tests).
 
+## Smart unit scaling
+
+The card scales energy and current values to readable SI prefixes (Wh → kWh, A → mA, etc.) based on the data range, avoiding cluttered axes with large raw numbers.
+
+### Modes
+
+- **`auto`** (default) – Choose prefix from maximum value in the series. ≥1000 → scale up (k, M, G); &lt;1 → scale down (m, µ).
+- **`none`** – No scaling; display raw values and units from the entity.
+- **`k`**, **`M`**, **`G`**, **`m`**, **`u`** – Force a specific prefix (e.g. always kWh even for small values).
+
+### Non-scalable units
+
+Time units (`h`, `min`, `s`) and units like `%` or `°C` are never scaled.
+
+### Implementation note
+
+Spec and tasks: [`specs/004-smart-unit-scaling/`](specs/004-smart-unit-scaling/).
+
 ## Troubleshooting
 
 | Issue                           | Solution                                                                 |
@@ -255,6 +294,7 @@ Details and acceptance criteria for this logic live in [`specs/001-compute-forec
 | No data / empty chart           | Verify the entity has statistics; check that the recorder is enabled     |
 | No forecast / forecast disabled | Needs ≥3 completed buckets, ≥5% of the period elapsed, valid reference slice (**B** > 0), and time alignment; set `show_forecast: true` for the chart line |
 | Wrong units                     | Ensure all data points use the same unit of measurement                  |
+| Unit scaling unexpected         | Set `unit_display.force_prefix: none` to disable; check `unit_of_measurement` on the entity |
 | Card shows error                | Open browser console (F12) for details; verify entity ID is correct      |
 
 ## Development
