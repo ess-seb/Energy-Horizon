@@ -208,16 +208,21 @@ export class EChartsRenderer {
     return result;
   }
 
+  /** `ha-card` (or card root) used for Home Assistant theme CSS variables. */
+  private getThemeHost(): HTMLElement {
+    return (
+      (this.container.closest('.ebc-card') as HTMLElement | null) ??
+      (this.container.closest('ha-card') as HTMLElement | null) ??
+      this.container
+    );
+  }
+
   /**
    * Resolve primary color from config or theme CSS variables (T005).
    */
   private resolveColor(primaryColorConfig: string): string {
     if (primaryColorConfig.trim()) return primaryColorConfig;
-    const host =
-      (this.container.closest('.ehc-card') as HTMLElement | null) ??
-      (this.container.closest('ha-card') as HTMLElement | null) ??
-      this.container;
-    const styles = getComputedStyle(host);
+    const styles = getComputedStyle(this.getThemeHost());
     const accentColor = styles.getPropertyValue('--accent-color').trim();
     if (accentColor) return accentColor;
     const primaryColor = styles.getPropertyValue('--primary-color').trim();
@@ -226,24 +231,38 @@ export class EChartsRenderer {
   }
 
   /**
-   * Get theme colors from CSS variables (T005).
+   * Read Home Assistant theme tokens from the card host (`getComputedStyle`).
    */
-  private getThemeColors(): { referenceLine: string; grid: string } {
-    const host =
-      (this.container.closest('.ehc-card') as HTMLElement | null) ??
-      (this.container.closest('ha-card') as HTMLElement | null) ??
-      this.container;
-    const styles = getComputedStyle(host);
+  private getHaThemeTokens(): {
+    referenceLine: string;
+    /** Horizontal grid lines (`yAxis.splitLine`); also used for tooltip border and axis-pointer shadow tint. */
+    grid: string;
+    primaryText: string;
+    tooltipBackground: string;
+    tooltipBorder: string;
+  } {
+    const styles = getComputedStyle(this.getThemeHost());
 
-    const referenceColor =
+    const referenceLine =
       styles.getPropertyValue('--secondary-text-color').trim() || 'rgba(127, 127, 127, 0.4)';
-    const gridColor =
-      styles.getPropertyValue('--divider-color').trim() ||
-      'rgba(127, 127, 127, 0.3)';
+    const grid =
+      styles.getPropertyValue('--divider-color').trim() || 'rgba(127, 127, 127, 0.3)';
+    const primaryText =
+      styles.getPropertyValue('--primary-text-color').trim() || 'rgba(0, 0, 0, 0.87)';
+
+    const tooltipBackground =
+      styles.getPropertyValue('--ha-card-background').trim() ||
+      styles.getPropertyValue('--card-background-color').trim() ||
+      '#ffffff';
+
+    const tooltipBorder = grid;
 
     return {
-      referenceLine: referenceColor,
-      grid: gridColor
+      referenceLine,
+      grid,
+      primaryText,
+      tooltipBackground,
+      tooltipBorder
     };
   }
 
@@ -328,7 +347,13 @@ export class EChartsRenderer {
     rendererConfig: ChartRendererConfig,
     labels: { current: string; reference: string },
     primaryColor: string,
-    theme: { referenceLine: string; grid: string }
+    theme: {
+      referenceLine: string;
+      grid: string;
+      primaryText: string;
+      tooltipBackground: string;
+      tooltipBorder: string;
+    }
   ): EChartsOption {
     // Keep a fixed visual gap between axis ticks and tick labels.
     // For yAxis labels this manifests as spacing on the right side of the label;
@@ -596,10 +621,24 @@ export class EChartsRenderer {
         top: GRID_TOP_FALLBACK_PX,
         bottom: 0
       },
-      legend: { show: true, top: 0, left: "center" },
+      legend: {
+        show: true,
+        top: 0,
+        left: 'center',
+        textStyle: { color: theme.primaryText },
+        pageTextStyle: { color: theme.primaryText }
+      },
       tooltip: {
         trigger: 'axis',
-        axisPointer: { type: 'shadow' },
+        backgroundColor: theme.tooltipBackground,
+        borderColor: theme.tooltipBorder,
+        borderWidth: 1,
+        textStyle: { color: theme.primaryText },
+        axisPointer: {
+          type: 'shadow',
+          // Tint from `--divider-color` (same as split lines); opacity keeps the overlay subtle.
+          shadowStyle: { color: theme.grid, opacity: 0.2 }
+        },
         appendTo: this.container,
         formatter: (params: unknown) => {
           const items = Array.isArray(params) ? params : [params];
@@ -706,6 +745,7 @@ export class EChartsRenderer {
         axisTick: { show: false },
         axisLine: { show: false },
         axisLabel: {
+          color: theme.primaryText,
           formatter: (value: number) => formatXAxisLabel(value),
           margin: tickLabelGapPx,
           hideOverlap: true,
@@ -721,10 +761,15 @@ export class EChartsRenderer {
         min: 0,
         max: yMax,
         splitNumber: 4,
+        splitLine: {
+          show: true,
+          lineStyle: { color: theme.grid, width: 1 }
+        },
         // Oś ma się składać tylko z ticków i wartości (bez pionowej linii osi).
         axisLine: { show: false },
         axisTick: { show: false },
         axisLabel: {
+          color: theme.primaryText,
           formatter: (value: number) => {
             if (value === yMax) {
               return `${value} ${rendererConfig.unit}`;
@@ -770,11 +815,14 @@ export class EChartsRenderer {
         )
       : new Array(fullTimeline.length).fill(null);
 
-    // Compute hash for memoization (FR-012)
+    const theme = this.getHaThemeTokens();
+
+    // Compute hash for memoization (FR-012); include theme snapshot so HA light/dark switches refresh the chart.
     const hash = JSON.stringify({
       c: currentValues,
       r: referenceValues,
-      cfg: rendererConfig
+      cfg: rendererConfig,
+      theme
     });
 
     if (this.lastHash === hash) {
@@ -789,7 +837,6 @@ export class EChartsRenderer {
 
     // Resolve colors and build option
     const primaryColor = this.resolveColor(rendererConfig.primaryColor);
-    const theme = this.getThemeColors();
     const option = this.buildOption(
       currentValues,
       referenceValues,

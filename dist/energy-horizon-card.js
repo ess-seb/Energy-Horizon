@@ -21401,24 +21401,31 @@ class jA {
     }
     return n;
   }
+  /** `ha-card` (or card root) used for Home Assistant theme CSS variables. */
+  getThemeHost() {
+    return this.container.closest(".ebc-card") ?? this.container.closest("ha-card") ?? this.container;
+  }
   /**
    * Resolve primary color from config or theme CSS variables (T005).
    */
   resolveColor(t) {
     if (t.trim()) return t;
-    const e = this.container.closest(".ehc-card") ?? this.container.closest("ha-card") ?? this.container, i = getComputedStyle(e), n = i.getPropertyValue("--accent-color").trim();
-    if (n) return n;
-    const a = i.getPropertyValue("--primary-color").trim();
-    return a || "#03a9f4";
+    const e = getComputedStyle(this.getThemeHost()), i = e.getPropertyValue("--accent-color").trim();
+    if (i) return i;
+    const n = e.getPropertyValue("--primary-color").trim();
+    return n || "#03a9f4";
   }
   /**
-   * Get theme colors from CSS variables (T005).
+   * Read Home Assistant theme tokens from the card host (`getComputedStyle`).
    */
-  getThemeColors() {
-    const t = this.container.closest(".ehc-card") ?? this.container.closest("ha-card") ?? this.container, e = getComputedStyle(t), i = e.getPropertyValue("--secondary-text-color").trim() || "rgba(127, 127, 127, 0.4)", n = e.getPropertyValue("--divider-color").trim() || "rgba(127, 127, 127, 0.3)";
+  getHaThemeTokens() {
+    const t = getComputedStyle(this.getThemeHost()), e = t.getPropertyValue("--secondary-text-color").trim() || "rgba(127, 127, 127, 0.4)", i = t.getPropertyValue("--divider-color").trim() || "rgba(127, 127, 127, 0.3)", n = t.getPropertyValue("--primary-text-color").trim() || "rgba(0, 0, 0, 0.87)", a = t.getPropertyValue("--ha-card-background").trim() || t.getPropertyValue("--card-background-color").trim() || "#ffffff";
     return {
-      referenceLine: i,
-      grid: n
+      referenceLine: e,
+      grid: i,
+      primaryText: n,
+      tooltipBackground: a,
+      tooltipBorder: i
     };
   }
   /**
@@ -21654,10 +21661,24 @@ class jA {
         top: gp,
         bottom: 0
       },
-      legend: { show: !0, top: 0, left: "center" },
+      legend: {
+        show: !0,
+        top: 0,
+        left: "center",
+        textStyle: { color: s.primaryText },
+        pageTextStyle: { color: s.primaryText }
+      },
       tooltip: {
         trigger: "axis",
-        axisPointer: { type: "shadow" },
+        backgroundColor: s.tooltipBackground,
+        borderColor: s.tooltipBorder,
+        borderWidth: 1,
+        textStyle: { color: s.primaryText },
+        axisPointer: {
+          type: "shadow",
+          // Tint from `--divider-color` (same as split lines); opacity keeps the overlay subtle.
+          shadowStyle: { color: s.grid, opacity: 0.2 }
+        },
         appendTo: this.container,
         formatter: (T) => {
           var st, ht;
@@ -21706,6 +21727,7 @@ class jA {
         axisTick: { show: !1 },
         axisLine: { show: !1 },
         axisLabel: {
+          color: s.primaryText,
           formatter: (T) => d(T),
           margin: 8,
           hideOverlap: !0,
@@ -21721,10 +21743,15 @@ class jA {
         min: 0,
         max: f,
         splitNumber: 4,
+        splitLine: {
+          show: !0,
+          lineStyle: { color: s.grid, width: 1 }
+        },
         // Oś ma się składać tylko z ticków i wartości (bez pionowej linii osi).
         axisLine: { show: !1 },
         axisTick: { show: !1 },
         axisLabel: {
+          color: s.primaryText,
           formatter: (T) => T === f ? `${T} ${n.unit}` : String(T),
           margin: 8,
           // Ensures the margin translates to spacing on the right side.
@@ -21747,22 +21774,23 @@ class jA {
       t.reference.points,
       e,
       i.referencePeriodStart != null ? new Date(i.referencePeriodStart) : void 0
-    ) : new Array(e.length).fill(null), s = JSON.stringify({
+    ) : new Array(e.length).fill(null), s = this.getHaThemeTokens(), l = JSON.stringify({
       c: a,
       r: o,
-      cfg: i
+      cfg: i,
+      theme: s
     });
-    if (this.lastHash === s)
+    if (this.lastHash === l)
       return;
-    this.lastHash = s, this.lastSyncedGridTop = void 0, this.lastSyncedMinHeightTotalPx = void 0, this.container.style.minHeight = "";
-    const l = this.resolveColor(i.primaryColor), u = this.getThemeColors(), f = this.buildOption(
+    this.lastHash = l, this.lastSyncedGridTop = void 0, this.lastSyncedMinHeightTotalPx = void 0, this.container.style.minHeight = "";
+    const u = this.resolveColor(i.primaryColor), f = this.buildOption(
       a,
       o,
       e,
       i,
       n,
-      l,
-      u
+      u,
+      s
     );
     this.instance.setOption(f, { notMerge: !0 });
   }
