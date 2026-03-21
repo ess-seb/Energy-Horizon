@@ -12,3 +12,5 @@ pnpm-debug.log*
 .turbo/
 .vite/
 
+design/energy-horizon-card-current-state-dark.svg
+design/energy-horizon-card-current-state.svg
