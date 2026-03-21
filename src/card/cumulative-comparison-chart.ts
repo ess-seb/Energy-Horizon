@@ -253,7 +253,9 @@ export class EnergyHorizonCard extends LitElement implements LovelaceCard {
       };
 
       const summary = computeSummary(series);
-      const forecast = computeForecast(series);
+      const fullEnd = this._computeFullEnd(period);
+      const fullTimeline = buildFullTimeline(period, fullEnd);
+      const forecast = computeForecast(series, fullTimeline.length);
 
       if (!summary.unit && entityUnit) {
         summary.unit = entityUnit;
@@ -292,6 +294,16 @@ export class EnergyHorizonCard extends LitElement implements LovelaceCard {
   }
 
   private _buildRendererConfig(): ChartRendererConfig {
+    const resolved = resolveLocale(this.hass ?? null, this._config);
+    const language = resolved.language;
+    const numberLocale = numberFormatToLocale(resolved.numberFormat, resolved.language);
+    const precision = this._config.precision ?? 1;
+    const localize = createLocalize(language);
+    const forecastLabel = this._localizeOrError(
+      localize,
+      "forecast.current_forecast"
+    );
+
     if (!this._state.period) {
       return {
         primaryColor: this._config.primary_color ?? "",
@@ -299,21 +311,26 @@ export class EnergyHorizonCard extends LitElement implements LovelaceCard {
         fillReference: this._config.fill_reference ?? false,
         fillCurrentOpacity: clampOpacity(this._config.fill_current_opacity),
         fillReferenceOpacity: clampOpacity(this._config.fill_reference_opacity),
+        connectNulls: this._config.connect_nulls ?? true,
         showForecast: this._config.show_forecast ?? false,
         forecastTotal: this._state.forecast?.forecast_total,
         unit: this._state.forecast?.unit ?? "",
-        periodLabel: ""
+        periodLabel: "",
+        comparisonMode: this._config.comparison_mode,
+        language,
+        numberLocale,
+        precision,
+        forecastLabel
       };
     }
 
     const period = this._state.period;
-    const lang = this._config.language ?? this.hass?.language ?? "en";
 
     let periodLabel = "";
     if (this._config.comparison_mode === "year_over_year") {
       periodLabel = String(period.current_start.getFullYear());
     } else {
-      periodLabel = new Intl.DateTimeFormat(lang, { month: "long" }).format(period.current_start);
+      periodLabel = new Intl.DateTimeFormat(language, { month: "long" }).format(period.current_start);
     }
 
     const entityState = this.hass?.states?.[this._config.entity];
@@ -325,11 +342,17 @@ export class EnergyHorizonCard extends LitElement implements LovelaceCard {
       fillReference: this._config.fill_reference ?? false,
       fillCurrentOpacity: clampOpacity(this._config.fill_current_opacity),
       fillReferenceOpacity: clampOpacity(this._config.fill_reference_opacity),
+      connectNulls: this._config.connect_nulls ?? true,
       showForecast: this._config.show_forecast ?? false,
       forecastTotal: this._state.forecast?.forecast_total,
       unit,
       periodLabel,
-      referencePeriodStart: period.reference_start.getTime()
+      referencePeriodStart: period.reference_start.getTime(),
+      comparisonMode: this._config.comparison_mode,
+      language,
+      numberLocale,
+      precision,
+      forecastLabel
     };
   }
 

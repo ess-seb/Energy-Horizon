@@ -189,6 +189,16 @@ type ECOption = {
 
 Warunek włączenia: `showForecast && todaySlotIndex >= 0 && todayCurrentY !== null && forecastTotal !== undefined`
 
+#### 3d. Dashed null-gap overlay (opcjonalna)
+
+Gdy w YAML ustawiono flagę logiczna `connect_nulls: true` (domyslnie), renderer dodaje dodatkowa serie liniowa "overlay" dla luki `null`:
+- przerywana linia (`lineStyle.type: 'dashed'`)
+- bez wypelnienia (`areaStyle.opacity: 0`)
+- interpolacja liniowa liczona tylko wewnatrz spójnej luki `null` (miedzy dwoma sasiadujacymi punktami non-null)
+- poza lukami pozostaja `null`
+
+Uwaga: solid series nadal ma gapy (connectNulls: false), overlay to tylko wizualna wskazowka.
+
 ---
 
 ### 4. `MarkLineOption` — marker „dziś" (linia przerywana)

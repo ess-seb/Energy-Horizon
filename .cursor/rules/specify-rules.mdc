@@ -17,6 +17,7 @@ Auto-generated from all feature plans. Last updated: 2026-03-10
 - N/A — in-browser only; HA state is read-only at render time (001-chart-updates)
 - TypeScript 5.6 (ES2020+, `strict` enabled) + Lit 3.1 (LitElement), Apache ECharts 5.6.0 (modularny — `echarts/core`, `echarts/charts`, `echarts/components`, `echarts/renderers`), Vite 6 (bundler), Vitest 2 (testy) (003-echarts-migration)
 - N/A — przetwarzanie in-browser, dane read-only z HA (003-echarts-migration)
+- TypeScript 5.6 (ES2020+, `strict` enabled) + Lit 3.1 (LitElement) — bez nowych zależności (001-compute-forecast)
 
 - TypeScript (ES2020+, `strict` enabled) + Lit (`lit`, `lit/decorators.js`), Chart.js (core + line/tooltip/legend/gradient plugins), Home Assistant Lovelace card API typings, Vite bundler (001-energy-horizon-card)
 
@@ -37,9 +38,9 @@ npm test && npm run lint
 TypeScript (ES2020+, `strict` enabled): Follow standard conventions
 
 ## Recent Changes
+- 001-compute-forecast: Added TypeScript 5.6 (ES2020+, `strict` enabled) + Lit 3.1 (LitElement) — bez nowych zależności
 - 003-echarts-migration: Added TypeScript 5.6 (ES2020+, `strict` enabled) + Lit 3.1 (LitElement), Apache ECharts 5.6.0 (modularny — `echarts/core`, `echarts/charts`, `echarts/components`, `echarts/renderers`), Vite 6 (bundler), Vitest 2 (testy)
 - 003-echarts-migration: Added [if applicable, e.g., PostgreSQL, CoreData, files or N/A]
-- 001-chart-updates: Added TypeScript 5.6 (ES2020+, `strict` enabled) + Lit 3.1 (LitElement, `html`, `css`), Chart.js 4.4 (core, LineController, LinearScale, Filler, Tooltip, Legend), chartjs-adapter-date-fns, Vite 6 (bundler), Vitest 2 (tests)
 
 
 <!-- MANUAL ADDITIONS START -->

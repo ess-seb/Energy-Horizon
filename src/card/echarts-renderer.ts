@@ -3,7 +3,8 @@ import { init as echartsInit, use as echartsUse } from 'echarts/core';
 import { LineChart } from 'echarts/charts';
 import { GridComponent, TooltipComponent, LegendComponent, MarkLineComponent, MarkPointComponent } from 'echarts/components';
 import { CanvasRenderer } from 'echarts/renderers';
-import type { ECharts, ECOption } from 'echarts/core';
+import type { ECharts } from 'echarts/core';
+import type { EChartsOption } from 'echarts';
 
 import type { ComparisonSeries, ChartRendererConfig, TimeSeriesPoint } from './types';
 
@@ -130,7 +131,7 @@ export class EChartsRenderer {
     const styles = getComputedStyle(host);
 
     const referenceColor =
-      styles.getPropertyValue('--secondary-text-color').trim() || '#727272';
+      styles.getPropertyValue('--secondary-text-color').trim() || 'rgba(127, 127, 127, 0.4)';
     const gridColor =
       styles.getPropertyValue('--divider-color').trim() ||
       'rgba(127, 127, 127, 0.3)';
@@ -166,6 +167,52 @@ export class EChartsRenderer {
   }
 
   /**
+   * Build values for a "null-gap dashed" series.
+   * For every contiguous run of `null` values with a non-null value on both sides,
+   * it linearly interpolates values across the whole span between the surrounding points
+   * (including those non-null endpoints). Outside such spans it returns `null`.
+   */
+  private buildDashedNullGapValues(
+    values: (number | null)[]
+  ): (number | null)[] {
+    const result: (number | null)[] = new Array(values.length).fill(null);
+
+    let lastNonNullIndex: number | undefined;
+
+    let i = 0;
+    while (i < values.length) {
+      if (values[i] !== null) {
+        lastNonNullIndex = i;
+        i++;
+        continue;
+      }
+
+      // i is at the start of a contiguous null block.
+      while (i < values.length && values[i] === null) i++;
+
+      const rightIndex = i < values.length ? i : undefined;
+      if (lastNonNullIndex === undefined || rightIndex === undefined) {
+        continue;
+      }
+
+      const leftIndex = lastNonNullIndex;
+      const leftVal = values[leftIndex]!;
+      const rightVal = values[rightIndex]!;
+      const span = rightIndex - leftIndex;
+
+      for (let k = leftIndex; k <= rightIndex; k++) {
+        const t = (k - leftIndex) / span;
+        result[k] = leftVal + (rightVal - leftVal) * t;
+      }
+
+      lastNonNullIndex = rightIndex;
+      i = rightIndex + 1; // skip the right endpoint (already included)
+    }
+
+    return result;
+  }
+
+  /**
    * Build EChart option configuration (T008–T012).
    * Handles chart layout, axes, legend, tooltip, and series data.
    */
@@ -177,7 +224,12 @@ export class EChartsRenderer {
     labels: { current: string; reference: string },
     primaryColor: string,
     theme: { referenceLine: string; grid: string }
-  ): ECOption {
+  ): EChartsOption {
+    // Keep a fixed visual gap between axis ticks and tick labels.
+    // For yAxis labels this manifests as spacing on the right side of the label;
+    // for xAxis labels as spacing above the label.
+    const tickLabelGapPx = 8;
+
     // Compute nice max Y value
     const dataMax = Math.max(
       ...currentValues.filter((v) => v !== null) as number[],
@@ -186,7 +238,27 @@ export class EChartsRenderer {
     );
     const yMax = this.niceMax(dataMax, 4);
 
+    const xMax = Math.max(fullTimeline.length - 1, 0);
+    // Use an interval that places ticks at exactly 0, 25%, 50%, 75% and max.
+    // With interval=1 and 365 ticks ECharts' hideOverlap misdetects collisions
+    // between empty-string labels and hides edge (0 / max) labels entirely.
+    const xInterval = xMax > 0 ? Math.max(1, Math.round(xMax / 4)) : 1;
+    const xLabelStops = new Set<number>([
+      0,
+      xInterval,
+      xInterval * 2,
+      xInterval * 3,
+      xMax
+    ]);
+    const formatXAxisLabel = (value: number): string => {
+      const tick = Math.round(value);
+      if (tick < 0 || tick > xMax) return '';
+      return xLabelStops.has(tick) ? String(tick) : '';
+    };
+
     const series: any[] = [];
+    const solidCurrentSeriesIndex = series.length;
+    let solidReferenceSeriesIndex: number | undefined;
 
     // Current series (T009)
     const fillCurrentOpacity = Math.min(
@@ -201,30 +273,110 @@ export class EChartsRenderer {
     series.push({
       name: labels.current,
       type: 'line',
+      // ECharts uses `series.color` (and/or itemStyle) for hover symbols and tooltip markers.
+      color: primaryColor,
       data: currentValues.map((y, i) => (y !== null ? [i, y] : null)),
       lineStyle: { color: primaryColor, width: 1.5 },
       areaStyle: {
+        // Ensure the filled area matches the line color, with separate opacity.
+        color: primaryColor,
         opacity: rendererConfig.fillCurrent ? fillCurrentOpacity : 0
       },
       connectNulls: false,
       showSymbol: false,
-      smooth: false
+      smooth: false,
+      // Show a symbol on hover (with the same color as the line).
+      symbol: 'circle',
+      symbolSize: 6,
+      emphasis: {
+        focus: 'series',
+        showSymbol: true,
+        symbolSize: 6,
+        itemStyle: { color: primaryColor },
+        lineStyle: { color: primaryColor }
+      },
+      itemStyle: { color: primaryColor }
     });
+
+    // Dashed series over null gaps (T009 null-gap dashed).
+    if (rendererConfig.connectNulls) {
+      const dashedCurrentValues = this.buildDashedNullGapValues(currentValues);
+      if (dashedCurrentValues.some((v) => v !== null)) {
+        series.push({
+          name: `${labels.current} (dashed)`,
+          type: 'line',
+          // ECharts uses `series.color` (and/or itemStyle) for hover symbols and tooltip markers.
+          color: primaryColor,
+          data: dashedCurrentValues.map((y, i) => (y !== null ? [i, y] : null)),
+          lineStyle: { type: 'dashed', color: primaryColor, width: 1.5 },
+          areaStyle: {
+            // Prevent any filled area under interpolated dashed segments.
+            opacity: 0
+          },
+          connectNulls: false,
+          showSymbol: false,
+          smooth: false,
+          itemStyle: { color: primaryColor },
+          showInLegend: false,
+          silent: true,
+          tooltip: { show: false },
+          // Keep focus/hover quiet (series is "silent" anyway, but this avoids edge-cases).
+          emphasis: { focus: 'none' }
+        });
+      }
+    }
 
     // Reference series (T011) - optional
     if (rendererConfig.showForecast && referenceValues.some((v) => v !== null)) {
+      solidReferenceSeriesIndex = series.length;
       series.push({
         name: labels.reference,
         type: 'line',
+        color: theme.referenceLine,
         data: referenceValues.map((y, i) => (y !== null ? [i, y] : null)),
         lineStyle: { color: theme.referenceLine, width: 1.5 },
         areaStyle: {
+          // Ensure the filled area matches the reference line color, with separate opacity.
+          color: theme.referenceLine,
           opacity: rendererConfig.fillReference ? fillReferenceOpacity : 0
         },
         connectNulls: false,
         showSymbol: false,
-        smooth: false
+        smooth: false,
+        symbol: 'circle',
+        symbolSize: 6,
+        emphasis: {
+          focus: 'series',
+          showSymbol: true,
+          symbolSize: 6,
+          itemStyle: { color: theme.referenceLine },
+          lineStyle: { color: theme.referenceLine }
+        },
+        itemStyle: { color: theme.referenceLine }
       });
+
+      const dashedReferenceValues = this.buildDashedNullGapValues(referenceValues);
+      if (rendererConfig.connectNulls && dashedReferenceValues.some((v) => v !== null)) {
+        series.push({
+          name: `${labels.reference} (dashed)`,
+          type: 'line',
+          color: theme.referenceLine,
+          data: dashedReferenceValues.map((y, i) => (y !== null ? [i, y] : null)),
+          lineStyle: { type: 'dashed', color: theme.referenceLine, width: 1.5 },
+          areaStyle: {
+            // Prevent any filled area under interpolated dashed segments.
+            opacity: 0
+          },
+          connectNulls: false,
+          showSymbol: false,
+          smooth: false,
+          itemStyle: { color: theme.referenceLine },
+          showInLegend: false,
+          silent: true,
+          tooltip: { show: false },
+          emphasis: { focus: 'none' }
+        });
+      }
     }
 
     // Today marker computation (T010)
@@ -265,21 +417,21 @@ export class EChartsRenderer {
         });
       }
 
-      (series[0] as any).markLine = {
+      (series[solidCurrentSeriesIndex] as any).markLine = {
         silent: true,
         symbol: ['none', 'none'],
         data: markLineData,
         lineStyle: { type: 'dashed', color: primaryColor, width: 1.5 }
       };
 
-      (series[0] as any).markPoint = {
+      (series[solidCurrentSeriesIndex] as any).markPoint = {
         silent: true,
         data: markPointData
       };
 
       // Add reference series today mark point (T011)
-      if (series.length > 1 && todayReferenceY !== null) {
-        (series[1] as any).markPoint = {
+      if (solidReferenceSeriesIndex !== undefined && todayReferenceY !== null) {
+        (series[solidReferenceSeriesIndex] as any).markPoint = {
           silent: true,
           data: [{
             coord: [todaySlotIndex, todayReferenceY],
@@ -298,52 +450,185 @@ export class EChartsRenderer {
         rendererConfig.forecastTotal !== undefined
       ) {
         series.push({
+          name: rendererConfig.forecastLabel,
           type: 'line',
+          color: primaryColor,
           data: [[todaySlotIndex, todayCurrentY], [fullTimeline.length - 1, rendererConfig.forecastTotal]],
           lineStyle: { type: 'dashed', color: primaryColor, width: 1.5 },
           areaStyle: { opacity: 0 },
           showSymbol: false,
-          connectNulls: false
+          connectNulls: false,
+          symbol: 'circle',
+          symbolSize: 6,
+          emphasis: {
+            focus: 'series',
+            showSymbol: true,
+            symbolSize: 6,
+            itemStyle: { color: primaryColor },
+            lineStyle: { color: primaryColor }
+          },
+          itemStyle: { color: primaryColor }
         });
       }
     } else {
       // No today marker - add empty mark point arrays
-      (series[0] as any).markPoint = { silent: true, data: [] };
-      (series[0] as any).markLine = { silent: true, symbol: ['none', 'none'], data: [], lineStyle: { type: 'dashed', color: primaryColor, width: 1.5 } };
-      if (series.length > 1) {
-        (series[1] as any).markPoint = { silent: true, data: [] };
+      (series[solidCurrentSeriesIndex] as any).markPoint = { silent: true, data: [] };
+      (series[solidCurrentSeriesIndex] as any).markLine = { silent: true, symbol: ['none', 'none'], data: [], lineStyle: { type: 'dashed', color: primaryColor, width: 1.5 } };
+      if (solidReferenceSeriesIndex !== undefined) {
+        (series[solidReferenceSeriesIndex] as any).markPoint = { silent: true, data: [] };
       }
     }
 
-    const option: ECOption = {
+    const option: EChartsOption = {
       animation: false,
-      grid: { containLabel: true },
-      legend: { show: true },
+      // Explicit grid bounds to avoid ECharts default large paddings.
+      // `containLabel: true` keeps axis labels inside the grid area.
+      grid: {
+        containLabel: true,
+        // Give the X-axis edge labels some breathing room on responsive layouts.
+        left: tickLabelGapPx,
+        right: tickLabelGapPx,
+        top: 32,
+        bottom: 0
+      },
+      legend: { show: true, top: 0, left: "center" },
       tooltip: {
         trigger: 'axis',
         axisPointer: { type: 'shadow' },
-        appendTo: this.container
+        appendTo: this.container,
+        formatter: (params: unknown) => {
+          const items = Array.isArray(params) ? params : [params];
+          const first: any = items[0] ?? {};
+
+          const rawIndex =
+            first?.dataIndex ??
+            first?.axisValue ??
+            first?.data?.[0] ??
+            first?.value?.[0];
+          const slotIndex =
+            typeof rawIndex === 'number' ? rawIndex : Number(rawIndex);
+
+          const comparisonMode = rendererConfig.comparisonMode;
+          const language = rendererConfig.language;
+          const numberLocale = rendererConfig.numberLocale;
+          const precision = rendererConfig.precision;
+          const unit = rendererConfig.unit;
+
+          const numberFormatter = new Intl.NumberFormat(numberLocale, {
+            minimumFractionDigits: precision,
+            maximumFractionDigits: precision
+          });
+
+          const escapeHtml = (value: string): string =>
+            value
+              .replace(/&/g, '&amp;')
+              .replace(/</g, '&lt;')
+              .replace(/>/g, '&gt;')
+              .replace(/"/g, '&quot;');
+
+          const formatHeader = (): string => {
+            if (!Number.isFinite(slotIndex)) return '';
+
+            if (comparisonMode === 'year_over_year') {
+              const dayNumber = Math.trunc(slotIndex) + 1;
+              const lang = String(language).toLowerCase();
+
+              let unitWord: string;
+              if (lang.startsWith('pl')) {
+                unitWord = dayNumber === 1 ? 'dzień' : 'dni';
+              } else {
+                unitWord = dayNumber === 1 ? 'day' : 'days';
+              }
+
+              return `${dayNumber} ${unitWord}`;
+            }
+
+            // month_over_year
+            const ts = fullTimeline[slotIndex];
+            if (ts == null) return '';
+
+            return new Intl.DateTimeFormat(language, {
+              day: 'numeric',
+              month: 'long'
+            }).format(new Date(ts));
+          };
+
+          const header = formatHeader();
+
+          const valueLines: string[] = [];
+          for (const p of items) {
+            const item: any = p ?? {};
+
+            const candidate = item?.data ?? item?.value;
+
+            let y: unknown;
+            if (Array.isArray(candidate)) {
+              y = candidate.length > 1 ? candidate[1] : candidate[0];
+            } else {
+              y = candidate;
+            }
+
+            if (y === null || y === undefined) continue;
+
+            const yNum = typeof y === 'number' ? y : Number(y);
+            if (!Number.isFinite(yNum)) continue;
+
+            const seriesName = typeof item?.seriesName === 'string' ? item.seriesName : '';
+            const formatted = numberFormatter.format(yNum);
+            const escapedSeries = escapeHtml(seriesName);
+            const escapedUnit = escapeHtml(unit);
+
+            valueLines.push(
+              `<div class="tooltip-row">${escapedSeries ? `${escapedSeries}: ` : ''}${formatted} ${escapedUnit}</div>`
+            );
+          }
+
+          const valuesHtml = valueLines.join('');
+          return `<div class="tooltip-container"><div class="tooltip-header">${escapeHtml(
+            header
+          )}</div>${valuesHtml}</div>`;
+        }
       },
       xAxis: {
         type: 'value',
         min: 0,
-        max: fullTimeline.length - 1,
-        interval: 1,
-        boundaryGap: false,
-        splitLine: { show: false }
+        max: xMax,
+        interval: xInterval,
+        // For `value` axis ECharts typings expect a tuple; [0,0] means "no gap".
+        boundaryGap: [0, 0],
+        splitLine: { show: false },
+        // Show only a few readable labels (avoid overlapping text).
+        axisTick: { show: false },
+        axisLine: { show: false },
+        axisLabel: {
+          formatter: (value: number) => formatXAxisLabel(value),
+          margin: tickLabelGapPx,
+          hideOverlap: true,
+          // Keep both edge labels inside the grid area.
+          alignMinLabel: 'left',
+          // Keeps the last (max) label within the grid by aligning its right edge to the right-side tick.
+          // This prevents cases where the last label gets clipped/shifted (e.g. `30` vs `3` / `365` not visible).
+          alignMaxLabel: 'right'
+        }
       },
       yAxis: {
         type: 'value',
         min: 0,
         max: yMax,
         splitNumber: 4,
+        // Oś ma się składać tylko z ticków i wartości (bez pionowej linii osi).
+        axisLine: { show: false },
+        axisTick: { show: false },
         axisLabel: {
           formatter: (value: number) => {
             if (value === yMax) {
               return `${value} ${rendererConfig.unit}`;
             }
             return String(value);
-          }
+          },
+          margin: tickLabelGapPx,
+          // Ensures the margin translates to spacing on the right side.
+          align: 'right'
         }
       },
       series
