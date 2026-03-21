@@ -301,3 +301,89 @@ describe('scaleSeriesValues — force_prefix none / µ normalization', () => {
     expect(result.factor).toBe(1);
   });
 });
+
+describe('scaleSeriesValues — edge cases', () => {
+  it('should return identity for empty rawUnit', () => {
+    const result = scaleSeriesValues([1500, 2000], '', { force_prefix: 'auto' });
+    expect(result.values).toEqual([1500, 2000]);
+    expect(result.unit).toBe('');
+    expect(result.prefix).toBe('');
+    expect(result.factor).toBe(1);
+  });
+
+  it('should handle series with all null values', () => {
+    const result = scaleSeriesValues([null, null, null], 'Wh', { force_prefix: 'auto' });
+    expect(result.values).toEqual([null, null, null]);
+    expect(result.unit).toBe('Wh');
+    expect(result.prefix).toBe('');
+    expect(result.factor).toBe(1);
+  });
+
+  it('should handle force_prefix G with small values (returns correct tiny scaling)', () => {
+    const result = scaleSeriesValues([5], 'Wh', { force_prefix: 'G' });
+    expect(result.values).toEqual([5e-9]);
+    expect(result.unit).toBe('GWh');
+    expect(result.prefix).toBe('G');
+  });
+
+  it('should handle force_prefix u with large values (returns correct small factor)', () => {
+    const result = scaleSeriesValues([0.001], 'A', { force_prefix: 'u' });
+    expect(result.values).toEqual([1000]);
+    expect(result.unit).toBe('\u00B5A');
+    expect(result.prefix).toBe('u');
+  });
+
+  it('should handle precision -1 in formatScaledValue (treated as 0)', () => {
+    const result = formatScaledValue(1.5, 'kWh', 'en-US', -1);
+    // precision < 0 should be treated as 0 (no crash)
+    expect(result).toBe('2 kWh');
+  });
+
+  it('should handle NaN precision in formatScaledValue gracefully', () => {
+    const result = formatScaledValue(1.5, 'kWh', 'en-US', NaN);
+    // NaN precision should not crash; treated as 0
+    expect(result).toBe('2 kWh');
+  });
+
+  it('should handle mixed null and zero values in series', () => {
+    const result = scaleSeriesValues([0, null, 0, null, 5000], 'Wh', { force_prefix: 'auto' });
+    expect(result.values).toEqual([0, null, 0, null, 5]);
+    expect(result.unit).toBe('kWh');
+    expect(result.prefix).toBe('k');
+  });
+
+  it('should handle single null value in series', () => {
+    const result = scaleSeriesValues([null], 'Wh', { force_prefix: 'auto' });
+    expect(result.values).toEqual([null]);
+    expect(result.unit).toBe('Wh');
+    expect(result.prefix).toBe('');
+    expect(result.factor).toBe(1);
+  });
+
+  it('should handle single zero value in series', () => {
+    const result = scaleSeriesValues([0], 'Wh', { force_prefix: 'auto' });
+    expect(result.values).toEqual([0]);
+    expect(result.unit).toBe('Wh');
+    expect(result.prefix).toBe('');
+    expect(result.factor).toBe(1);
+  });
+
+  it('should handle very large negative values with auto mode', () => {
+    const result = scaleSeriesValues([-1_000_000], 'Wh', { force_prefix: 'auto' });
+    expect(result.values).toEqual([-1]);
+    expect(result.unit).toBe('MWh');
+    expect(result.prefix).toBe('M');
+  });
+
+  it('should handle precision 0 correctly with formatScaledValue', () => {
+    const result = formatScaledValue(1.9, 'kWh', 'en-US', 0);
+    expect(result).toBe('2 kWh');
+  });
+
+  it('should handle precision Infinity in formatScaledValue gracefully', () => {
+    const result = formatScaledValue(1.23456789, 'kWh', 'en-US', Infinity);
+    // Intl.NumberFormat with Infinity rounds; just ensure it contains the unit and doesn't crash
+    expect(result).toContain('kWh');
+    expect(result).toContain('1');
+  });
+});

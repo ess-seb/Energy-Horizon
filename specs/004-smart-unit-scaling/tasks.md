@@ -115,8 +115,8 @@
 
 ## Final Phase: Polish & Cross-Cutting Concerns
 
-- [ ] T018 [P] Add edge case tests to `tests/unit/unit-scaler.test.ts` — `describe('scaleSeriesValues — edge cases')`: `rawUnit = ''` → `{ values: rawValues, unit: '', factor: 1 }` (no scaling); `precision: -1` in `UnitDisplayConfig` → `formatScaledValue` treats as 0 (no crash); series with all `null` values → `{ values: [null, null], unit: rawUnit, factor: 1 }`; `force_prefix: 'G'` with small values (e.g. 5 Wh) → `{ values: [5e-9], unit: 'GWh' }` (correct even if tiny).
-- [ ] T019 Run `npm test && npm run lint` from repository root; fix any TypeScript `strict`-mode errors, unused imports, or ESLint violations introduced by this feature.
+- [x] T018 [P] Add edge case tests to `tests/unit/unit-scaler.test.ts` — `describe('scaleSeriesValues — edge cases')`: `rawUnit = ''` → `{ values: rawValues, unit: '', factor: 1 }` (no scaling); `precision: -1` in `UnitDisplayConfig` → `formatScaledValue` treats as 0 (no crash); series with all `null` values → `{ values: [null, null], unit: rawUnit, factor: 1 }`; `force_prefix: 'G'` with small values (e.g. 5 Wh) → `{ values: [5e-9], unit: 'GWh' }` (correct even if tiny).
+- [x] T019 Run `npm test && npm run lint` from repository root; fix any TypeScript `strict`-mode errors, unused imports, or ESLint violations introduced by this feature.
 
 ---
 
