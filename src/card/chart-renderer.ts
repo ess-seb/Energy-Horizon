@@ -52,7 +52,7 @@ export class ChartRenderer {
     grid: string;
   } {
     const host =
-      (this.canvas.closest(".ehc-card") as HTMLElement | null) ??
+      (this.canvas.closest(".ebc-card") as HTMLElement | null) ??
       (this.canvas.closest("ha-card") as HTMLElement | null) ??
       this.canvas;
     const styles = getComputedStyle(host);
@@ -97,7 +97,7 @@ export class ChartRenderer {
   private resolveColor(primaryColorConfig: string): string {
     if (primaryColorConfig.trim()) return primaryColorConfig;
     const host =
-      (this.canvas.closest(".ehc-card") as HTMLElement | null) ??
+      (this.canvas.closest(".ebc-card") as HTMLElement | null) ??
       (this.canvas.closest("ha-card") as HTMLElement | null) ??
       this.canvas;
     const styles = getComputedStyle(host);
@@ -356,7 +356,7 @@ export class ChartRenderer {
       plugins: {
         todayMarker: {} as never,
         legend: {
-          display: true
+          display: rendererConfig.showLegend === true
         },
         tooltip: {
           mode: "index" as const,
