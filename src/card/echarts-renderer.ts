@@ -19,6 +19,33 @@ echartsUse([
   CanvasRenderer
 ]);
 
+/** Matches `min-height` on the chart container in `energy-horizon-card-styles.ts`. */
+const CHART_MIN_HEIGHT_BASE_PX = 240;
+
+/**
+ * Legacy single-row legend vertical budget baked into the initial `grid.top` (32px).
+ * Extra legend height beyond this adds to the container `min-height` so the plot area does not shrink.
+ */
+const LEGEND_BASELINE_PX = 32;
+
+/** Space between the legend block and the grid (aligned with axis tick label gap). */
+const LEGEND_BELOW_GAP_PX = 8;
+
+/** When legend view is missing or hidden, keep the previous fixed top inset. */
+const GRID_TOP_FALLBACK_PX = LEGEND_BASELINE_PX;
+
+/**
+ * Runtime-only ECharts APIs for legend layout sync (declared private on `ECharts` in typings, so we avoid intersecting with `ECharts`).
+ */
+type EChartsLayoutSyncApi = {
+  getModel(): {
+    getComponent(mainType: string, index?: number): { option?: { show?: boolean } } | undefined;
+  };
+  getViewOfComponentModel(componentModel: object):
+    | { group?: { getBoundingRect(): { height: number } } }
+    | undefined;
+};
+
 /** Internal type used for chart data points (currently unused, kept for reference) */
 type _ChartPoint = { x: number; y: number | null };
 
@@ -32,13 +59,22 @@ export class EChartsRenderer {
   private instance: ECharts | undefined;
   private readonly resizeObserver: ResizeObserver;
   private lastHash: string | undefined;
+  /** Last applied values to avoid `finished` ↔ `setOption` feedback loops. */
+  private lastSyncedGridTop: number | undefined;
+  private lastSyncedMinHeightTotalPx: number | undefined;
+  private readonly onLegendLayoutFinished: () => void;
 
   constructor(container: HTMLElement) {
     this.container = container;
-    
+
+    this.onLegendLayoutFinished = () => {
+      this.syncLegendLayoutAfterPaint();
+    };
+
     // Initialize ECharts instance
     this.instance = echartsInit(container);
-    
+    this.instance.on('finished', this.onLegendLayoutFinished);
+
     // Set up resize observer to handle container size changes
     this.resizeObserver = new ResizeObserver(() => {
       this.instance?.resize();
@@ -48,8 +84,77 @@ export class EChartsRenderer {
 
   destroy(): void {
     this.resizeObserver.disconnect();
+    this.instance?.off('finished', this.onLegendLayoutFinished);
     this.instance?.dispose();
     this.instance = undefined;
+  }
+
+  /**
+   * After each full paint, measure the legend bounding box and align `grid.top` + container `min-height`
+   * so multi-line legends do not overlap the series (see plan: legend layout sync).
+   */
+  private syncLegendLayoutAfterPaint(): void {
+    const inst = this.instance;
+    if (!inst) return;
+
+    const ec = inst as unknown as EChartsLayoutSyncApi;
+    let legendHeightPx = 0;
+    let hasLegendLayout = false;
+
+    try {
+      const legendModel = ec.getModel().getComponent('legend', 0);
+      if (legendModel?.option?.show !== false) {
+        const legendView = ec.getViewOfComponentModel(legendModel as object);
+        const h = legendView?.group?.getBoundingRect()?.height;
+        if (typeof h === 'number' && Number.isFinite(h) && h > 0) {
+          legendHeightPx = h;
+          hasLegendLayout = true;
+        }
+      }
+    } catch {
+      hasLegendLayout = false;
+    }
+
+    const gridTopPx = hasLegendLayout
+      ? Math.ceil(legendHeightPx) + LEGEND_BELOW_GAP_PX
+      : GRID_TOP_FALLBACK_PX;
+
+    const extraMinHeightPx = hasLegendLayout
+      ? Math.max(0, legendHeightPx - LEGEND_BASELINE_PX)
+      : 0;
+    const minHeightTotalPx = CHART_MIN_HEIGHT_BASE_PX + extraMinHeightPx;
+
+    const topDelta =
+      this.lastSyncedGridTop === undefined
+        ? Infinity
+        : Math.abs(gridTopPx - this.lastSyncedGridTop);
+    const heightDelta =
+      this.lastSyncedMinHeightTotalPx === undefined
+        ? Infinity
+        : Math.abs(minHeightTotalPx - this.lastSyncedMinHeightTotalPx);
+
+    if (topDelta <= 1 && heightDelta <= 1) {
+      return;
+    }
+
+    if (hasLegendLayout && extraMinHeightPx > 0) {
+      this.container.style.minHeight = `${minHeightTotalPx}px`;
+    } else {
+      this.container.style.minHeight = '';
+    }
+
+    inst.setOption(
+      {
+        grid: {
+          top: gridTopPx
+        }
+      },
+      { notMerge: false, lazyUpdate: false }
+    );
+    inst.resize();
+
+    this.lastSyncedGridTop = gridTopPx;
+    this.lastSyncedMinHeightTotalPx = minHeightTotalPx;
   }
 
   /**
@@ -488,7 +593,7 @@ export class EChartsRenderer {
         // Give the X-axis edge labels some breathing room on responsive layouts.
         left: tickLabelGapPx,
         right: tickLabelGapPx,
-        top: 32,
+        top: GRID_TOP_FALLBACK_PX,
         bottom: 0
       },
       legend: { show: true, top: 0, left: "center" },
@@ -676,6 +781,11 @@ export class EChartsRenderer {
       return;
     }
     this.lastHash = hash;
+
+    // Full option replace: drop legend layout sync state so the next `finished` measures from scratch.
+    this.lastSyncedGridTop = undefined;
+    this.lastSyncedMinHeightTotalPx = undefined;
+    this.container.style.minHeight = '';
 
     // Resolve colors and build option
     const primaryColor = this.resolveColor(rendererConfig.primaryColor);

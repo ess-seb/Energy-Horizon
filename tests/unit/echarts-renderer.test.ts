@@ -6,12 +6,40 @@ import type { ComparisonSeries, ChartRendererConfig } from "../../src/card/types
 const setOptionMock = vi.fn();
 const resizeMock = vi.fn();
 const disposeMock = vi.fn();
+const onMock = vi.fn();
+const offMock = vi.fn();
+
+/** Legend bbox height used by `syncLegendLayoutAfterPaint` (default: taller than LEGEND_BASELINE_PX). */
+let mockLegendBoundingHeightPx = 48;
+
+const getComponentMock = vi.fn((mainType: string, index?: number) => {
+  if (mainType === "legend" && index === 0) {
+    return { option: { show: true } };
+  }
+  return undefined;
+});
+
+const getModelMock = vi.fn(() => ({
+  getComponent: getComponentMock
+}));
+
+const getBoundingRectMock = vi.fn(() => ({ height: mockLegendBoundingHeightPx }));
+
+const getViewOfComponentModelMock = vi.fn(() => ({
+  group: {
+    getBoundingRect: getBoundingRectMock
+  }
+}));
 
 vi.mock("echarts/core", () => ({
   init: vi.fn(() => ({
     setOption: setOptionMock,
     resize: resizeMock,
-    dispose: disposeMock
+    dispose: disposeMock,
+    on: onMock,
+    off: offMock,
+    getModel: getModelMock,
+    getViewOfComponentModel: getViewOfComponentModelMock
   })),
   use: vi.fn()
 }));
@@ -37,12 +65,67 @@ beforeAll(async () => {
 });
 
 beforeEach(() => {
+  mockLegendBoundingHeightPx = 48;
   setOptionMock.mockClear();
   resizeMock.mockClear();
   disposeMock.mockClear();
+  onMock.mockClear();
+  offMock.mockClear();
+  getComponentMock.mockClear();
+  getModelMock.mockClear();
+  getBoundingRectMock.mockClear();
+  getViewOfComponentModelMock.mockClear();
 });
 
 describe('EChartsRenderer', () => {
+  it('registers a finished listener for legend layout sync', () => {
+    const container = document.createElement("div");
+    new EChartsRenderer(container);
+    expect(onMock).toHaveBeenCalledWith("finished", expect.any(Function));
+  });
+
+  it('destroy() removes the finished listener before dispose', () => {
+    const container = document.createElement("div");
+    const renderer = new EChartsRenderer(container);
+    const finishedHandler = onMock.mock.calls.find((c) => c[0] === "finished")?.[1];
+    expect(finishedHandler).toBeDefined();
+    renderer.destroy();
+    expect(offMock).toHaveBeenCalledWith("finished", finishedHandler);
+    expect(disposeMock).toHaveBeenCalled();
+  });
+
+  it('legend layout sync: finished callback applies grid.top, container minHeight, and resize', () => {
+    const container = document.createElement("div");
+    document.body.appendChild(container);
+
+    mockLegendBoundingHeightPx = 48;
+    const legendHeight = mockLegendBoundingHeightPx;
+    const expectedGridTop = Math.ceil(legendHeight) + 8;
+    const expectedExtraMinHeight = Math.max(0, legendHeight - 32);
+    const expectedMinHeightTotal = 240 + expectedExtraMinHeight;
+
+    const renderer = new EChartsRenderer(container);
+    const finishedHandler = onMock.mock.calls.find((c) => c[0] === "finished")?.[1] as () => void;
+    expect(finishedHandler).toBeDefined();
+
+    setOptionMock.mockClear();
+    resizeMock.mockClear();
+
+    finishedHandler();
+
+    expect(getModelMock).toHaveBeenCalled();
+    expect(getViewOfComponentModelMock).toHaveBeenCalled();
+    expect(setOptionMock).toHaveBeenCalledWith(
+      { grid: { top: expectedGridTop } },
+      { notMerge: false, lazyUpdate: false }
+    );
+    expect(container.style.minHeight).toBe(`${expectedMinHeightTotal}px`);
+    expect(resizeMock).toHaveBeenCalled();
+
+    renderer.destroy();
+    document.body.removeChild(container);
+  });
+
   describe('T015: Canvas API isolation - source code inspection', () => {
     it('echarts-renderer.ts should not contain direct Canvas API calls (arc, stroke, fillRect)', () => {
       // Read the source file to verify no direct canvas API usage
