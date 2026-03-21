@@ -562,4 +562,217 @@ describe('EChartsRenderer', () => {
       expect(solidCurrent.data[1]).toBeNull();
     });
   });
+
+  describe("HA theme tokens in ECharts option", () => {
+    function buildBaseRendererConfig(
+      overrides: Partial<ChartRendererConfig> = {}
+    ): ChartRendererConfig {
+      return {
+        primaryColor: "#00ADEF",
+        fillCurrent: true,
+        fillReference: false,
+        fillCurrentOpacity: 40,
+        fillReferenceOpacity: 40,
+        connectNulls: true,
+        comparisonMode: "year_over_year",
+        language: "en-US",
+        numberLocale: "en-US",
+        precision: 1,
+        forecastLabel: "Forecast",
+        showForecast: false,
+        unit: "kWh",
+        periodLabel: "",
+        ...overrides
+      };
+    }
+
+    function buildSeries(
+      points: Array<{ timestamp: number; value: number }>
+    ): ComparisonSeries {
+      const unit = "kWh";
+      return {
+        current: {
+          points: points.map((p) => ({ timestamp: p.timestamp, value: p.value })),
+          unit,
+          periodLabel: "",
+          total: 0
+        },
+        reference: undefined,
+        aggregation: "day",
+        time_zone: "UTC"
+      };
+    }
+
+    it("applies legend, axis labels, tooltip, splitLine, and axisPointer shadow from theme tokens", () => {
+      const host = document.createElement("div");
+      host.className = "ha-card";
+      const container = document.createElement("div");
+      host.appendChild(container);
+      document.body.appendChild(host);
+
+      const tokenMap: Record<string, string> = {
+        "--primary-text-color": "#aabbcc",
+        "--secondary-text-color": "#ddeeff",
+        "--divider-color": "#334455",
+        "--ha-card-background": "#010203",
+        "--card-background-color": "#fefefc"
+      };
+
+      const origGetComputedStyle = globalThis.getComputedStyle.bind(globalThis);
+      const gcsSpy = vi.spyOn(globalThis, "getComputedStyle").mockImplementation((el: Element) => {
+        const style = origGetComputedStyle(el);
+        return {
+          ...style,
+          getPropertyValue: (prop: string) =>
+            prop in tokenMap ? tokenMap[prop] : style.getPropertyValue(prop)
+        } as CSSStyleDeclaration;
+      });
+
+      const day0 = Date.UTC(2026, 0, 1);
+      const fullTimeline = [day0, day0 + 86400000];
+      const renderer = new EChartsRenderer(container);
+      renderer.update(
+        buildSeries([
+          { timestamp: fullTimeline[0] + 10, value: 1 },
+          { timestamp: fullTimeline[1] + 10, value: 2 }
+        ]),
+        fullTimeline,
+        buildBaseRendererConfig(),
+        { current: "Current", reference: "Reference" }
+      );
+
+      expect(setOptionMock).toHaveBeenCalled();
+      const [option] = setOptionMock.mock.calls[0] as [Record<string, unknown>];
+
+      expect(option.legend).toMatchObject({
+        textStyle: { color: "#aabbcc" },
+        pageTextStyle: { color: "#aabbcc" }
+      });
+
+      expect(option.tooltip).toMatchObject({
+        backgroundColor: "#010203",
+        borderColor: "#334455",
+        textStyle: { color: "#aabbcc" },
+        axisPointer: {
+          type: "shadow",
+          shadowStyle: { color: "#334455", opacity: 0.2 }
+        }
+      });
+
+      const xAxis = option.xAxis as { axisLabel?: { color?: string } };
+      const yAxis = option.yAxis as {
+        splitLine?: { show?: boolean; lineStyle?: { color?: string; width?: number } };
+        axisLabel?: { color?: string };
+      };
+
+      expect(xAxis.axisLabel?.color).toBe("#aabbcc");
+      expect(yAxis.axisLabel?.color).toBe("#aabbcc");
+      expect(yAxis.splitLine).toEqual({
+        show: true,
+        lineStyle: { color: "#334455", width: 1 }
+      });
+
+      gcsSpy.mockRestore();
+      renderer.destroy();
+      document.body.removeChild(host);
+    });
+  });
+
+  describe("Theme snapshot in update() hash", () => {
+    function buildBaseRendererConfig(
+      overrides: Partial<ChartRendererConfig>
+    ): ChartRendererConfig {
+      return {
+        primaryColor: "#00ADEF",
+        fillCurrent: true,
+        fillReference: false,
+        fillCurrentOpacity: 40,
+        fillReferenceOpacity: 40,
+        connectNulls: true,
+        comparisonMode: "year_over_year",
+        language: "en-US",
+        numberLocale: "en-US",
+        precision: 1,
+        forecastLabel: "Forecast",
+        showForecast: false,
+        unit: "kWh",
+        periodLabel: "",
+        ...overrides
+      };
+    }
+
+    function buildSeries(
+      points: Array<{ timestamp: number; value: number }>
+    ): ComparisonSeries {
+      const unit = "kWh";
+      return {
+        current: {
+          points: points.map((p) => ({ timestamp: p.timestamp, value: p.value })),
+          unit,
+          periodLabel: "",
+          total: 0
+        },
+        reference: undefined,
+        aggregation: "day",
+        time_zone: "UTC"
+      };
+    }
+
+    it("skips setOption when data and theme unchanged; reapplies when HA CSS tokens change", () => {
+      const host = document.createElement("div");
+      host.className = "ha-card";
+      host.style.setProperty("--primary-text-color", "#e0e0e0");
+      host.style.setProperty("--secondary-text-color", "#aaaaaa");
+      host.style.setProperty("--divider-color", "#444444");
+      host.style.setProperty("--ha-card-background", "#1c1c1c");
+      host.style.setProperty("--card-background-color", "#1c1c1c");
+
+      const container = document.createElement("div");
+      host.appendChild(container);
+      document.body.appendChild(host);
+
+      // jsdom may not reflect updated custom properties in getComputedStyle; drive the
+      // primary text token explicitly so a theme change is observable to the renderer.
+      let primaryTextToken = "#e0e0e0";
+      const origGetComputedStyle = globalThis.getComputedStyle.bind(globalThis);
+      // Spy `globalThis` — the renderer calls unqualified `getComputedStyle`, which must match this binding.
+      const gcsSpy = vi.spyOn(globalThis, "getComputedStyle").mockImplementation((el: Element) => {
+        const style = origGetComputedStyle(el);
+        return {
+          ...style,
+          getPropertyValue: (prop: string) => {
+            if (prop === "--primary-text-color") return primaryTextToken;
+            return style.getPropertyValue(prop);
+          }
+        } as CSSStyleDeclaration;
+      });
+
+      const day0 = Date.UTC(2026, 0, 1);
+      const fullTimeline = [day0, day0 + 86400000];
+      const rendererConfig = buildBaseRendererConfig({});
+      const comparisonSeries = buildSeries([
+        { timestamp: fullTimeline[0] + 10, value: 1 },
+        { timestamp: fullTimeline[1] + 10, value: 2 }
+      ]);
+      const labels = { current: "Current", reference: "Reference" };
+
+      const renderer = new EChartsRenderer(container);
+      setOptionMock.mockClear();
+
+      renderer.update(comparisonSeries, fullTimeline, rendererConfig, labels);
+      expect(setOptionMock).toHaveBeenCalledTimes(1);
+
+      setOptionMock.mockClear();
+      renderer.update(comparisonSeries, fullTimeline, rendererConfig, labels);
+      expect(setOptionMock).toHaveBeenCalledTimes(0);
+
+      primaryTextToken = "#111111";
+      renderer.update(comparisonSeries, fullTimeline, rendererConfig, labels);
+      expect(setOptionMock).toHaveBeenCalledTimes(1);
+
+      gcsSpy.mockRestore();
+      renderer.destroy();
+      document.body.removeChild(host);
+    });
+  });
 });
