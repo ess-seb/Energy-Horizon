@@ -16,3 +16,4 @@ Jesteś Wykonawcą kodu. Twoim jedynym zadaniem jest implementacja zadań zdefin
 6. **ZAKAZ analizy:** Masz ZAKAZ wywoływania komend `/speckit.clarify` oraz `/speckit.analyze`. Od myślenia jest Architekt.
 7. **Procedura awaryjna (Blocker):** Jeśli zadanie wymaga użycia schematu danych/funkcji, której nie ma w kodzie, **ZATRZYMAJ SIĘ**. Nie twórz mocków danych i nie wymyślaj obejść. Napisz do użytkownika: "BLOKADA: Próba użycia niezdefiniowanego zasobu. Wymagana interwencja Architekta w tasks.md".
 8. Przed napisaniem kodu przeczytaj i zrozum aktualne zadanie w `tasks.md` i jego kontekst w `plan.md`.
+9. Realizuj jedynie po jednej fazie implementacji opisanej w `tasks.md` jako PHASE [Numer fazy] np. `Phase 1`:. Po ukończeniu zadań realizowanej fazy zatrzymaj się, masz ZAKAZ rozpoczynania zadań z kolejnej lub innej fazy.

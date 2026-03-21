@@ -142,7 +142,8 @@ Sprawdź w output:
 | Cel | ECharts API | FR |
 |-----|------------|-----|
 | Renderowanie na canvas | `echarts.init(container)` + `CanvasRenderer` | FR-015 |
-| Seria liniowa z null gaps | `type: 'line'`, `connectNulls: false` | FR-002 |
+| Seria liniowa z null gaps (solid) | `type: 'line'`, `connectNulls: false` | FR-002 |
+| Overlay dashed przez null gaps | `connect_nulls: true` (default) => dodatkowa przerywana seria z interpolacja (bez wypelnienia) | (konfigurowalne) |
 | Wypełnienie pod serią | `areaStyle: { opacity: X }` | FR-005 |
 | Oś Y 5 ticków | `splitNumber: 4`, `min: 0` | FR-007 |
 | Unit przy najwyższym ticku Y | `axisLabel.formatter` z `niceMax` | FR-008 |
@@ -183,7 +184,8 @@ tooltip: {
 - [ ] Canvas API calls (`ctx.arc`, `ctx.stroke` itp.) — NIE ISTNIEJĄ poza ECharts
 - [ ] `chart.js` i `chartjs-adapter-date-fns` — USUNIĘTE z `package.json`
 - [ ] `tooltip.appendTo` ustawiony na container element
-- [ ] `connectNulls: false` na obu seriach danych
+- [ ] `connectNulls: false` na obu seriach danych (solid)
+- [ ] `connect_nulls` steruje obecnoscia opcjonalnego dashed overlay przez luki `null`
 - [ ] `markLine` używa coord-based approach dla FR-004 yTop logic
 - [ ] `markPoint` ma `silent: true`
 - [ ] `ResizeObserver.disconnect()` w `destroy()`
