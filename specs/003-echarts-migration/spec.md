@@ -2,7 +2,7 @@
 
 **Feature Branch**: `003-echarts-migration`  
 **Created**: 2026-03-18  
-**Status**: Draft  
+**Status**: Implemented (dokumentacja uzupełniona o motywy HA, `show_legend`, synchronizację legendy — 2026-03-21)  
 **Input**: Migracja warstwy wizualizacji wykresu w karcie EnergyHorizonCard z Chart.js 4 na Apache ECharts (bez customowych obejść)
 
 ---
@@ -105,9 +105,11 @@ Użytkownik wielokrotnie przebudowuje kartę (np. przez odświeżenie widoku w H
 - **FR-008**: Etykieta jednostki MUSI być wyświetlana przy najwyższym ticku osi Y, realizowana przez `axisLabel.formatter` ECharts wykrywający najwyższy tick — bez rysowania własnego tekstu na canvas.
 - **FR-009**: Pionowe linie siatki MUSZĄ być wyłączone; poziome linie siatki i ticki/etykiety osi X MUSZĄ pozostać widoczne (odpowiednik FR-020 z 001-chart-updates).
 - **FR-010**: Tooltip MUSI działać w trybie „po indeksie" (mode: 'axis', axisPointer) dla wszystkich serii jednocześnie. Opcja `tooltip.appendTo` MUSI być ustawiona na kontener karty (element wewnątrz Shadow DOM), aby tooltip był poprawnie pozycjonowany w środowisku Lit/HA — bez renderowania do `document.body`.
-- **FR-011**: Legenda MUSI być włączona i wyświetlać etykiety serii (bieżąca i referencyjna).
+- **FR-011**: Legenda MUSI być sterowana konfiguracją karty: pole YAML `show_legend` (mapowane na `ChartRendererConfig.showLegend`) — włączona **tylko** gdy wartość jest ścisłym `true` (`=== true`). W przeciwnym razie legenda jest ukryta. Gdy jest widoczna, wyświetla etykiety serii (bieżąca, referencyjna, prognoza jeśli włączona).
 - **FR-012**: Animacje MUSZĄ być wyłączone (`animation: false`).
 - **FR-013**: Kolor z `primary_color` (lub fallback do CSS `--accent-color` / `--primary-color` HA) MUSI być stosowany do: linii serii bieżącej, wypełnienia pod nią, markera „dziś" (linia przerywana + kropka bieżąca), linii prognozy.
+- **FR-013a (motyw HA)**: Wybór **wbudowanego schematu kolorystycznego** Home Assistant (jasny / ciemny / motywy użytkownika) MUSI być odzwierciedlany na wykresie: renderer odczytuje tokeny CSS z hosta karty (`getComputedStyle` na elemencie nadrzędnym `.ebc-card` lub `ha-card`) i mapuje je na ECharts — m.in. `--secondary-text-color` (seria referencyjna / linie pomocnicze), `--divider-color` (siatka osi Y, obramowanie tooltipa, cień axisPointer), `--primary-text-color` (etykiety osi, legenda, tekst tooltipa), `--ha-card-background` lub `--card-background-color` (tło tooltipa). Zmiana motywu HA powoduje odświeżenie wykresu (hash `update()` uwzględnia snapshot tokenów).
+- **FR-013b (legenda a obszar wykresu)**: Wielowierszowa lub szeroka legenda nie może nachodzić na serie: po każdym pełnym `paint` (`event 'finished'`) renderer MIERZY wysokość bloku legendy i ustawia `grid.top` precyzyjnie pod zmierzoną wysokość oraz — gdy legenda jest wyższa niż budżet bazowy — zwiększa `min-height` kontenera wykresu, tak aby **obszar wykresu** nie był „ściskany”; następnie wywołuje `resize()`.
 
 **Architektura i import:**
 
@@ -122,7 +124,7 @@ Użytkownik wielokrotnie przebudowuje kartę (np. przez odświeżenie widoku w H
 
 - **EChartsRenderer**: Nowa klasa renderera (`src/card/echarts-renderer.ts`) implementująca interfejs `ChartRenderer`. Odpowiada za: inicjalizację instancji ECharts, transformację danych wejściowych (`ComparisonSeries`, `fullTimeline`, `ChartRendererConfig`) do formatu `EChartsOption`, aktualizację wykresu (`setOption`) i zwalnianie zasobów (`dispose`).
 - **EChartsOption (adapter)**: Wewnętrzna funkcja/metoda budująca obiekt konfiguracji ECharts na podstawie danych wejściowych. Wejście: `ComparisonSeries`, `fullTimeline: number[]`, `ChartRendererConfig`, `labels`. Wyjście: `ECOption` (typ z `echarts/core`).
-- **ChartRendererConfig**: Istniejący typ — pozostaje bez zmian. Zawiera: `primaryColor`, `fillCurrent`, `fillCurrentOpacity`, `fillReference`, `fillReferenceOpacity`, `connectNulls`, `showForecast`, `forecastTotal`, `referencePeriodStart`, `periodLabel`, `unit`.
+- **ChartRendererConfig**: Typ z `types.ts` — m.in. `primaryColor`, `fillCurrent`, `fillCurrentOpacity`, `fillReference`, `fillReferenceOpacity`, `connectNulls`, `showForecast`, `forecastTotal`, `referencePeriodStart`, `periodLabel`, `unit`, **`showLegend`** (pochodzi z YAML `show_legend`).
 
 ---
 
@@ -140,6 +142,12 @@ Użytkownik wielokrotnie przebudowuje kartę (np. przez odświeżenie widoku w H
 ---
 
 ## Clarifications
+
+### Session 2026-03-21
+
+- Q: Jak wykres ma podążać za motywami Home Assistant? → A: Mapowanie tokenów CSS HA (`--secondary-text-color`, `--divider-color`, `--primary-text-color`, tło karty / tooltip) w `EChartsRenderer`; host motywu: `.ebc-card` lub `ha-card`.
+- Q: Czy legenda jest zawsze widoczna? → A: Nie — tylko przy `show_legend: true` w YAML (ścisłe `=== true` w `ChartRendererConfig`).
+- Q: Co z legendą nachodzącą na wykres przy wielu seriach / wąskiej karcie? → A: Synchronizacja po `finished`: `grid.top` + `min-height` kontenera + `resize()` (patrz FR-013b).
 
 ### Session 2026-03-18
 
@@ -159,5 +167,6 @@ Użytkownik wielokrotnie przebudowuje kartę (np. przez odświeżenie widoku w H
 - Wymuszenie dokładnie 5 ticków na osi Y jest deterministyczne przez `splitNumber: 4` + `min: 0` + kontrola `max` i `interval` w ECharts — bez dodatkowej logiki JS.
 - Etykieta jednostki przy najwyższym ticku Y jest realizowana przez `axisLabel.formatter` rozpoznający najwyższą wartość ticka.
 - ECharts w Shadow DOM (Lit/HA) działa poprawnie z `CanvasRenderer` dla renderowania i eventów myszy. Tooltip wymaga jawnego ustawienia `tooltip.appendTo` na kontener karty — nie można polegać na domyślnym `document.body`.
+- Tokeny CSS motywów Home Assistant (`--primary-text-color`, `--divider-color` itd.) są dostępne na hoście karty (`.ebc-card` / `ha-card`) — wykres nie wymaga osobnej palety kolorów w YAML poza opcjonalnym `primary_color` dla serii bieżącej.
 - Logika `alignSeriesOnTimeline` pozostaje w aktualnej formie lub jest przeniesiona 1:1 do nowego renderera — bez żadnych zmian algorytmu.
 - `ResizeObserver` jest dostępny w środowisku HA (nowoczesna przeglądarka) — nie potrzeba polyfilla.

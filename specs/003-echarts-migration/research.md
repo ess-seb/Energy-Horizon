@@ -370,9 +370,9 @@ Typ pola `_chartRenderer` zmieniamy na wspólny interfejs `IChartRenderer` lub b
 ## 11. Kolory — resolveColor i colorWithOpacity
 
 ### Decision
-- `resolveColor()` przeniesiona 1:1 do `EChartsRenderer` (logika CSS variable lookup).
+- `resolveColor()` przeniesiona 1:1 do `EChartsRenderer` (logika CSS variable lookup na hoście motywu: `.ebc-card` / `ha-card`).
 - `colorWithOpacity()` z Chart.js renderer **NIE** jest potrzebna — ECharts `areaStyle.opacity` eliminuje potrzebę konwersji koloru.
-- Kolor referencyjny: `getComputedStyle(container)` — ta sama logika CSS `--secondary-text-color`.
+- Kolor referencyjny i pozostałe tokeny UI: `getComputedStyle(getThemeHost())` — m.in. `--secondary-text-color`, `--divider-color`, `--primary-text-color` (pełna tabela w `data-model.md` §9).
 
 ### Rationale
 - ECharts przyjmuje `color` jako string CSS i `opacity` jako float 0–1 — separacja czystsza niż w Chart.js.
@@ -387,7 +387,7 @@ Zachować mechanizm `lastHash` z `chart-renderer.ts` — porównuj JSON hash dan
 
 ### Rationale
 - `setOption` w ECharts jest droższe niż porównanie stringa — warto skip gdy dane się nie zmieniły.
-- Logika identyczna z `chart-renderer.ts` — low-risk.
+- Do hashu włączamy snapshot `getHaThemeTokens()` — zmiana motywu HA (jasny/ciemny) unieważnia cache i odświeża kolory wykresu.
 
 ---
 
@@ -403,3 +403,36 @@ npm uninstall chart.js chartjs-adapter-date-fns
 - `^5.6.0` — najnowsze stabilne ECharts 5.x z `appendTo` tooltip i pełnym zestawem modularnych komponentów.
 - `date-fns` pozostaje w `dependencies` (używane przez inne moduły np. `buildComparisonPeriod`).
 - `chartjs-adapter-date-fns` usuwamy bo jest wrapper Chart.js → date-fns, niepotrzebny po migracji.
+
+---
+
+## 14. Wbudowane schematy kolorystyczne Home Assistant
+
+### Decision
+Wykres nie definiuje własnej palety „na sztywno” — kolory tekstu, siatki, serii referencyjnej i tła tooltipa pochodzą z **tokenów CSS** ustawianych przez motyw HA (wbudowany lub użytkownika). Host do odczytu: element najbliższy karcie z klasą `.ebc-card` lub `ha-card`.
+
+### Rationale
+- Spójność z resztą panelu Lovelace przy przełączaniu motywów.
+- Brak dodatkowej konfiguracji YAML poza opcjonalnym `primary_color` dla serii bieżącej.
+
+### Zmapowane tokeny (skrót)
+| Token | Użycie |
+|-------|--------|
+| `--secondary-text-color` | Seria referencyjna |
+| `--divider-color` | Siatka Y, obramowanie tooltipa, cień axisPointer |
+| `--primary-text-color` | Oś, legenda, tooltip |
+| `--ha-card-background` / `--card-background-color` | Tło tooltipa |
+| `--accent-color` / `--primary-color` | Fallback `resolveColor` gdy brak `primary_color` |
+
+---
+
+## 15. Legenda — flaga `show_legend` i synchronizacja z `grid`
+
+### Decision
+- YAML: `show_legend` → `ChartRendererConfig.showLegend`; w ECharts `legend.show` jest `true` **tylko** przy `=== true` (stringi z YAML nie włączają legendy).
+- Domyślnie legenda jest ukryta (zgodnie z README karty).
+- Problem nachodzenia: po każdym pełnym renderze (`event 'finished'`) mierzona jest wysokość bloku legendy; `grid.top` ustawiane jest na `ceil(height) + 8` px; jeśli legenda przekracza budżet bazowy (32 px), zwiększany jest `min-height` kontenera wykresu, aby nie „gubić” wysokości samego plotu.
+
+### Rationale
+- Wielowierszowa legenda w ECharts jest częsta przy wąskich kartach; stałe `grid.top` powodowało overlap.
+- Osobne `resize()` po korekcie `grid` zapewnia poprawne przeliczenie layoutu.

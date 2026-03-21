@@ -34,7 +34,7 @@ Migracja warstwy renderowania wykresu w `EnergyHorizonCard` z Chart.js 4 (z cust
 | **I. Zgodność z HA/HACS** | ✅ PASS | Renderer działa in-browser przez Lit Web Component; nie narusza żadnych wzorców HA API |
 | **II. Bezpieczeństwo** | ✅ PASS | Brak wstrzykiwania zewnętrznych danych do canvas; dane z HA są typowane i walidowane upstream |
 | **III. Jakość kodu** | ✅ PASS | TypeScript strict, modularny ECharts, Vitest unit testy dla logiki ECharts-specyficznej |
-| **IV. UX/UI** | ✅ PASS | Zachowanie 1:1 z Chart.js (FR-001–FR-013); responsywność przez ResizeObserver (FR-018) |
+| **IV. UX/UI** | ✅ PASS | Zachowanie 1:1 z Chart.js (FR-001–FR-013); responsywność przez ResizeObserver (FR-018); kolory z tokenów motywu HA; legenda opcjonalna (`show_legend`); synchronizacja `grid`/`min-height` przy wielowierszowej legendzie |
 | **V. Wydajność i prostota** | ✅ PASS | Eliminacja custom canvas hacków = redukcja złożoności; modularny import = optymalizacja bundle |
 | **Zewnętrzne zależności** | ✅ PASS | ECharts jest lekki w trybie modularnym, szeroko stosowany, dobrze utrzymany; zastępuje Chart.js + adapter |
 
@@ -63,7 +63,7 @@ src/
     ├── echarts-renderer.ts          ← NOWY plik (główny produkt tej migracji)
     ├── chart-renderer.ts            ← USUWANY po migracji (lub pozostaje jako dead code do weryfikacji)
     ├── cumulative-comparison-chart.ts  ← MODYFIKOWANY (2 linie: selektor + konstruktor)
-    └── types.ts                     ← BEZ ZMIAN (ChartRendererConfig pozostaje)
+    └── types.ts                     ← Rozszerzenia: `show_legend` / `ChartRendererConfig.showLegend`; tokeny motywu czytane w rendererze z CSS HA
 
 tests/
 └── unit/
