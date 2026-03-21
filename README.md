@@ -77,6 +77,7 @@ comparison_mode: year_over_year
 | `icon`            | string   | -                  | Optional icon (e.g. `mdi:flash`). If not set (or empty), card uses the entity icon (including Home Assistant’s default icon for that entity) |
 | `show_icon`       | boolean  | `true`             | Show/hide the pictogram in the header                                      |
 | `connect_nulls`  | boolean  | `true`             | Draw dashed interpolation segments across null (missing-data) days |
+| `show_legend`     | boolean  | `false`            | Controls the **chart legend** in ECharts (series labels for current, reference, and forecast). `true` shows it; omitted or `false` hides it. **Does not** change the text/numeric summary above the chart (e.g. “Current period” / “Reference period” lines in `.ehc-stats`). |
 | `language`        | string   | from HA            | Override dashboard language for this card only (e.g. `en`, `pl`, `de`)     |
 | `number_format`   | string   | from HA            | Override number format: `comma`, `decimal`, `language`, or `system`         |
 | `primary_color`   | string   | accent color HA    | CSS color value for current series line, fill, and markers (e.g. `#E53935`). Fallback: `--accent-color` HA → `--primary-color` HA → `#03a9f4` |

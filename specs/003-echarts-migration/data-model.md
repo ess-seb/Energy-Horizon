@@ -44,7 +44,19 @@ class EChartsRenderer {
 
   private resolveColor(primaryColorConfig: string): string
 
-  private getThemeColors(): { referenceLine: string; grid: string }
+  private getThemeHost(): HTMLElement
+
+  /** Tokeny motywu HA z `getComputedStyle` hosta karty (`.ebc-card` / `ha-card`). */
+  private getHaThemeTokens(): {
+    referenceLine: string;
+    grid: string;
+    primaryText: string;
+    tooltipBackground: string;
+    tooltipBorder: string;
+  }
+
+  /** Po `finished`: dopasowanie `grid.top` i `min-height` kontenera do wysokości legendy. */
+  private syncLegendLayoutAfterPaint(): void
 
   private buildOption(
     currentValues: (number | null)[],
@@ -53,7 +65,13 @@ class EChartsRenderer {
     rendererConfig: ChartRendererConfig,
     labels: { current: string; reference: string },
     primaryColor: string,
-    theme: { referenceLine: string; grid: string }
+    theme: {
+      referenceLine: string;
+      grid: string;
+      primaryText: string;
+      tooltipBackground: string;
+      tooltipBorder: string;
+    }
   ): ECOption
 
   private niceMax(dataMax: number, splitCount: number): number
@@ -65,17 +83,21 @@ class EChartsRenderer {
 ```
 constructor(container)
   → echarts.init(container)
+  → instance.on('finished', syncLegendLayoutAfterPaint)
   → ResizeObserver.observe(container)
 
 update(series, fullTimeline, rendererConfig, labels)
   → alignSeriesOnTimeline × 2
+  → getHaThemeTokens() → snapshot do hash (odświeżenie przy zmianie motywu HA)
   → hash check (return early if same)
-  → resolveColor + getThemeColors
-  → buildOption → ECOption
+  → reset stanu synchronizacji legendy + `container.style.minHeight`
+  → resolveColor + buildOption → ECOption
   → instance.setOption(option, { notMerge: true })
+  → (po paint) `finished` → syncLegendLayoutAfterPaint: pomiar legendy → `grid.top` + ewentualnie `min-height` kontenera → `resize()`
 
 destroy()
   → resizeObserver.disconnect()
+  → instance.off('finished', ...)
   → instance.dispose()
   → instance = undefined
 ```
@@ -92,6 +114,10 @@ type ECOption = {
 
   grid: {
     containLabel: boolean;  // true — labels nie są przycinane
+    left: number;   // np. odstęp od krawędzi (px)
+    right: number;
+    top: number;    // startowo budżet bazowy (np. 32px); po paint może być nadpisany przez syncLegendLayoutAfterPaint
+    bottom: number;
   };
 
   xAxis: {
@@ -123,12 +149,19 @@ type ECOption = {
   };
 
   legend: {
-    show: true;             // FR-011
+    show: boolean;         // true tylko gdy `rendererConfig.showLegend === true` (YAML `show_legend: true`)
+    top: 0;
+    left: 'center';
+    textStyle: { color: string };   // theme.primaryText
+    pageTextStyle: { color: string };
   };
 
   tooltip: {
     trigger: 'axis';
-    axisPointer: { type: 'shadow' | 'cross' };
+    backgroundColor: string;  // z --ha-card-background / --card-background-color
+    borderColor: string;      // z theme.grid (--divider-color)
+    textStyle: { color: string };
+    axisPointer: { type: 'shadow'; shadowStyle: { color: string; opacity: number } };
     appendTo: HTMLElement;  // FR-010: Shadow DOM fix
   };
 
@@ -298,24 +331,52 @@ cumulative-comparison-chart.ts
 | `todaySlotIndex === -1` | `markLine` i `markPoint` pominięte; prognoza pominięta |
 | `showForecast && forecastTotal === undefined` | Seria prognozy pominięta |
 | `container.offsetWidth === 0` | `echarts.init` wywoływany — ECharts renderuje pusty canvas; przy kolejnym resize automatycznie poprawia |
+| `show_legend` nie jest `true` | `legend.show: false`; brak synchronizacji wysokości legendy (fallback `grid.top`) |
+| Zmiana motywu HA (jasny/ciemny) | Tokeny w hash `update()` — wykres odświeża kolory bez ręcznego reloadu |
+| Wielowierszowa legenda | `syncLegendLayoutAfterPaint` zwiększa `grid.top` i ewent. `min-height` kontenera |
 | `primary_color` z `rgba(...)` + `fill_current_opacity` | `areaStyle.opacity` override jest niezależny od alpha w kolorze bazowym — spełnia edge case ze spec |
 | `destroy()` przed `update()` | Bezpieczne — `instance` jest undefined po dispose; update nie zostanie wywołane (guard w cumulative-comparison-chart.ts) |
 | Wielokrotny `update()` bez `destroy()` | `setOption` z `notMerge: true` — stara opcja jest zastępowana, nie mergowana; 1 instancja ECharts |
 
 ---
 
-### 9. Typy niezmienione (z `types.ts`)
+### 9. Motyw Home Assistant → ECharts (wbudowane schematy)
 
-Nie wymagają modyfikacji:
+| Token CSS (host karty) | Zastosowanie w opcjach |
+|------------------------|-------------------------|
+| `--secondary-text-color` | Seria referencyjna, markPoint referencyjny (fallback jeśli brak wartości) |
+| `--divider-color` | `yAxis.splitLine`, obramowanie tooltipa, cień `axisPointer` |
+| `--primary-text-color` | Etykiety osi X/Y, legenda, tekst tooltipa |
+| `--ha-card-background` / `--card-background-color` | Tło tooltipa |
 
-- `ChartRendererConfig` — wejście dla `EChartsRenderer.update()`
+Kolor serii bieżącej: `primary_color` z konfiguracji lub `--accent-color` / `--primary-color` (`resolveColor`).
+
+### 10. Synchronizacja legendy (nachodzenie na wykres)
+
+Problem: ECharts może zawijać legendę do wielu wierszy; stałe `grid.top` powodowało nakładanie legendy na serie.
+
+Rozwiązanie: `syncLegendLayoutAfterPaint()` na `finished`:
+
+1. Jeśli `legend.show` jest wyłączone — `grid.top` pozostaje przy stałym fallback (np. 32px); `min-height` kontenera bez dopłaty.
+2. Jeśli legenda widoczna — odczyt `getBoundingRect().height` widoku legendy → `grid.top = ceil(height) + 8` px.
+3. Jeśli `height > 32` (budżet bazowy) — `container.style.minHeight = 240 + max(0, height - 32)` (wartości dokładne w kodzie: `CHART_MIN_HEIGHT_BASE_PX`, `LEGEND_BASELINE_PX`).
+4. `setOption({ grid: { top } }, { notMerge: false })` + `resize()`.
+5. Guard na deltę ≤ 1 px, aby uniknąć pętli `finished` ↔ `setOption`.
+
+### 11. Typy konfiguracji (z `types.ts`)
+
+- `CardConfig.show_legend` — opcjonalne boolean; `cumulative-comparison-chart` przekazuje `showLegend: this._config.show_legend === true`.
+- `ChartRendererConfig` — m.in. `showLegend: boolean` — wejście dla `EChartsRenderer.update()`.
+
+### 12. Inne typy (bez zmian w zakresie tej funkcji)
+
 - `ComparisonSeries` — wejście dla `EChartsRenderer.update()`
 - `TimeSeriesPoint` — wejście dla `alignSeriesOnTimeline()`
 - `CumulativeSeries` — pośredni w `ComparisonSeries`
 
 ---
 
-### 10. Zmiany w `cumulative-comparison-chart.ts`
+### 13. Zmiany w `cumulative-comparison-chart.ts`
 
 Minimalne (FR-017):
 

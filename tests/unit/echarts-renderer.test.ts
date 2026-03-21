@@ -6,12 +6,40 @@ import type { ComparisonSeries, ChartRendererConfig } from "../../src/card/types
 const setOptionMock = vi.fn();
 const resizeMock = vi.fn();
 const disposeMock = vi.fn();
+const onMock = vi.fn();
+const offMock = vi.fn();
+
+/** Legend bbox height used by `syncLegendLayoutAfterPaint` (default: taller than LEGEND_BASELINE_PX). */
+let mockLegendBoundingHeightPx = 48;
+
+const getComponentMock = vi.fn((mainType: string, index?: number) => {
+  if (mainType === "legend" && index === 0) {
+    return { option: { show: true } };
+  }
+  return undefined;
+});
+
+const getModelMock = vi.fn(() => ({
+  getComponent: getComponentMock
+}));
+
+const getBoundingRectMock = vi.fn(() => ({ height: mockLegendBoundingHeightPx }));
+
+const getViewOfComponentModelMock = vi.fn(() => ({
+  group: {
+    getBoundingRect: getBoundingRectMock
+  }
+}));
 
 vi.mock("echarts/core", () => ({
   init: vi.fn(() => ({
     setOption: setOptionMock,
     resize: resizeMock,
-    dispose: disposeMock
+    dispose: disposeMock,
+    on: onMock,
+    off: offMock,
+    getModel: getModelMock,
+    getViewOfComponentModel: getViewOfComponentModelMock
   })),
   use: vi.fn()
 }));
@@ -37,12 +65,67 @@ beforeAll(async () => {
 });
 
 beforeEach(() => {
+  mockLegendBoundingHeightPx = 48;
   setOptionMock.mockClear();
   resizeMock.mockClear();
   disposeMock.mockClear();
+  onMock.mockClear();
+  offMock.mockClear();
+  getComponentMock.mockClear();
+  getModelMock.mockClear();
+  getBoundingRectMock.mockClear();
+  getViewOfComponentModelMock.mockClear();
 });
 
 describe('EChartsRenderer', () => {
+  it('registers a finished listener for legend layout sync', () => {
+    const container = document.createElement("div");
+    new EChartsRenderer(container);
+    expect(onMock).toHaveBeenCalledWith("finished", expect.any(Function));
+  });
+
+  it('destroy() removes the finished listener before dispose', () => {
+    const container = document.createElement("div");
+    const renderer = new EChartsRenderer(container);
+    const finishedHandler = onMock.mock.calls.find((c) => c[0] === "finished")?.[1];
+    expect(finishedHandler).toBeDefined();
+    renderer.destroy();
+    expect(offMock).toHaveBeenCalledWith("finished", finishedHandler);
+    expect(disposeMock).toHaveBeenCalled();
+  });
+
+  it('legend layout sync: finished callback applies grid.top, container minHeight, and resize', () => {
+    const container = document.createElement("div");
+    document.body.appendChild(container);
+
+    mockLegendBoundingHeightPx = 48;
+    const legendHeight = mockLegendBoundingHeightPx;
+    const expectedGridTop = Math.ceil(legendHeight) + 8;
+    const expectedExtraMinHeight = Math.max(0, legendHeight - 32);
+    const expectedMinHeightTotal = 240 + expectedExtraMinHeight;
+
+    const renderer = new EChartsRenderer(container);
+    const finishedHandler = onMock.mock.calls.find((c) => c[0] === "finished")?.[1] as () => void;
+    expect(finishedHandler).toBeDefined();
+
+    setOptionMock.mockClear();
+    resizeMock.mockClear();
+
+    finishedHandler();
+
+    expect(getModelMock).toHaveBeenCalled();
+    expect(getViewOfComponentModelMock).toHaveBeenCalled();
+    expect(setOptionMock).toHaveBeenCalledWith(
+      { grid: { top: expectedGridTop } },
+      { notMerge: false, lazyUpdate: false }
+    );
+    expect(container.style.minHeight).toBe(`${expectedMinHeightTotal}px`);
+    expect(resizeMock).toHaveBeenCalled();
+
+    renderer.destroy();
+    document.body.removeChild(container);
+  });
+
   describe('T015: Canvas API isolation - source code inspection', () => {
     it('echarts-renderer.ts should not contain direct Canvas API calls (arc, stroke, fillRect)', () => {
       // Read the source file to verify no direct canvas API usage
@@ -163,6 +246,7 @@ describe('EChartsRenderer', () => {
         precision: 1,
         forecastLabel: "Forecast",
         showForecast: false,
+        showLegend: false,
         unit: "kWh",
         periodLabel: "",
         ...overrides
@@ -354,6 +438,7 @@ describe('EChartsRenderer', () => {
         precision: 1,
         forecastLabel: "Forecast",
         showForecast: false,
+        showLegend: false,
         unit: "kWh",
         periodLabel: "",
         ...overrides
@@ -477,6 +562,273 @@ describe('EChartsRenderer', () => {
 
       // Solid series still keeps null in the gap.
       expect(solidCurrent.data[1]).toBeNull();
+    });
+  });
+
+  describe("HA theme tokens in ECharts option", () => {
+    function buildBaseRendererConfig(
+      overrides: Partial<ChartRendererConfig> = {}
+    ): ChartRendererConfig {
+      return {
+        primaryColor: "#00ADEF",
+        fillCurrent: true,
+        fillReference: false,
+        fillCurrentOpacity: 40,
+        fillReferenceOpacity: 40,
+        connectNulls: true,
+        comparisonMode: "year_over_year",
+        language: "en-US",
+        numberLocale: "en-US",
+        precision: 1,
+        forecastLabel: "Forecast",
+        showForecast: false,
+        showLegend: false,
+        unit: "kWh",
+        periodLabel: "",
+        ...overrides
+      };
+    }
+
+    function buildSeries(
+      points: Array<{ timestamp: number; value: number }>
+    ): ComparisonSeries {
+      const unit = "kWh";
+      return {
+        current: {
+          points: points.map((p) => ({ timestamp: p.timestamp, value: p.value })),
+          unit,
+          periodLabel: "",
+          total: 0
+        },
+        reference: undefined,
+        aggregation: "day",
+        time_zone: "UTC"
+      };
+    }
+
+    it("applies legend, axis labels, tooltip, splitLine, and axisPointer shadow from theme tokens", () => {
+      const host = document.createElement("div");
+      host.className = "ha-card";
+      const container = document.createElement("div");
+      host.appendChild(container);
+      document.body.appendChild(host);
+
+      const tokenMap: Record<string, string> = {
+        "--primary-text-color": "#aabbcc",
+        "--secondary-text-color": "#ddeeff",
+        "--divider-color": "#334455",
+        "--ha-card-background": "#010203",
+        "--card-background-color": "#fefefc"
+      };
+
+      const origGetComputedStyle = globalThis.getComputedStyle.bind(globalThis);
+      const gcsSpy = vi.spyOn(globalThis, "getComputedStyle").mockImplementation((el: Element) => {
+        const style = origGetComputedStyle(el);
+        return {
+          ...style,
+          getPropertyValue: (prop: string) =>
+            prop in tokenMap ? tokenMap[prop] : style.getPropertyValue(prop)
+        } as CSSStyleDeclaration;
+      });
+
+      const day0 = Date.UTC(2026, 0, 1);
+      const fullTimeline = [day0, day0 + 86400000];
+      const renderer = new EChartsRenderer(container);
+      renderer.update(
+        buildSeries([
+          { timestamp: fullTimeline[0] + 10, value: 1 },
+          { timestamp: fullTimeline[1] + 10, value: 2 }
+        ]),
+        fullTimeline,
+        buildBaseRendererConfig({ showLegend: true }),
+        { current: "Current", reference: "Reference" }
+      );
+
+      expect(setOptionMock).toHaveBeenCalled();
+      const [option] = setOptionMock.mock.calls[0] as [Record<string, unknown>];
+
+      expect(option.legend).toMatchObject({
+        show: true,
+        textStyle: { color: "#aabbcc" },
+        pageTextStyle: { color: "#aabbcc" }
+      });
+
+      expect(option.tooltip).toMatchObject({
+        backgroundColor: "#010203",
+        borderColor: "#334455",
+        textStyle: { color: "#aabbcc" },
+        axisPointer: {
+          type: "shadow",
+          shadowStyle: { color: "#334455", opacity: 0.2 }
+        }
+      });
+
+      const xAxis = option.xAxis as { axisLabel?: { color?: string } };
+      const yAxis = option.yAxis as {
+        splitLine?: { show?: boolean; lineStyle?: { color?: string; width?: number } };
+        axisLabel?: { color?: string };
+      };
+
+      expect(xAxis.axisLabel?.color).toBe("#aabbcc");
+      expect(yAxis.axisLabel?.color).toBe("#aabbcc");
+      expect(yAxis.splitLine).toEqual({
+        show: true,
+        lineStyle: { color: "#334455", width: 1 }
+      });
+
+      gcsSpy.mockRestore();
+      renderer.destroy();
+      document.body.removeChild(host);
+    });
+
+    it("sets legend.show from ChartRendererConfig.showLegend (only strict boolean true)", () => {
+      const container = document.createElement("div");
+      document.body.appendChild(container);
+
+      const day0 = Date.UTC(2026, 0, 1);
+      const fullTimeline = [day0, day0 + 86400000];
+      const seriesData = buildSeries([
+        { timestamp: fullTimeline[0] + 10, value: 1 },
+        { timestamp: fullTimeline[1] + 10, value: 2 }
+      ]);
+      const labels = { current: "Current", reference: "Reference" };
+
+      const renderer = new EChartsRenderer(container);
+      renderer.update(seriesData, fullTimeline, buildBaseRendererConfig(), labels);
+      const [optionHidden] = setOptionMock.mock.calls[0] as [Record<string, unknown>];
+      expect((optionHidden.legend as { show?: boolean }).show).toBe(false);
+
+      setOptionMock.mockClear();
+      renderer.update(
+        seriesData,
+        fullTimeline,
+        buildBaseRendererConfig({ showLegend: true }),
+        labels
+      );
+      const [optionVisible] = setOptionMock.mock.calls[0] as [Record<string, unknown>];
+      expect((optionVisible.legend as { show?: boolean }).show).toBe(true);
+
+      // Bad runtime values (e.g. YAML strings): must not enable legend — only `=== true` does.
+      const coercedHiddenCases: Array<{ label: string; showLegend: unknown }> = [
+        { label: "string false", showLegend: "false" },
+        { label: "string true", showLegend: "true" },
+        { label: "number 1", showLegend: 1 }
+      ];
+      for (const { label, showLegend } of coercedHiddenCases) {
+        setOptionMock.mockClear();
+        renderer.update(
+          seriesData,
+          fullTimeline,
+          buildBaseRendererConfig({
+            showLegend: showLegend as ChartRendererConfig["showLegend"]
+          }),
+          labels
+        );
+        const [opt] = setOptionMock.mock.calls[0] as [Record<string, unknown>];
+        expect((opt.legend as { show?: boolean }).show, label).toBe(false);
+      }
+
+      renderer.destroy();
+      document.body.removeChild(container);
+    });
+  });
+
+  describe("Theme snapshot in update() hash", () => {
+    function buildBaseRendererConfig(
+      overrides: Partial<ChartRendererConfig>
+    ): ChartRendererConfig {
+      return {
+        primaryColor: "#00ADEF",
+        fillCurrent: true,
+        fillReference: false,
+        fillCurrentOpacity: 40,
+        fillReferenceOpacity: 40,
+        connectNulls: true,
+        comparisonMode: "year_over_year",
+        language: "en-US",
+        numberLocale: "en-US",
+        precision: 1,
+        forecastLabel: "Forecast",
+        showForecast: false,
+        showLegend: false,
+        unit: "kWh",
+        periodLabel: "",
+        ...overrides
+      };
+    }
+
+    function buildSeries(
+      points: Array<{ timestamp: number; value: number }>
+    ): ComparisonSeries {
+      const unit = "kWh";
+      return {
+        current: {
+          points: points.map((p) => ({ timestamp: p.timestamp, value: p.value })),
+          unit,
+          periodLabel: "",
+          total: 0
+        },
+        reference: undefined,
+        aggregation: "day",
+        time_zone: "UTC"
+      };
+    }
+
+    it("skips setOption when data and theme unchanged; reapplies when HA CSS tokens change", () => {
+      const host = document.createElement("div");
+      host.className = "ha-card";
+      host.style.setProperty("--primary-text-color", "#e0e0e0");
+      host.style.setProperty("--secondary-text-color", "#aaaaaa");
+      host.style.setProperty("--divider-color", "#444444");
+      host.style.setProperty("--ha-card-background", "#1c1c1c");
+      host.style.setProperty("--card-background-color", "#1c1c1c");
+
+      const container = document.createElement("div");
+      host.appendChild(container);
+      document.body.appendChild(host);
+
+      // jsdom may not reflect updated custom properties in getComputedStyle; drive the
+      // primary text token explicitly so a theme change is observable to the renderer.
+      let primaryTextToken = "#e0e0e0";
+      const origGetComputedStyle = globalThis.getComputedStyle.bind(globalThis);
+      // Spy `globalThis` — the renderer calls unqualified `getComputedStyle`, which must match this binding.
+      const gcsSpy = vi.spyOn(globalThis, "getComputedStyle").mockImplementation((el: Element) => {
+        const style = origGetComputedStyle(el);
+        return {
+          ...style,
+          getPropertyValue: (prop: string) => {
+            if (prop === "--primary-text-color") return primaryTextToken;
+            return style.getPropertyValue(prop);
+          }
+        } as CSSStyleDeclaration;
+      });
+
+      const day0 = Date.UTC(2026, 0, 1);
+      const fullTimeline = [day0, day0 + 86400000];
+      const rendererConfig = buildBaseRendererConfig({});
+      const comparisonSeries = buildSeries([
+        { timestamp: fullTimeline[0] + 10, value: 1 },
+        { timestamp: fullTimeline[1] + 10, value: 2 }
+      ]);
+      const labels = { current: "Current", reference: "Reference" };
+
+      const renderer = new EChartsRenderer(container);
+      setOptionMock.mockClear();
+
+      renderer.update(comparisonSeries, fullTimeline, rendererConfig, labels);
+      expect(setOptionMock).toHaveBeenCalledTimes(1);
+
+      setOptionMock.mockClear();
+      renderer.update(comparisonSeries, fullTimeline, rendererConfig, labels);
+      expect(setOptionMock).toHaveBeenCalledTimes(0);
+
+      primaryTextToken = "#111111";
+      renderer.update(comparisonSeries, fullTimeline, rendererConfig, labels);
+      expect(setOptionMock).toHaveBeenCalledTimes(1);
+
+      gcsSpy.mockRestore();
+      renderer.destroy();
+      document.body.removeChild(host);
     });
   });
 });

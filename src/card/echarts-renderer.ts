@@ -19,6 +19,33 @@ echartsUse([
   CanvasRenderer
 ]);
 
+/** Matches `min-height` on the chart container in `energy-horizon-card-styles.ts`. */
+const CHART_MIN_HEIGHT_BASE_PX = 240;
+
+/**
+ * Legacy single-row legend vertical budget baked into the initial `grid.top` (32px).
+ * Extra legend height beyond this adds to the container `min-height` so the plot area does not shrink.
+ */
+const LEGEND_BASELINE_PX = 32;
+
+/** Space between the legend block and the grid (aligned with axis tick label gap). */
+const LEGEND_BELOW_GAP_PX = 8;
+
+/** When legend view is missing or hidden, keep the previous fixed top inset. */
+const GRID_TOP_FALLBACK_PX = LEGEND_BASELINE_PX;
+
+/**
+ * Runtime-only ECharts APIs for legend layout sync (declared private on `ECharts` in typings, so we avoid intersecting with `ECharts`).
+ */
+type EChartsLayoutSyncApi = {
+  getModel(): {
+    getComponent(mainType: string, index?: number): { option?: { show?: boolean } } | undefined;
+  };
+  getViewOfComponentModel(componentModel: object):
+    | { group?: { getBoundingRect(): { height: number } } }
+    | undefined;
+};
+
 /** Internal type used for chart data points (currently unused, kept for reference) */
 type _ChartPoint = { x: number; y: number | null };
 
@@ -32,13 +59,22 @@ export class EChartsRenderer {
   private instance: ECharts | undefined;
   private readonly resizeObserver: ResizeObserver;
   private lastHash: string | undefined;
+  /** Last applied values to avoid `finished` ↔ `setOption` feedback loops. */
+  private lastSyncedGridTop: number | undefined;
+  private lastSyncedMinHeightTotalPx: number | undefined;
+  private readonly onLegendLayoutFinished: () => void;
 
   constructor(container: HTMLElement) {
     this.container = container;
-    
+
+    this.onLegendLayoutFinished = () => {
+      this.syncLegendLayoutAfterPaint();
+    };
+
     // Initialize ECharts instance
     this.instance = echartsInit(container);
-    
+    this.instance.on('finished', this.onLegendLayoutFinished);
+
     // Set up resize observer to handle container size changes
     this.resizeObserver = new ResizeObserver(() => {
       this.instance?.resize();
@@ -48,8 +84,77 @@ export class EChartsRenderer {
 
   destroy(): void {
     this.resizeObserver.disconnect();
+    this.instance?.off('finished', this.onLegendLayoutFinished);
     this.instance?.dispose();
     this.instance = undefined;
+  }
+
+  /**
+   * After each full paint, measure the legend bounding box and align `grid.top` + container `min-height`
+   * so multi-line legends do not overlap the series (see plan: legend layout sync).
+   */
+  private syncLegendLayoutAfterPaint(): void {
+    const inst = this.instance;
+    if (!inst) return;
+
+    const ec = inst as unknown as EChartsLayoutSyncApi;
+    let legendHeightPx = 0;
+    let hasLegendLayout = false;
+
+    try {
+      const legendModel = ec.getModel().getComponent('legend', 0);
+      if (legendModel?.option?.show !== false) {
+        const legendView = ec.getViewOfComponentModel(legendModel as object);
+        const h = legendView?.group?.getBoundingRect()?.height;
+        if (typeof h === 'number' && Number.isFinite(h) && h > 0) {
+          legendHeightPx = h;
+          hasLegendLayout = true;
+        }
+      }
+    } catch {
+      hasLegendLayout = false;
+    }
+
+    const gridTopPx = hasLegendLayout
+      ? Math.ceil(legendHeightPx) + LEGEND_BELOW_GAP_PX
+      : GRID_TOP_FALLBACK_PX;
+
+    const extraMinHeightPx = hasLegendLayout
+      ? Math.max(0, legendHeightPx - LEGEND_BASELINE_PX)
+      : 0;
+    const minHeightTotalPx = CHART_MIN_HEIGHT_BASE_PX + extraMinHeightPx;
+
+    const topDelta =
+      this.lastSyncedGridTop === undefined
+        ? Infinity
+        : Math.abs(gridTopPx - this.lastSyncedGridTop);
+    const heightDelta =
+      this.lastSyncedMinHeightTotalPx === undefined
+        ? Infinity
+        : Math.abs(minHeightTotalPx - this.lastSyncedMinHeightTotalPx);
+
+    if (topDelta <= 1 && heightDelta <= 1) {
+      return;
+    }
+
+    if (hasLegendLayout && extraMinHeightPx > 0) {
+      this.container.style.minHeight = `${minHeightTotalPx}px`;
+    } else {
+      this.container.style.minHeight = '';
+    }
+
+    inst.setOption(
+      {
+        grid: {
+          top: gridTopPx
+        }
+      },
+      { notMerge: false, lazyUpdate: false }
+    );
+    inst.resize();
+
+    this.lastSyncedGridTop = gridTopPx;
+    this.lastSyncedMinHeightTotalPx = minHeightTotalPx;
   }
 
   /**
@@ -103,16 +208,21 @@ export class EChartsRenderer {
     return result;
   }
 
+  /** `ha-card` (or card root) used for Home Assistant theme CSS variables. */
+  private getThemeHost(): HTMLElement {
+    return (
+      (this.container.closest('.ebc-card') as HTMLElement | null) ??
+      (this.container.closest('ha-card') as HTMLElement | null) ??
+      this.container
+    );
+  }
+
   /**
    * Resolve primary color from config or theme CSS variables (T005).
    */
   private resolveColor(primaryColorConfig: string): string {
     if (primaryColorConfig.trim()) return primaryColorConfig;
-    const host =
-      (this.container.closest('.ehc-card') as HTMLElement | null) ??
-      (this.container.closest('ha-card') as HTMLElement | null) ??
-      this.container;
-    const styles = getComputedStyle(host);
+    const styles = getComputedStyle(this.getThemeHost());
     const accentColor = styles.getPropertyValue('--accent-color').trim();
     if (accentColor) return accentColor;
     const primaryColor = styles.getPropertyValue('--primary-color').trim();
@@ -121,24 +231,38 @@ export class EChartsRenderer {
   }
 
   /**
-   * Get theme colors from CSS variables (T005).
+   * Read Home Assistant theme tokens from the card host (`getComputedStyle`).
    */
-  private getThemeColors(): { referenceLine: string; grid: string } {
-    const host =
-      (this.container.closest('.ehc-card') as HTMLElement | null) ??
-      (this.container.closest('ha-card') as HTMLElement | null) ??
-      this.container;
-    const styles = getComputedStyle(host);
+  private getHaThemeTokens(): {
+    referenceLine: string;
+    /** Horizontal grid lines (`yAxis.splitLine`); also used for tooltip border and axis-pointer shadow tint. */
+    grid: string;
+    primaryText: string;
+    tooltipBackground: string;
+    tooltipBorder: string;
+  } {
+    const styles = getComputedStyle(this.getThemeHost());
 
-    const referenceColor =
+    const referenceLine =
       styles.getPropertyValue('--secondary-text-color').trim() || 'rgba(127, 127, 127, 0.4)';
-    const gridColor =
-      styles.getPropertyValue('--divider-color').trim() ||
-      'rgba(127, 127, 127, 0.3)';
+    const grid =
+      styles.getPropertyValue('--divider-color').trim() || 'rgba(127, 127, 127, 0.3)';
+    const primaryText =
+      styles.getPropertyValue('--primary-text-color').trim() || 'rgba(0, 0, 0, 0.87)';
+
+    const tooltipBackground =
+      styles.getPropertyValue('--ha-card-background').trim() ||
+      styles.getPropertyValue('--card-background-color').trim() ||
+      '#ffffff';
+
+    const tooltipBorder = grid;
 
     return {
-      referenceLine: referenceColor,
-      grid: gridColor
+      referenceLine,
+      grid,
+      primaryText,
+      tooltipBackground,
+      tooltipBorder
     };
   }
 
@@ -223,7 +347,13 @@ export class EChartsRenderer {
     rendererConfig: ChartRendererConfig,
     labels: { current: string; reference: string },
     primaryColor: string,
-    theme: { referenceLine: string; grid: string }
+    theme: {
+      referenceLine: string;
+      grid: string;
+      primaryText: string;
+      tooltipBackground: string;
+      tooltipBorder: string;
+    }
   ): EChartsOption {
     // Keep a fixed visual gap between axis ticks and tick labels.
     // For yAxis labels this manifests as spacing on the right side of the label;
@@ -488,13 +618,27 @@ export class EChartsRenderer {
         // Give the X-axis edge labels some breathing room on responsive layouts.
         left: tickLabelGapPx,
         right: tickLabelGapPx,
-        top: 32,
+        top: GRID_TOP_FALLBACK_PX,
         bottom: 0
       },
-      legend: { show: true, top: 0, left: "center" },
+      legend: {
+        show: rendererConfig.showLegend === true,
+        top: 0,
+        left: 'center',
+        textStyle: { color: theme.primaryText },
+        pageTextStyle: { color: theme.primaryText }
+      },
       tooltip: {
         trigger: 'axis',
-        axisPointer: { type: 'shadow' },
+        backgroundColor: theme.tooltipBackground,
+        borderColor: theme.tooltipBorder,
+        borderWidth: 1,
+        textStyle: { color: theme.primaryText },
+        axisPointer: {
+          type: 'shadow',
+          // Tint from `--divider-color` (same as split lines); opacity keeps the overlay subtle.
+          shadowStyle: { color: theme.grid, opacity: 0.2 }
+        },
         appendTo: this.container,
         formatter: (params: unknown) => {
           const items = Array.isArray(params) ? params : [params];
@@ -601,6 +745,7 @@ export class EChartsRenderer {
         axisTick: { show: false },
         axisLine: { show: false },
         axisLabel: {
+          color: theme.primaryText,
           formatter: (value: number) => formatXAxisLabel(value),
           margin: tickLabelGapPx,
           hideOverlap: true,
@@ -616,10 +761,15 @@ export class EChartsRenderer {
         min: 0,
         max: yMax,
         splitNumber: 4,
+        splitLine: {
+          show: true,
+          lineStyle: { color: theme.grid, width: 1 }
+        },
         // Oś ma się składać tylko z ticków i wartości (bez pionowej linii osi).
         axisLine: { show: false },
         axisTick: { show: false },
         axisLabel: {
+          color: theme.primaryText,
           formatter: (value: number) => {
             if (value === yMax) {
               return `${value} ${rendererConfig.unit}`;
@@ -665,11 +815,14 @@ export class EChartsRenderer {
         )
       : new Array(fullTimeline.length).fill(null);
 
-    // Compute hash for memoization (FR-012)
+    const theme = this.getHaThemeTokens();
+
+    // Compute hash for memoization (FR-012); include theme snapshot so HA light/dark switches refresh the chart.
     const hash = JSON.stringify({
       c: currentValues,
       r: referenceValues,
-      cfg: rendererConfig
+      cfg: rendererConfig,
+      theme
     });
 
     if (this.lastHash === hash) {
@@ -677,9 +830,13 @@ export class EChartsRenderer {
     }
     this.lastHash = hash;
 
+    // Full option replace: drop legend layout sync state so the next `finished` measures from scratch.
+    this.lastSyncedGridTop = undefined;
+    this.lastSyncedMinHeightTotalPx = undefined;
+    this.container.style.minHeight = '';
+
     // Resolve colors and build option
     const primaryColor = this.resolveColor(rendererConfig.primaryColor);
-    const theme = this.getThemeColors();
     const option = this.buildOption(
       currentValues,
       referenceValues,

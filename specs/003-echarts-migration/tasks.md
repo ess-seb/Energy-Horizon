@@ -30,7 +30,7 @@
 
 - [x] T003 Create `src/card/echarts-renderer.ts` with modular ECharts imports (`echarts/core`, `echarts/charts`, `echarts/components`, `echarts/renderers`), `echarts.use([LineChart, GridComponent, TooltipComponent, LegendComponent, MarkLineComponent, MarkPointComponent, CanvasRenderer])` call at module level, and class skeleton with private fields (`container: HTMLElement`, `instance: ECharts | undefined`, `resizeObserver: ResizeObserver`, `lastHash: string | undefined`) and stub public methods `update()` and `destroy()`
 - [x] T004 [P] Port `alignSeriesOnTimeline()` private method 1:1 from `src/card/chart-renderer.ts` to `src/card/echarts-renderer.ts`
-- [x] T005 [P] Implement `resolveColor(primaryColorConfig: string): string` and `getThemeColors(): { referenceLine: string; grid: string }` color helpers in `src/card/echarts-renderer.ts` (same CSS variable lookup logic as in `chart-renderer.ts`)
+- [x] T005 [P] Implement `resolveColor(primaryColorConfig: string): string` and `getHaThemeTokens()` (tokeny HA: `referenceLine`, `grid`, `primaryText`, tooltip) w `src/card/echarts-renderer.ts` — `getComputedStyle(getThemeHost())` jak w migracji z Chart.js, rozszerzone o tekst osi i tooltip
 - [x] T006 [P] Implement `niceMax(dataMax: number, splitCount: number): number` helper in `src/card/echarts-renderer.ts` using algorithm: if `dataMax <= 0` return `splitCount`; compute `step = 10^floor(log10(dataMax/splitCount))`; round `dataMax/splitCount/step` up to nearest `[1, 2, 2.5, 5, 10]`; return `ceil(dataMax / niceStep) * niceStep`
 
 **Checkpoint**: `src/card/echarts-renderer.ts` kompiluje się bez błędów TypeScript; klasa istnieje z poprawnymi prywatnymi polami i metodami-stubami
@@ -45,14 +45,15 @@
 
 ### Implementation for User Story 1
 
-- [x] T007 [US1] Implement `constructor(container: HTMLElement)`: call `echarts.init(container)`, assign to `this.instance`; create `ResizeObserver(() => this.instance?.resize())` and call `.observe(container)`; implement `destroy()`: `resizeObserver.disconnect()`, `instance?.dispose()`, `instance = undefined` in `src/card/echarts-renderer.ts`
-- [x] T008 [US1] Implement `buildOption()` skeleton with static chart-level settings in `src/card/echarts-renderer.ts`: `animation: false` (FR-012); `grid: { containLabel: true }`; `legend: { show: true }` (FR-011); `tooltip: { trigger: 'axis', axisPointer: { type: 'shadow' }, appendTo: this.container }` (FR-010 — Shadow DOM fix); `xAxis: { type: 'value', min: 0, max: fullTimeline.length - 1, interval: 1, boundaryGap: false, splitLine: { show: false } }` (FR-009); `yAxis: { type: 'value', min: 0, max: niceMax(dataMax, 4), splitNumber: 4, axisLabel: { formatter: (v) => v === yMax ? \`\${v} \${unit}\` : String(v) } }` (FR-007, FR-008)
+- [x] T007 [US1] Implement `constructor(container: HTMLElement)`: call `echarts.init(container)`, assign to `this.instance`; create `ResizeObserver(() => this.instance?.resize())` and call `.observe(container)`; implement `destroy()`: `resizeObserver.disconnect()`, `instance?.dispose()`, `instance = undefined` in `src/card/echarts-renderer.ts` (listener `finished` + `off` — T008a)
+- [x] T008 [US1] Implement `buildOption()` skeleton with static chart-level settings in `src/card/echarts-renderer.ts`: `animation: false` (FR-012); `grid: { containLabel: true, top: GRID_TOP_FALLBACK_PX, … }`; `legend: { show: rendererConfig.showLegend === true, … }` (FR-011 — tylko przy `show_legend: true`); kolory tekstu/siatki/tooltip z `getHaThemeTokens()` (FR-013a); `tooltip: { trigger: 'axis', axisPointer: { type: 'shadow' }, appendTo: this.container }` (FR-010 — Shadow DOM fix); `xAxis` / `yAxis` z kolorami `theme.primaryText` / `theme.grid` (FR-009, FR-007, FR-008)
+- [x] T008a [US1] `constructor`: `instance.on('finished', syncLegendLayoutAfterPaint)`; `syncLegendLayoutAfterPaint()` mierzy legendę i ustawia `grid.top` + ewent. `min-height` kontenera + `resize()` (FR-013b); `destroy`: `off('finished', …)`; `update`: reset stanu sync + `theme` w hash (FR-013a)
 - [x] T009 [US1] Implement current series object inside `buildOption()` in `src/card/echarts-renderer.ts`: `type: 'line'`, `name: labels.current`, `data: currentValues`, `lineStyle: { color: primaryColor, width: 1.5 }`, `areaStyle: { opacity: fillCurrent ? fillCurrentOpacity / 100 : 0 }` (FR-005), `connectNulls: false` (FR-002). When YAML `connect_nulls` is enabled (default: true), renderer may additionally add a dashed, interpolated overlay across null gaps (overlay, not the solid line).
 - [x] T010 [US1] Implement today marker in `buildOption()` inside current series in `src/card/echarts-renderer.ts`: compute `todaySlotIndex = fullTimeline.indexOf(todayTimestamp)`; compute `yTop` per FR-004 (Variant A when at least one series has value: `yTop = currentY !== null && referenceY !== null ? Math.max(currentY, referenceY) : (currentY ?? referenceY)`; Variant B when both null: use `{ xAxis: todaySlotIndex }` form); add `markLine: { silent: true, symbol: ['none', 'none'], data: [...], lineStyle: { type: 'dashed', color: primaryColor, width: 1.5 } }` (FR-003, FR-004); add `markPoint: { silent: true, data: todayCurrentY !== null ? [{ coord: [todaySlotIndex, todayCurrentY], symbol: 'circle', symbolSize: 6, itemStyle: { color: primaryColor } }] : [] }` (FR-003, FR-013)
 - [x] T011 [US1] Implement optional reference series in `buildOption()` in `src/card/echarts-renderer.ts`: conditionally push series when `series.reference` is defined; `lineStyle: { color: theme.referenceLine, width: 1.5 }`, `areaStyle: { opacity: fillReference ? fillReferenceOpacity / 100 : 0 }`, `connectNulls: false`, `markPoint` for today reference dot when `todayReferenceY !== null`
 - [x] T012 [US1] Implement optional forecast series in `buildOption()` in `src/card/echarts-renderer.ts`: conditionally push when `rendererConfig.showForecast && todaySlotIndex >= 0 && todayCurrentY !== null && forecastTotal !== undefined`; `data: [[todaySlotIndex, todayCurrentY], [fullTimeline.length - 1, forecastTotal]]`; `lineStyle: { type: 'dashed', color: primaryColor, width: 1.5 }`, `areaStyle: { opacity: 0 }`, `showSymbol: false`, `connectNulls: false` (FR-006)
-- [x] T013 [US1] Implement `update()` method in `src/card/echarts-renderer.ts`: guard `if (!this.instance) return`; compute hash of inputs via `JSON.stringify`; return early if `hash === this.lastHash` (FR-012 perf); call `alignSeriesOnTimeline()` for both current and reference series; call `resolveColor()` + `getThemeColors()`; call `buildOption()`; call `this.instance.setOption(option, { notMerge: true })`; update `this.lastHash`
-- [x] T014 [US1] Update `src/card/cumulative-comparison-chart.ts`: replace `import { ChartRenderer }` with `import { EChartsRenderer }`; change field type `_chartRenderer?: ChartRenderer` to `_chartRenderer?: EChartsRenderer`; change canvas selector `querySelector("canvas")` to `querySelector(".chart-container")`; change constructor call `new ChartRenderer(canvas)` to `new EChartsRenderer(container)`; remove `<canvas></canvas>` from Lit template (ECharts creates its own canvas inside `.chart-container`)
+- [x] T013 [US1] Implement `update()` method in `src/card/echarts-renderer.ts`: guard `if (!this.instance) return`; call `alignSeriesOnTimeline()` for both current and reference series; `getHaThemeTokens()`; hash `JSON.stringify({ c, r, cfg, theme })` — return early if `hash === this.lastHash`; reset stanu synchronizacji legendy; call `resolveColor()` + `buildOption()`; call `this.instance.setOption(option, { notMerge: true })`; update `this.lastHash`
+- [x] T014 [US1] Update `src/card/cumulative-comparison-chart.ts`: replace `import { ChartRenderer }` with `import { EChartsRenderer }`; change field type `_chartRenderer?: ChartRenderer` to `_chartRenderer?: EChartsRenderer`; change canvas selector `querySelector("canvas")` to `querySelector(".chart-container")`; change constructor call `new ChartRenderer(canvas)` to `new EChartsRenderer(container)`; remove `<canvas></canvas>` from Lit template (ECharts creates its own canvas inside `.chart-container`); przekazuj `showLegend: this._config.show_legend === true` w `ChartRendererConfig`
 
 **Checkpoint**: Karta wyświetla wykres w Home Assistant bez wizualnych regresji; `npm run build` kończy się bez błędów; istniejące testy Vitest nie łamią się
 
@@ -110,7 +111,7 @@
 
 - [x] T022 [P] Run `npm test` and confirm all Vitest tests pass (0 failures)
 - [x] T023 [P] Run `npm run lint` and fix any TypeScript strict-mode or ESLint errors introduced in `src/card/echarts-renderer.ts` or `src/card/cumulative-comparison-chart.ts`
-- [x] T024 Validate all 11 items from `specs/003-echarts-migration/quickstart.md` implementation checklist (bottom of file) — mark each item as confirmed
+- [x] T024 Validate checklist at bottom of `specs/003-echarts-migration/quickstart.md` — mark each item as confirmed
 
 ---
 
@@ -136,7 +137,7 @@
 ### Within Each Phase
 
 - T003 (szkielet klasy) → T004, T005, T006 (metody pomocnicze — [P], różne fragmenty pliku)
-- T007 (constructor/destroy) → T008 (buildOption szkielet) → T009, T010, T011, T012 ([P] — różne serie) → T013 (update()) → T014 (integracja w cumulative-comparison-chart.ts)
+- T007 (constructor/destroy) → T008 (buildOption szkielet) + T008a (motyw HA, legenda, sync layout) → T009, T010, T011, T012 ([P] — różne serie) → T013 (update()) → T014 (integracja w cumulative-comparison-chart.ts)
 
 ---
 
@@ -189,18 +190,18 @@ Task: "Unit test: resize triggers instance.resize()"                 # T021
 5. Phase 6 (US4) → Lifecycle testy → commit
 6. Phase 7 (Polish) → Finalne czyszczenie → release
 
-### Total Task Count: 24 tasks
+### Total Task Count: 25 tasks
 
 | Phase | Tasks | Count |
 |-------|-------|-------|
 | Phase 1: Setup | T001–T002 | 2 |
 | Phase 2: Foundational | T003–T006 | 4 |
-| Phase 3: US1 (P1) | T007–T014 | 8 |
+| Phase 3: US1 (P1) | T007–T014, T008a | 9 |
 | Phase 4: US2 (P2) | T015–T016 | 2 |
 | Phase 5: US3 (P3) | T017–T018 | 2 |
 | Phase 6: US4 (P4) | T019–T021 | 3 |
 | Phase 7: Polish | T022–T024 | 3 |
-| **Total** | | **24** |
+| **Total** | | **25** |
 
 ### Parallel Opportunities
 
