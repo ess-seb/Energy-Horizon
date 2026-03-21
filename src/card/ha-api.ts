@@ -312,9 +312,15 @@ export function computeForecast(
     currentPoints[0]!.timestamp;
   const cutoffTs = currentPoints[0]!.timestamp + currentRangeMs;
 
+  // Align reference timestamps to current period axis (same alignment as chart).
+  // YoY: reference is in year N, current in N+1; raw comparison would put all ref ≤ cutoff.
+  const periodAlignMs =
+    currentPoints[0]!.timestamp - referencePoints[0]!.timestamp;
+
   let splitIdx = -1;
   for (let i = referencePoints.length - 1; i >= 0; i--) {
-    if (referencePoints[i]!.timestamp <= cutoffTs) {
+    const refAlignedTs = referencePoints[i]!.timestamp + periodAlignMs;
+    if (refAlignedTs <= cutoffTs) {
       splitIdx = i;
       break;
     }
@@ -356,7 +362,12 @@ export function computeForecast(
     .reduce((acc, p) => acc + (p.rawValue ?? 0), 0);
 
   const reference_total = B + C;
-  const forecast_total = A + C * trend;
+  let forecast_total = A + C * trend;
+
+  // Never forecast below known cumulative (monotonicity guarantee)
+  const lastCurrentCumulative =
+    currentPoints[currentPoints.length - 1]?.value ?? 0;
+  forecast_total = Math.max(forecast_total, lastCurrentCumulative);
 
   const result: ForecastStats = {
     enabled: true,

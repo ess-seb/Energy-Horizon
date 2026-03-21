@@ -211,14 +211,62 @@ describe("computeForecast", () => {
     expect(f.forecast_total).toBeCloseTo(A + C * trend, 5);
   });
 
-  it("scenario 14: all reference timestamps after current range → disabled", () => {
+  // YoY regression: current in year N+1, reference in year N — alignment makes C > 0
+  it("scenario YoY: different years (UTC) — alignment yields C > 0, forecast = A + C × trend", () => {
+    const T_REF = Date.UTC(2024, 0, 1); // Jan 1, 2024
+    const T_CUR = Date.UTC(2025, 0, 1); // Jan 1, 2025 (same day-of-year)
+    const n = 15;
+    const periodTotalBuckets = 30; // 14/30 ≥ 5% for guard
+    const curTs = Array.from({ length: n }, (_, i) => T_CUR + i * DAY_MS);
+    const refTs = Array.from({ length: 20 }, (_, i) => T_REF + i * DAY_MS);
+    const curRaws = Array.from({ length: n }, () => 3);
+    const refRaws = Array.from({ length: 20 }, () => 2);
+    const current = makeCumulativeFromTimestampsRaws(curTs, curRaws);
+    const reference = makeCumulativeFromTimestampsRaws(refTs, refRaws);
+    const s = comparisonFrom(current, reference);
+    const f = computeForecast(s, periodTotalBuckets);
+    expect(f.enabled).toBe(true);
+    const completedBuckets = n - 1;
+    const periodAlignMs = curTs[0]! - refTs[0]!;
+    const cutoffTs = curTs[0]! + (curTs[completedBuckets - 1]! - curTs[0]!);
+    let expectedSplit = -1;
+    for (let i = refTs.length - 1; i >= 0; i--) {
+      const refAlignedTs = refTs[i]! + periodAlignMs;
+      if (refAlignedTs <= cutoffTs) {
+        expectedSplit = i;
+        break;
+      }
+    }
+    expect(expectedSplit).toBeGreaterThanOrEqual(0);
+    const B = refRaws.slice(0, expectedSplit + 1).reduce((a, b) => a + b, 0);
+    const A = curRaws.slice(0, completedBuckets).reduce((a, b) => a + b, 0);
+    const C = refRaws.slice(expectedSplit + 1).reduce((a, b) => a + b, 0);
+    expect(C).toBeGreaterThan(0);
+    const rawTrend = A / B;
+    const trend = Math.min(5, Math.max(0.2, rawTrend));
+    const expectedForecast = Math.max(
+      A + C * trend,
+      current.points[current.points.length - 1]?.value ?? 0
+    );
+    expect(f.forecast_total).toBeCloseTo(expectedForecast, 5);
+  });
+
+  // After alignment fix: ref timestamps in different year now align; split exists, forecast enabled
+  it("scenario 14: ref in different year — after alignment split exists, forecast enabled", () => {
     const curTs = Array.from({ length: 5 }, (_, i) => T0 + i * DAY_MS);
-    const refTs = Array.from({ length: 8 }, (_, i) => T0 + 400 * DAY_MS + i * DAY_MS);
+    const refTs = Array.from(
+      { length: 8 },
+      (_, i) => T0 + 400 * DAY_MS + i * DAY_MS
+    );
     const s = comparisonFrom(
       makeCumulativeFromTimestamps(curTs, 1),
       makeCumulativeFromTimestamps(refTs, 1)
     );
-    expect(computeForecast(s, 30).enabled).toBe(false);
+    const f = computeForecast(s, 30);
+    expect(f.enabled).toBe(true);
+    expect(f.forecast_total).toBeGreaterThanOrEqual(
+      s.current.points[s.current.points.length - 1]?.value ?? 0
+    );
   });
 
   // US3 — anomalia referencji (rawTrend poza [0.3, 3.3])
@@ -288,7 +336,7 @@ describe("computeForecast", () => {
   });
 
   // US4 — C = 0 (seria referencyjna kończy się na splitIdx)
-  it("scenario 8: reference ends at splitIdx → C=0 → enabled, forecast_total = A", () => {
+  it("scenario 8: reference ends at splitIdx → C=0 → enabled, forecast_total ≥ A (clamped to last cumulative)", () => {
     const n = 14;
     const curTs = Array.from({ length: n }, (_, i) => T0 + i * DAY_MS);
     const refTs = Array.from({ length: n - 1 }, (_, i) => T0 + i * DAY_MS);
@@ -301,11 +349,13 @@ describe("computeForecast", () => {
     expect(f.enabled).toBe(true);
     const completedBuckets = n - 1;
     const A = completedBuckets * rawEach;
-    expect(f.forecast_total).toBeCloseTo(A, 5);
+    const lastCumulative = (n - 1) * rawEach + rawEach; // last point = all raws including open bucket
+    expect(f.forecast_total).toBeGreaterThanOrEqual(A);
+    expect(f.forecast_total).toBeCloseTo(Math.max(A, lastCumulative), 5);
     expect(f.reference_total).toBeCloseTo(A, 5);
   });
 
-  it("combined: C=0 and rawTrend≈4 → forecast_total=A, anomalousReference, confidence low", () => {
+  it("combined: C=0 and rawTrend≈4 → forecast_total ≥ A (clamped), anomalousReference, confidence low", () => {
     const n = 14;
     const curTs = Array.from({ length: n }, (_, i) => T0 + i * DAY_MS);
     const refTs = Array.from({ length: n - 1 }, (_, i) => T0 + i * DAY_MS);
@@ -318,7 +368,9 @@ describe("computeForecast", () => {
     const f = computeForecast(s, 30);
     expect(f.enabled).toBe(true);
     const A = (n - 1) * 4;
-    expect(f.forecast_total).toBeCloseTo(A, 5);
+    const lastCumulative = curRaws.reduce((a, b) => a + b, 0);
+    expect(f.forecast_total).toBeGreaterThanOrEqual(A);
+    expect(f.forecast_total).toBeCloseTo(Math.max(A, lastCumulative), 5);
     expect(f.anomalousReference).toBe(true);
     expect(f.confidence).toBe("low");
   });
