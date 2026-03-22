@@ -21,6 +21,8 @@
   "editor.entity": "Encja",
   "editor.title": "Tytuł",
   "editor.comparison_mode": "Tryb porównania",
+  "editor.year_over_year": "Rok do roku",
+  "editor.month_over_year": "Miesiąc do miesiąca rok temu",
   "editor.force_prefix": "Prefiks jednostki",
   "editor.visual_mode": "Wizualny",
   "editor.yaml_mode": "YAML",

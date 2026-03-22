@@ -172,12 +172,12 @@ Configuration for scaling and precision is **flat** at the card root (`force_pre
 
 ## Visual Editor
 
-The card supports a **visual editor** for common options. In the Lovelace dashboard, open the card’s **three-dot menu** → **Edit** to configure the card without editing YAML for the basics.
+The card supports a **visual editor** for common options. In the Lovelace dashboard, open the card’s **three-dot menu** → **Edit** to configure the card. The editor panel is titled **Energy Horizon**.
 
 - **Entity** — sensor-domain statistics entity (`entity` in YAML)
 - **Title** — optional display name for the card header
-- **Comparison Mode** — `year_over_year` or `month_over_year`
-- **Unit Prefix** — `auto`, `none`, `G`, `M`, `k`, base unit (no forced prefix), `m`, or `µ` (same meaning as root-level `force_prefix` in YAML)
+- **Comparison Mode** — `year_over_year` or `month_over_year`. Labels are localized (e.g. English: "Year over year" / "Month over year"; Polish: "Rok do roku" / "Miesiąc do miesiąca rok temu").
+- **Unit Prefix** — `auto`, empty (base unit, no forced prefix), `none`, `G`, `M`, `k`, `m`, or `µ` (same meaning as root-level `force_prefix` in YAML). The empty option appears first and means the base unit without scaling.
 
 The editor includes a **YAML** (text) mode toggle so you can edit the **full** configuration, including advanced options such as colors and opacities. **YAML-only** fields are **preserved** when you use the visual form: keys not covered by the four fields above are kept when saving from the form.
 

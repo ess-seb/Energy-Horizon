@@ -360,12 +360,12 @@ export class EChartsRenderer {
     // for xAxis labels as spacing above the label.
     const tickLabelGapPx = 8;
 
-    // Compute nice max Y value
-    const dataMax = Math.max(
-      ...currentValues.filter((v) => v !== null) as number[],
-      ...referenceValues.filter((v) => v !== null) as number[],
-      1
-    );
+    // Compute nice max Y value (no hardcoded minimum — niceMax handles dataMax <= 0)
+    const allNonNull = [
+      ...(currentValues.filter((v) => v !== null) as number[]),
+      ...(referenceValues.filter((v) => v !== null) as number[])
+    ];
+    const dataMax = allNonNull.length > 0 ? Math.max(...allNonNull) : 0;
     const yMax = this.niceMax(dataMax, 4);
 
     const xMax = Math.max(fullTimeline.length - 1, 0);

@@ -21,6 +21,8 @@
   "editor.entity": "Entity",
   "editor.title": "Title",
   "editor.comparison_mode": "Comparison Mode",
+  "editor.year_over_year": "Year over year",
+  "editor.month_over_year": "Month over year",
   "editor.force_prefix": "Unit Prefix",
   "editor.visual_mode": "Visual",
   "editor.yaml_mode": "YAML",

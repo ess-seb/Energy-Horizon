@@ -33,11 +33,18 @@ export interface LovelaceCardEditor extends HTMLElement {
   setConfig(_config: unknown): void;
 }
 
+export interface CustomCardDeclaration {
+  type: string;
+  name: string;
+  description: string;
+}
+
 declare global {
   interface Window {
     jsyaml?: {
       dump(obj: unknown, options?: Record<string, unknown>): string;
       load(str: string): unknown;
     };
+    customCards?: CustomCardDeclaration[];
   }
 }

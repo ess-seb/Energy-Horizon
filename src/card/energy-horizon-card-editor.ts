@@ -7,39 +7,6 @@ import { createLocalize } from "./localize";
 
 type EditorMode = "visual" | "yaml";
 
-const EDITOR_SCHEMA: ReadonlyArray<HaFormSchema> = [
-  { name: "entity", selector: { entity: { domain: "sensor" } } },
-  { name: "title", selector: { text: {} } },
-  {
-    name: "comparison_mode",
-    selector: {
-      select: {
-        options: [
-          { value: "year_over_year", label: "Year over Year" },
-          { value: "month_over_year", label: "Month over Year" }
-        ]
-      }
-    }
-  },
-  {
-    name: "force_prefix",
-    selector: {
-      select: {
-        options: [
-          { value: "auto", label: "Auto" },
-          { value: "none", label: "None (raw)" },
-          { value: "G", label: "G (Giga)" },
-          { value: "M", label: "M (Mega)" },
-          { value: "k", label: "k (Kilo)" },
-          { value: "", label: "— (base unit)" },
-          { value: "m", label: "m (milli)" },
-          { value: "µ", label: "µ (micro)" }
-        ]
-      }
-    }
-  }
-];
-
 export class EnergyHorizonCardEditor extends LitElement {
   @property({ attribute: false }) accessor hass?: HomeAssistant;
 
@@ -55,6 +22,7 @@ export class EnergyHorizonCardEditor extends LitElement {
     this._config = { ...config };
     this._editorMode = "visual";
     this._yamlError = null;
+    this.requestUpdate();
   }
 
   private _formData(): Partial<CardConfig> {
@@ -84,6 +52,42 @@ export class EnergyHorizonCardEditor extends LitElement {
       (this.hass as unknown as { language?: string })?.language ??
       "en"
     );
+  }
+
+  private _buildSchema(lang: string): ReadonlyArray<HaFormSchema> {
+    const t = createLocalize(lang);
+    return [
+      { name: "entity", selector: { entity: { domain: "sensor" } } },
+      { name: "title", selector: { text: {} } },
+      {
+        name: "comparison_mode",
+        selector: {
+          select: {
+            options: [
+              { value: "year_over_year", label: t("editor.year_over_year") },
+              { value: "month_over_year", label: t("editor.month_over_year") }
+            ]
+          }
+        }
+      },
+      {
+        name: "force_prefix",
+        selector: {
+          select: {
+            options: [
+              { value: "", label: "" },
+              { value: "auto", label: "Auto" },
+              { value: "none", label: "None (raw)" },
+              { value: "G", label: "G (Giga)" },
+              { value: "M", label: "M (Mega)" },
+              { value: "k", label: "k (Kilo)" },
+              { value: "m", label: "m (milli)" },
+              { value: "µ", label: "µ (micro)" }
+            ]
+          }
+        }
+      }
+    ];
   }
 
   private _handleValueChanged(e: CustomEvent): void {
@@ -209,7 +213,7 @@ export class EnergyHorizonCardEditor extends LitElement {
         ${this._editorMode === "visual"
           ? html`
               <ha-form
-                .schema=${EDITOR_SCHEMA}
+                .schema=${this._buildSchema(lang)}
                 .data=${this._formData()}
                 .hass=${this.hass}
                 .computeLabel=${this._computeLabel.bind(this)}

@@ -307,6 +307,45 @@ HA's Lovelace infrastructure handles the actual persistence on "Save". Our contr
 
 ---
 
+## Phase 8: Bugfixes (Post-MVP)
+
+**Purpose**: Fix issues identified in the visual editor and chart behavior after initial release.
+
+- [ ] T011 [P] Modify `src/ha-types.ts` — add `customCards?: Array<{ type: string; name: string; description?: string }>;` to `declare global { interface Window { ... } }` (for editor panel title "Energy Horizon").
+
+- [ ] T012 [P] Modify `src/index.ts` — after `import "./card/cumulative-comparison-chart";` add registration:
+  ```ts
+  const win = window as Window & { customCards?: Array<{ type: string; name: string; description?: string }> };
+  win.customCards = win.customCards ?? [];
+  win.customCards.push({
+    type: "energy-horizon-card",
+    name: "Energy Horizon",
+    description: "Visualize energy consumption by comparing current and reference period trends."
+  });
+  ```
+  Fixes editor panel title showing "Konfiguracja karty """.
+
+- [ ] T013 Modify `src/card/energy-horizon-card-editor.ts` — at end of `setConfig(config: CardConfig): void` add `this.requestUpdate();`. Fixes ~3 s delay before form appears.
+
+- [ ] T014 Modify `src/card/energy-horizon-card-editor.ts` — in `force_prefix` options: remove `{ value: "", label: "— (base unit)" }`, add at **first** position `{ value: "", label: "" }`. Keep other options (auto, none, G, M, k, m, µ). Fixes misleading "— (base unit)" label.
+
+- [ ] T015 Modify `src/translations/en.json`, `pl.json`, `de.json` — add keys `editor.year_over_year` and `editor.month_over_year` (EN: "Year over year" / "Month over year"; PL: "Rok do roku" / "Miesiąc do miesiąca rok temu"; DE: "Jahr zu Jahr" / "Monat zum Vorjahr"). Replace static `EDITOR_SCHEMA` with `_buildSchema(lang)` that uses `createLocalize(lang)` for comparison_mode option labels; call `_buildSchema(this._editorLang())` in render. Fixes hardcoded English labels in Polish UI.
+
+- [ ] T016 Modify `src/card/echarts-renderer.ts` — in `buildOption`, replace:
+  ```ts
+  const dataMax = Math.max(..., 1);
+  ```
+  with:
+  ```ts
+  const allNonNull = [...(currentValues.filter((v) => v !== null) as number[]), ...(referenceValues.filter((v) => v !== null) as number[])];
+  const dataMax = allNonNull.length > 0 ? Math.max(...allNonNull) : 0;
+  ```
+  Remove hardcoded `1` so Y-axis scales correctly when `force_prefix` is G/M/k (e.g. 300 kWh → 0.0003 GWh, axis max stays data-driven, chart readable).
+
+**Checkpoint (Phase 8)**: Editor opens quickly; title shows "Energy Horizon"; Unit Prefix has empty option first; Comparison Mode labels localized; chart Y-axis does not flatten when changing prefix.
+
+---
+
 ## Dependencies & Execution Order
 
 ### Phase Dependencies
@@ -319,6 +358,7 @@ Phase 4 (T009): DEPENDS ON T008 (_emitConfigChanged must exist). T006 render() i
 Phase 5 (US3): No tasks — satisfied by T007+T008+T009.
 Phase 6 (US4): No tasks — satisfied by T002–T004+T005+T006.
 Phase 7 (T010): Independent of all phases — can run any time after Phase 1.
+Phase 8 (T011–T016): Independent — bugfixes; T011+T012 parallel, T013–T016 parallel.
 ```
 
 ### Within-Phase Dependencies (Phase 2)
@@ -339,6 +379,7 @@ T002 + T003 + T004 → T005 → T006 → T007
 
 - **T002, T003, T004**: Three JSON files, fully independent — run simultaneously
 - **T010**: README update has no code dependency — can be done any time
+- **T011, T012**: Phase 8 parallel — ha-types and index.ts independent
 
 ---
 
@@ -371,7 +412,7 @@ Task: "Add editor.* keys to src/translations/de.json"    # T004
 
 ### Single-Developer Linear Order
 
-T001 → T002 → T003 → T004 → T005 → T006 → T007 → T008 → T009 → T010
+T001 → T002 → T003 → T004 → T005 → T006 → T007 → T008 → T009 → T010 → T011 [P] T012 [P] → T013 → T014 → T015 → T016
 
 ---
 
@@ -389,10 +430,16 @@ T001 → T002 → T003 → T004 → T005 → T006 → T007 → T008 → T009 →
 | T008 | 3 – US2 | US2 | `src/card/energy-horizon-card-editor.ts` | No |
 | T009 | 4 – US5 | US5 | `src/card/energy-horizon-card-editor.ts` | No |
 | T010 | 7 – Polish | — | `README.md` | Yes |
+| T011 | 8 – Bugfixes | — | `src/ha-types.ts` | Yes |
+| T012 | 8 – Bugfixes | — | `src/index.ts` | Yes |
+| T013 | 8 – Bugfixes | — | `src/card/energy-horizon-card-editor.ts` | No |
+| T014 | 8 – Bugfixes | — | `energy-horizon-card-editor.ts` | No |
+| T015 | 8 – Bugfixes | — | `src/translations/*.json`, `energy-horizon-card-editor.ts` | No |
+| T016 | 8 – Bugfixes | — | `src/card/echarts-renderer.ts` | No |
 
-**Total**: 10 tasks  
+**Total**: 16 tasks  
 **New files**: 1 (`src/card/energy-horizon-card-editor.ts`)  
-**Modified files**: 6 (`src/ha-types.ts`, `en.json`, `pl.json`, `de.json`, `cumulative-comparison-chart.ts`, `README.md`)  
+**Modified files**: 6 base + Phase 8 (`ha-types.ts`, `index.ts`, `energy-horizon-card-editor.ts`, `echarts-renderer.ts`, `en.json`, `pl.json`, `de.json`, `cumulative-comparison-chart.ts`, `README.md`)  
 **Parallel opportunities**: T002/T003/T004 (Phase 1), T010 (any time)  
 **MVP scope**: T001–T008 (US1 + US2 fully functional)
 
