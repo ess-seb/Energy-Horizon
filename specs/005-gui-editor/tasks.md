@@ -76,7 +76,7 @@
 
 ### Implementation for User Story 1
 
-- [ ] T005 [US1] Create `src/card/energy-horizon-card-editor.ts` — new file with the following structure:
+- [x] T005 [US1] Create `src/card/energy-horizon-card-editor.ts` — new file with the following structure:
 
   **Imports** (top of file, in order):
   ```ts
@@ -145,7 +145,7 @@
 
   **Registration** at bottom of file (outside class): `customElements.define("energy-horizon-card-editor", EnergyHorizonCardEditor);`
 
-- [ ] T006 [US1] Implement `protected render(): TemplateResult` in `src/card/energy-horizon-card-editor.ts`:
+- [x] T006 [US1] Implement `protected render(): TemplateResult` in `src/card/energy-horizon-card-editor.ts`:
 
   - Guard: if `!this._config` return `html\`\`` (empty)
   - Render container `<div class="editor">` containing:
@@ -162,7 +162,7 @@
        ```
     3. YAML panel (rendered when `_editorMode === "yaml"`): `<textarea>` and error display — implemented in T009
 
-- [ ] T007 [US1] Modify `src/card/cumulative-comparison-chart.ts`:
+- [x] T007 [US1] Modify `src/card/cumulative-comparison-chart.ts`:
 
   - Add `import "./energy-horizon-card-editor.js";` as the **first** import line after all existing imports (must be at top, before any class definitions, to guarantee synchronous `customElements.define` before HA calls `getConfigElement()`)
   - Add two static methods to the `EnergyHorizonCard` class:
@@ -188,7 +188,7 @@
 
 ### Implementation for User Story 2
 
-- [ ] T008 [US2] Implement `private _handleValueChanged(e: CustomEvent): void` and `private _emitConfigChanged(): void` in `src/card/energy-horizon-card-editor.ts`:
+- [x] T008 [US2] Implement `private _handleValueChanged(e: CustomEvent): void` and `private _emitConfigChanged(): void` in `src/card/energy-horizon-card-editor.ts`:
 
   **`_handleValueChanged(e: CustomEvent): void`** — args: `e: CustomEvent` (from `ha-form` `value-changed` event); returns: `void`; body:
   ```ts
@@ -225,7 +225,7 @@
 
 ### Implementation for User Story 5
 
-- [ ] T009 [US5] Implement YAML mode switch methods and extend `render()` in `src/card/energy-horizon-card-editor.ts`:
+- [x] T009 [US5] Implement YAML mode switch methods and extend `render()` in `src/card/energy-horizon-card-editor.ts`:
 
   **`private _switchToYaml(): void`** — args: none; returns: `void`; body:
   ```ts
@@ -293,11 +293,13 @@ HA's Lovelace infrastructure handles the actual persistence on "Save". Our contr
 - T005: `_computeLabel()` resolves language from `hass.locale.language` and calls `createLocalize(lang)("editor." + schema.name)` (FR-006, D-005)
 - T006: `.computeLabel=${this._computeLabel.bind(this)}` property wired to `<ha-form>` (FR-006)
 
+- [x] **Phase 6 / US4 verification**: Confirmed `editor.*` keys in `en.json` / `pl.json` / `de.json`, `_computeLabel` + `ha-form` `.computeLabel` in `energy-horizon-card-editor.ts`; `npm test` + `npm run lint` pass (no additional code changes required for this phase).
+
 ---
 
 ## Phase 7: Polish & Cross-Cutting Concerns
 
-- [ ] T010 Modify `README.md` — add a "## Visual Editor" section (after the existing configuration section) with the following content:
+- [x] T010 Modify `README.md` — add a "## Visual Editor" section (after the existing configuration section) with the following content:
   - One paragraph stating that the card supports a visual editor accessible via the card's 3-dot menu → Edit
   - Bullet list of the 4 configurable fields: **Entity** (sensor domain), **Title** (optional display name), **Comparison Mode** (`year_over_year` / `month_over_year`), **Unit Prefix** (`auto` / `none` / `G` / `M` / `k` / base unit / `m` / `µ`)
   - Note that a YAML text mode toggle is available in the editor for editing the full config including advanced options (colors, opacities, etc.)

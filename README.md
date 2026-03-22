@@ -170,6 +170,17 @@ force_prefix: k      # always show kWh (e.g. 500 Wh → 0.5 kWh)
 
 Configuration for scaling and precision is **flat** at the card root (`force_prefix`, `precision`). There is no nested `unit_display` block; extra YAML keys are ignored by Home Assistant as usual, so an old `unit_display:` section would not apply—migrate to the keys above.
 
+## Visual Editor
+
+The card supports a **visual editor** for common options. In the Lovelace dashboard, open the card’s **three-dot menu** → **Edit** to configure the card without editing YAML for the basics.
+
+- **Entity** — sensor-domain statistics entity (`entity` in YAML)
+- **Title** — optional display name for the card header
+- **Comparison Mode** — `year_over_year` or `month_over_year`
+- **Unit Prefix** — `auto`, `none`, `G`, `M`, `k`, base unit (no forced prefix), `m`, or `µ` (same meaning as root-level `force_prefix` in YAML)
+
+The editor includes a **YAML** (text) mode toggle so you can edit the **full** configuration, including advanced options such as colors and opacities. **YAML-only** fields are **preserved** when you use the visual form: keys not covered by the four fields above are kept when saving from the form.
+
 ## Supported entities
 
 The card uses the `recorder/statistics_during_period` API. Use entity IDs that have long-term statistics:
