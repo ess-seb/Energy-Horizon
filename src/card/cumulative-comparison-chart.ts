@@ -1,6 +1,13 @@
 import { LitElement, html } from "lit";
 import type { HomeAssistant, LovelaceCard } from "../ha-types";
-import type { CardConfig, CardState, ComparisonSeries, ChartRendererConfig, ComparisonPeriod } from "./types";
+import type {
+  CardConfig,
+  CardState,
+  ComparisonSeries,
+  ChartRendererConfig,
+  ComparisonPeriod,
+  TimeSeriesPoint
+} from "./types";
 import {
   buildComparisonPeriod,
   buildLtsQuery,
@@ -253,10 +260,12 @@ export class EnergyHorizonCard extends LitElement implements LovelaceCard {
         time_zone: period.time_zone
       };
 
-      const summary = computeSummary(series);
+      const scaledSeries = this._applyUnitScalingToSeries(series, entityUnit);
+
+      const summary = computeSummary(scaledSeries);
       const fullEnd = this._computeFullEnd(period);
       const fullTimeline = buildFullTimeline(period, fullEnd);
-      const forecast = computeForecast(series, fullTimeline.length);
+      const forecast = computeForecast(scaledSeries, fullTimeline.length);
 
       if (!summary.unit && entityUnit) {
         summary.unit = entityUnit;
@@ -269,7 +278,7 @@ export class EnergyHorizonCard extends LitElement implements LovelaceCard {
 
       this._state = {
         status: "ready",
-        comparisonSeries: series,
+        comparisonSeries: scaledSeries,
         summary,
         forecast,
         textSummary,
@@ -283,6 +292,75 @@ export class EnergyHorizonCard extends LitElement implements LovelaceCard {
         errorMessage: "status.error_api"
       };
     }
+  }
+
+  /**
+   * Scales cumulative series (and reference) for display; same factor applied to
+   * point rawValue so computeForecast stays consistent. Does not touch component state.
+   */
+  private _applyUnitScalingToSeries(
+    series: ComparisonSeries,
+    rawUnit: string
+  ): ComparisonSeries {
+    const currentVals = series.current.points.map((p) => p.value) as (number | null)[];
+    const refPoints = series.reference?.points;
+    const refVals = refPoints?.map((p) => p.value) as (number | null)[] | undefined;
+    const combined = refVals?.length ? [...currentVals, ...refVals] : [...currentVals];
+
+    const scaleResult = scaleSeriesValues(combined, rawUnit, this._config.unit_display);
+    const n = currentVals.length;
+    const scaledCurrentVals = scaleResult.values.slice(0, n);
+    const scaledRefVals =
+      refVals?.length && refPoints?.length
+        ? scaleResult.values.slice(n)
+        : undefined;
+    const factor = scaleResult.factor;
+
+    const scalePoint = (
+      p: TimeSeriesPoint,
+      idx: number,
+      scaled: (number | null)[]
+    ): TimeSeriesPoint => ({
+      ...p,
+      value: scaled[idx] ?? p.value,
+      rawValue:
+        p.rawValue != null && Number.isFinite(p.rawValue) ? p.rawValue * factor : undefined
+    });
+
+    const currentPoints = series.current.points.map((p, i) =>
+      scalePoint(p, i, scaledCurrentVals)
+    );
+    const currentTotal =
+      currentPoints.length > 0 ? currentPoints[currentPoints.length - 1]!.value : 0;
+
+    const scaledCurrent = {
+      ...series.current,
+      points: currentPoints,
+      unit: scaleResult.unit,
+      total: currentTotal
+    };
+
+    let scaledReference: ComparisonSeries["reference"];
+    if (series.reference && refPoints && scaledRefVals && scaledRefVals.length === refPoints.length) {
+      const refPts = refPoints.map((p, i) => scalePoint(p, i, scaledRefVals));
+      const refTotal = refPts.length > 0 ? refPts[refPts.length - 1]!.value : 0;
+      scaledReference = {
+        ...series.reference,
+        points: refPts,
+        unit: scaleResult.unit,
+        total: refTotal
+      };
+    } else if (series.reference) {
+      scaledReference = { ...series.reference, unit: scaleResult.unit };
+    } else {
+      scaledReference = undefined;
+    }
+
+    return {
+      ...series,
+      current: scaledCurrent,
+      reference: scaledReference
+    };
   }
 
   private _computeFullEnd(period: ComparisonPeriod): Date {
@@ -335,55 +413,8 @@ export class EnergyHorizonCard extends LitElement implements LovelaceCard {
       periodLabel = new Intl.DateTimeFormat(language, { month: "long" }).format(period.current_start);
     }
 
-    // Retrieve raw unit from HA entity attributes
-    const rawUnit = (this.hass?.states?.[this._config.entity]?.attributes as { unit_of_measurement?: string })?.unit_of_measurement ?? "";
-
-    // Extract raw values from current series
-    const rawValues = series.current.points.map((p) => p.value) as (number | null)[];
-
-    // Apply scaling
-    const scaleResult = scaleSeriesValues(rawValues, rawUnit, this._config.unit_display);
-
-    // Update precision: use unit_display.precision if present, otherwise config.precision, default 2
+    const displayUnit = series.current.unit;
     const precision = this._config.unit_display?.precision ?? this._config.precision ?? 2;
-
-    // Update series with scaled values
-    const scaledCurrentSeries = {
-      ...series.current,
-      points: series.current.points.map((p, idx) => ({
-        ...p,
-        value: scaleResult.values[idx] ?? p.value
-      })),
-      unit: scaleResult.unit
-    };
-
-    const scaledReferenceSeries = series.reference
-      ? {
-          ...series.reference,
-          unit: scaleResult.unit
-        }
-      : undefined;
-
-    // Update summary and forecast units to match scaled unit (FR-010 consistency)
-    const updatedSummary = this._state.summary
-      ? { ...this._state.summary, unit: scaleResult.unit }
-      : undefined;
-
-    const updatedForecast = this._state.forecast
-      ? { ...this._state.forecast, unit: scaleResult.unit }
-      : undefined;
-
-    // Store updated state for rendering
-    this._state = {
-      ...this._state,
-      comparisonSeries: {
-        ...series,
-        current: scaledCurrentSeries,
-        reference: scaledReferenceSeries
-      },
-      summary: updatedSummary,
-      forecast: updatedForecast
-    };
 
     return {
       primaryColor: this._config.primary_color ?? "",
@@ -394,8 +425,8 @@ export class EnergyHorizonCard extends LitElement implements LovelaceCard {
       connectNulls: this._config.connect_nulls ?? true,
       showLegend: this._config.show_legend === true,
       showForecast: this._config.show_forecast ?? false,
-      forecastTotal: updatedForecast?.forecast_total,
-      unit: scaleResult.unit,
+      forecastTotal: this._state.forecast?.forecast_total,
+      unit: displayUnit,
       periodLabel,
       referencePeriodStart: period.reference_start.getTime(),
       comparisonMode: this._config.comparison_mode,

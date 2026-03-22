@@ -22207,17 +22207,17 @@ const Uo = class Uo extends An {
         )
       ]);
       if (this._config.debug) {
-        const b = (h == null ? void 0 : h.result) ?? h, x = b.results ?? b;
-        if (console.log("[Energy Horizon] API Response (current, raw):", h), x && typeof x == "object") {
-          const T = Object.keys(x);
+        const x = (h == null ? void 0 : h.result) ?? h, T = x.results ?? x;
+        if (console.log("[Energy Horizon] API Response (current, raw):", h), T && typeof T == "object") {
+          const C = Object.keys(T);
           console.log(
             "[Energy Horizon] Results keys (available statistic_ids):",
-            T
+            C
           );
-          const C = x[this._config.entity];
+          const M = T[this._config.entity];
           console.log(
             `[Energy Horizon] Data for entity "${this._config.entity}":`,
-            C ? `${Array.isArray(C) ? C.length : 0} points` : "not found"
+            M ? `${Array.isArray(M) ? M.length : 0} points` : "not found"
           ), console.log(
             "[Energy Horizon] Reference API Response (raw):",
             v
@@ -22247,15 +22247,15 @@ const Uo = class Uo extends An {
         reference: d ? g ? { ...d, unit: d.unit || g } : d : void 0,
         aggregation: n.aggregation,
         time_zone: n.time_zone
-      }, y = I_(p), m = this._computeFullEnd(n), _ = Rh(n, m), S = E_(p, _.length);
-      !y.unit && g && (y.unit = g), S && !S.unit && g && (S.unit = g);
-      const w = R_(y);
+      }, y = this._applyUnitScalingToSeries(p, g), m = I_(y), _ = this._computeFullEnd(n), S = Rh(n, _), w = E_(y, S.length);
+      !m.unit && g && (m.unit = g), w && !w.unit && g && (w.unit = g);
+      const b = R_(m);
       this._state = {
         status: "ready",
-        comparisonSeries: p,
-        summary: y,
-        forecast: S,
-        textSummary: w,
+        comparisonSeries: y,
+        summary: m,
+        forecast: w,
+        textSummary: b,
         period: n
       };
     } catch (h) {
@@ -22265,11 +22265,45 @@ const Uo = class Uo extends An {
       };
     }
   }
+  /**
+   * Scales cumulative series (and reference) for display; same factor applied to
+   * point rawValue so computeForecast stays consistent. Does not touch component state.
+   */
+  _applyUnitScalingToSeries(t, e) {
+    var y;
+    const i = t.current.points.map((m) => m.value), n = (y = t.reference) == null ? void 0 : y.points, a = n == null ? void 0 : n.map((m) => m.value), o = a != null && a.length ? [...i, ...a] : [...i], s = dL(o, e, this._config.unit_display), l = i.length, u = s.values.slice(0, l), f = a != null && a.length && (n != null && n.length) ? s.values.slice(l) : void 0, h = s.factor, v = (m, _, S) => ({
+      ...m,
+      value: S[_] ?? m.value,
+      rawValue: m.rawValue != null && Number.isFinite(m.rawValue) ? m.rawValue * h : void 0
+    }), c = t.current.points.map(
+      (m, _) => v(m, _, u)
+    ), d = c.length > 0 ? c[c.length - 1].value : 0, g = {
+      ...t.current,
+      points: c,
+      unit: s.unit,
+      total: d
+    };
+    let p;
+    if (t.reference && n && f && f.length === n.length) {
+      const m = n.map((S, w) => v(S, w, f)), _ = m.length > 0 ? m[m.length - 1].value : 0;
+      p = {
+        ...t.reference,
+        points: m,
+        unit: s.unit,
+        total: _
+      };
+    } else t.reference ? p = { ...t.reference, unit: s.unit } : p = void 0;
+    return {
+      ...t,
+      current: g,
+      reference: p
+    };
+  }
   _computeFullEnd(t) {
     return this._config.comparison_mode === "year_over_year" ? new Date(t.current_start.getFullYear(), 11, 31) : new Date(t.current_start.getFullYear(), t.current_start.getMonth() + 1, 0);
   }
   _buildRendererConfig() {
-    var y, m, _, S, w, b, x;
+    var h, v, c, d;
     const t = mn(this.hass ?? null, this._config), e = t.language, i = _p(t.numberFormat, t.language), n = ro(e), a = this._localizeOrError(
       n,
       "forecast.current_forecast"
@@ -22284,8 +22318,8 @@ const Uo = class Uo extends An {
         connectNulls: this._config.connect_nulls ?? !0,
         showLegend: this._config.show_legend === !0,
         showForecast: this._config.show_forecast ?? !1,
-        forecastTotal: (y = this._state.forecast) == null ? void 0 : y.forecast_total,
-        unit: ((m = this._state.forecast) == null ? void 0 : m.unit) ?? "",
+        forecastTotal: (h = this._state.forecast) == null ? void 0 : h.forecast_total,
+        unit: ((v = this._state.forecast) == null ? void 0 : v.unit) ?? "",
         periodLabel: "",
         comparisonMode: this._config.comparison_mode,
         language: e,
@@ -22296,27 +22330,8 @@ const Uo = class Uo extends An {
     const o = this._state.period, s = this._state.comparisonSeries;
     let l = "";
     this._config.comparison_mode === "year_over_year" ? l = String(o.current_start.getFullYear()) : l = new Intl.DateTimeFormat(e, { month: "long" }).format(o.current_start);
-    const u = ((b = (w = (S = (_ = this.hass) == null ? void 0 : _.states) == null ? void 0 : S[this._config.entity]) == null ? void 0 : w.attributes) == null ? void 0 : b.unit_of_measurement) ?? "", f = s.current.points.map((T) => T.value), h = dL(f, u, this._config.unit_display), v = ((x = this._config.unit_display) == null ? void 0 : x.precision) ?? this._config.precision ?? 2, c = {
-      ...s.current,
-      points: s.current.points.map((T, C) => ({
-        ...T,
-        value: h.values[C] ?? T.value
-      })),
-      unit: h.unit
-    }, d = s.reference ? {
-      ...s.reference,
-      unit: h.unit
-    } : void 0, g = this._state.summary ? { ...this._state.summary, unit: h.unit } : void 0, p = this._state.forecast ? { ...this._state.forecast, unit: h.unit } : void 0;
-    return this._state = {
-      ...this._state,
-      comparisonSeries: {
-        ...s,
-        current: c,
-        reference: d
-      },
-      summary: g,
-      forecast: p
-    }, {
+    const u = s.current.unit, f = ((c = this._config.unit_display) == null ? void 0 : c.precision) ?? this._config.precision ?? 2;
+    return {
       primaryColor: this._config.primary_color ?? "",
       fillCurrent: this._config.fill_current ?? !0,
       fillReference: this._config.fill_reference ?? !1,
@@ -22325,14 +22340,14 @@ const Uo = class Uo extends An {
       connectNulls: this._config.connect_nulls ?? !0,
       showLegend: this._config.show_legend === !0,
       showForecast: this._config.show_forecast ?? !1,
-      forecastTotal: p == null ? void 0 : p.forecast_total,
-      unit: h.unit,
+      forecastTotal: (d = this._state.forecast) == null ? void 0 : d.forecast_total,
+      unit: u,
       periodLabel: l,
       referencePeriodStart: o.reference_start.getTime(),
       comparisonMode: this._config.comparison_mode,
       language: e,
       numberLocale: i,
-      precision: v,
+      precision: f,
       forecastLabel: a,
       unitDisplay: this._config.unit_display
     };
