@@ -367,6 +367,16 @@ export class EChartsRenderer {
     ];
     const dataMax = allNonNull.length > 0 ? Math.max(...allNonNull) : 0;
     const yMax = this.niceMax(dataMax, 4);
+    const yAxisNumberLocale = rendererConfig.numberLocale;
+    const yAxisPrecision = rendererConfig.precision;
+    const yAxisUnit = rendererConfig.unit;
+    const yAxisNumberFormatter = new Intl.NumberFormat(yAxisNumberLocale, {
+      maximumFractionDigits: yAxisPrecision,
+      minimumFractionDigits: 0
+    });
+    // ECharts tick values for `G`/`M` can drift slightly from `yMax` due to float precision.
+    // UX expectation: the "max tick" should get the unit label reliably.
+    const yMaxEps = Math.max(1e-12, Math.abs(yMax) * 1e-9);
 
     const xMax = Math.max(fullTimeline.length - 1, 0);
     // Use an interval that places ticks at exactly 0, 25%, 50%, 75% and max.
@@ -771,11 +781,11 @@ export class EChartsRenderer {
         axisLabel: {
           color: theme.primaryText,
           formatter: (value: number) => {
-            if (value === yMax) {
-              // unit is pre-scaled by scaleSeriesValues() in cumulative-comparison-chart.ts
-              return `${value} ${rendererConfig.unit}`;
-            }
-            return String(value);
+            const formatted = yAxisNumberFormatter.format(value);
+            const isMaxTick = Math.abs(value - yMax) <= yMaxEps;
+
+            // unit is pre-scaled by scaleSeriesValues() in cumulative-comparison-chart.ts
+            return isMaxTick && yAxisUnit ? `${formatted} ${yAxisUnit}` : formatted;
           },
           margin: tickLabelGapPx,
           // Ensures the margin translates to spacing on the right side.
