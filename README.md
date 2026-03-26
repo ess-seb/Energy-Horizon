@@ -1,63 +1,83 @@
-
-
 # Energy Horizon Card
 [![Buy Me A Coffee](https://img.buymeacoffee.com/button-api/?text=Buy+me+a+coffee&emoji=&slug=hello.sebastian&button_colour=FFDD00&font_colour=000000&font_family=Lato&outline_colour=000000&coffee_colour=ffffff)](https://www.buymeacoffee.com/hello.sebastian)
 <a href="https://buycoffee.to/hello.sebastian" target="_blank"><img src="https://buycoffee.to/static/img/share/share-button-primary.png" style="width: 195px; height: 51px" alt="Buy me a coffee on buycoffee.to"></a>
 
-A Lovelace card for Home Assistant that compares cumulative energy usage between the current period and a corresponding historical period (year-over-year or month-over-year), with a chart, summary stats, and optional forecast.
+Energy Horizon Card is a Home Assistant Lovelace card for comparing cumulative energy usage between the current period and a historical one (year-over-year or month-over-year).
+
+It is designed for long-term energy statistics (not live instant power charts).
 
 ![Home Assistant version](https://img.shields.io/badge/Home%20Assistant-2024.6%2B-blue)
 ![HACS](https://img.shields.io/badge/HACS-Custom-orange)
 ![License](https://img.shields.io/badge/license-MIT-green)
 
-## Features
+## Table of contents
 
-- **Cumulative comparison chart** – Visual comparison of current vs. reference period (e.g. this month vs. same month last year)
-- **Summary statistics** – Current cumulative, reference cumulative, difference and percentage
-- **Text summary** – Localized heading describing the trend (higher/lower/similar)
-- **Forecast** – Predicted total for the current period using a **time-aligned** reference split (works with gaps in statistics), **percentage-based** activation across the whole period (day/week/month), capped trend factor, and **confidence** derived from how much of the period has elapsed; extreme year-over-year ratios cap confidence at **low** (anomalous reference handling)
-- **Flexible periods** – Year-over-year or month-over-year comparison
-- **Aggregation** – Daily, weekly, or monthly aggregation of data
-- **Localization (i18n)** – Card follows your Home Assistant language and number format. Optional per-card overrides: `language` and `number_format` in YAML. Supported languages include English, Polish, and German (others can be added via translation files).
-- **Smart unit scaling** – Automatic or manual SI prefix scaling (Wh → kWh, A → mA, etc.) for readable chart labels and summary. Avoids „walls of zeros” on axes. Supports `auto`, `none`, or forced prefix (`k`, `M`, `G`, `m`, `µ`). Time units (h, min, s) and non-scalable units (%, °C) are left unchanged.
+- [What you get on the card](#what-you-get-on-the-card)
+- [Before you start](#before-you-start)
+- [Quick start (3 minutes)](#quick-start-3-minutes)
+- [How to choose the right entity](#how-to-choose-the-right-entity)
+- [Minimal configuration examples](#minimal-configuration-examples)
+- [Beginner-friendly options](#beginner-friendly-options)
+- [Forecast in plain words](#forecast-in-plain-words)
+- [Troubleshooting](#troubleshooting)
+- [FAQ](#faq)
+- [Advanced documentation (Wiki)](#advanced-documentation-wiki)
+- [Support and releases](#support-and-releases)
+- [Development](#development)
+- [License](#license)
 
-## Requirements
+## What you get on the card
 
-- Home Assistant **2024.6** or newer
-- Long-term statistics recorder enabled for your energy entities
-- An energy statistics entity (e.g. `sensor.grid_consumption` or a statistic from the Energy dashboard)
+- A chart comparing current cumulative energy vs. reference period
+- Numeric summary (current, reference, difference, percentage)
+- Localized trend text (higher/lower/similar)
+- Optional forecast for the current period total
 
-## Installation
+## Before you start
 
-### HACS (recommended)
+You need:
 
-1. In HACS, go to **Frontend** and click **Add repository**
-2. Add the URL of this repository
-3. Install **Energy Horizon Card**
-4. Restart Home Assistant
+- Home Assistant **2024.6+**
+- Recorder and long-term statistics enabled
+- An entity that appears in **Developer Tools -> Statistics**
 
-### Manual
+If your entity does not have long-term statistics, the card will usually show no data.
 
-1. Download `energy-horizon-card.js` from the [latest release](/releases)
-2. Place it in `config/www/` (or your `www` folder)
-3. Add the resource in your dashboard configuration (see below)
+## Quick start (3 minutes)
 
-## Configuration
+### 1) Install the card
 
-### 1. Add the resource
+**HACS (recommended):**
 
-In **Settings → Dashboards → Resources** (or your Lovelace YAML), add:
+1. Open HACS -> **Frontend**
+2. Click **Add repository**
+3. Add this repository URL
+4. Install **Energy Horizon Card**
+5. Restart Home Assistant
+
+**Manual installation:**
+
+1. Download `energy-horizon-card.js` from [latest release](https://github.com/hello-sebastian/energy-horizon/releases/latest)
+2. Copy it to `config/www/`
+3. Add the resource (next step)
+
+### 2) Add Lovelace resource
+
+Go to **Settings -> Dashboards -> Resources** and add:
 
 ```yaml
 url: /local/energy-horizon-card.js
 type: module
 ```
 
-*(If using HACS, the URL will typically be `/hacsfiles/energy-horizon-card/energy-horizon-card.js`)*
+If installed via HACS, resource URL is usually:
 
-### 2. Add the card
+```yaml
+url: /hacsfiles/energy-horizon-card/energy-horizon-card.js
+type: module
+```
 
-Use the visual editor (add card → Manual) or YAML:
+### 3) Add the card
 
 ```yaml
 type: custom:energy-horizon-card
@@ -65,36 +85,42 @@ entity: sensor.your_energy_statistic
 comparison_mode: year_over_year
 ```
 
-### Configuration options
+### 4) Confirm it works
 
-| Option            | Type     | Default            | Description                                                                 |
-|-------------------|----------|--------------------|-----------------------------------------------------------------------------|
-| `type`            | string   | required           | Must be `custom:energy-horizon-card`                                      |
-| `entity`          | string   | required           | Statistics entity ID (e.g. `sensor.grid_consumption`)                       |
-| `comparison_mode` | string   | required           | `year_over_year` or `month_over_year`                                      |
-| `aggregation`     | string   | `day`              | `day`, `week`, or `month`                                                  |
-| `period_offset`   | number   | `-1`               | Offset for reference period (e.g. -1 = previous year)                      |
-| `show_forecast`   | boolean  | —                  | `false` = hide forecast block and chart line. `true` = show forecast line on the chart when a forecast is enabled. If omitted, the forecast **summary** can still appear when the model is enabled; the **chart line** is drawn only when set to `true` (recommended: `true` if you want the line). |
-| `precision`       | number   | `2`                | Decimal places for numeric values (chart, summary, tooltips)                |
-| `title`           | string   | -                  | Optional card title. If not set (or empty), falls back to entity `friendly_name`, then entity ID. |
-| `show_title`      | boolean  | `true`             | Show/hide the title text in the header                                     |
-| `icon`            | string   | -                  | Optional icon (e.g. `mdi:flash`). If not set (or empty), card uses the entity icon (including Home Assistant’s default icon for that entity) |
-| `show_icon`       | boolean  | `true`             | Show/hide the pictogram in the header                                      |
-| `connect_nulls`  | boolean  | `true`             | Draw dashed interpolation segments across null (missing-data) days |
-| `show_legend`     | boolean  | `false`            | Controls the **chart legend** in ECharts (series labels for current, reference, and forecast). `true` shows it; omitted or `false` hides it. **Does not** change the text/numeric summary above the chart (e.g. “Current period” / “Reference period” lines in `.ehc-stats`). |
-| `language`        | string   | from HA            | Override dashboard language for this card only (e.g. `en`, `pl`, `de`)     |
-| `number_format`   | string   | from HA            | Override number format: `comma`, `decimal`, `language`, or `system`         |
-| `primary_color`   | string   | accent color HA    | CSS color value for current series line, fill, and markers (e.g. `#E53935`). Fallback: `--accent-color` HA → `--primary-color` HA → `#03a9f4` |
-| `fill_current`    | boolean  | `true`             | Show semi-transparent fill under the current series line                   |
-| `fill_reference`  | boolean  | `false`            | Show semi-transparent fill under the reference series line                 |
-| `fill_current_opacity` | number | `30`              | Opacity of current series fill (0–100)                                     |
-| `fill_reference_opacity` | number | `30`             | Opacity of reference series fill (0–100)                                   |
-| `force_prefix`    | string  | — (same as `auto`) | SI unit scaling at **card root**: `auto` = choose prefix from data; `none` = raw values from HA; `k`, `M`, `G`, `m`, `u` = force a specific prefix. Omit for automatic scaling. |
-| `debug`           | boolean  | `false`            | Log API query/response to browser console (F12) for troubleshooting        |
+After adding the card, you should see:
 
-### Example configurations
+- two series (current and reference),
+- non-empty summary values,
+- expected energy unit (for example Wh or kWh).
 
-**Year-over-year comparison:**
+If not, see [Troubleshooting](#troubleshooting).
+
+## How to choose the right entity
+
+This is the most common source of setup problems.
+
+Use an entity that:
+
+- appears in **Developer Tools -> Statistics**,
+- represents cumulative energy-like data with stable unit,
+- has real historical data (not just a few recent points).
+
+Good examples:
+
+- Energy sensors from integrations (Shelly, Tasmota, etc.)
+- Statistics used in the Energy Dashboard
+- Utility meter entities with proper long-term statistics
+
+Common mistakes:
+
+- Using entities that have no long-term statistics
+- Using entities with changing units over time
+- Using live power-only entities when you actually need energy history
+
+## Minimal configuration examples
+
+### Year-over-year
+
 ```yaml
 type: custom:energy-horizon-card
 entity: sensor.energy_consumption_total
@@ -102,25 +128,8 @@ comparison_mode: year_over_year
 aggregation: day
 ```
 
-**Header options (title + icon):**
-```yaml
-type: custom:energy-horizon-card
-entity: sensor.energy_consumption_total
-comparison_mode: year_over_year
+### Month-over-year
 
-# Title (optional)
-title: "My Solar Panels"
-show_title: true      # set to false to hide title text
-
-# Pictogram (optional)
-icon: mdi:solar-power # e.g. any Home Assistant icon identifier like mdi:flash
-show_icon: true       # set to false to hide the pictogram
-```
-
-If you omit `icon`, the card will **inherit the entity icon** (including Home Assistant’s default icon for that entity).  
-If you set both `show_title: false` and `show_icon: false`, the entire header row is omitted.
-
-**Month-over-year (current month vs. same month last year):**
 ```yaml
 type: custom:energy-horizon-card
 entity: sensor.energy_consumption_total
@@ -129,176 +138,85 @@ aggregation: day
 show_forecast: true
 ```
 
-**Language override (e.g. show this card in Polish while dashboard is in English):**
-```yaml
-type: custom:energy-horizon-card
-entity: sensor.energy_consumption_total
-comparison_mode: year_over_year
-language: pl
-number_format: comma
-```
+## Beginner-friendly options
 
-**Chart customization (colors, fill, forecast):**
-```yaml
-type: custom:energy-horizon-card
-entity: sensor.energy_consumption_total
-comparison_mode: year_over_year
-aggregation: day
+Start with defaults. Change only what you need.
 
-# Chart appearance
-primary_color: "#E53935"       # Red color for current series
-fill_current: true             # Show fill under current series (default: true)
-fill_current_opacity: 20       # Adjust transparency (0–100, default: 30)
-fill_reference: true           # Show fill under reference series (default: false)
-fill_reference_opacity: 15     # Reference series transparency (0–100, default: 30)
-show_forecast: true            # Forecast line on chart + summary when enabled (use false to hide all)
-```
+| Option | Default | Typical use |
+|---|---|---|
+| `entity` | required | Your statistics entity ID |
+| `comparison_mode` | required | `year_over_year` for yearly trend, `month_over_year` for month trend |
+| `aggregation` | `day` | Use `week`/`month` for less detail |
+| `show_forecast` | `false` | Set `true` if you want forecast line on chart |
+| `title` | auto | Custom card title |
+| `icon` | entity icon | Custom icon, e.g. `mdi:flash` |
+| `precision` | `2` | Number of decimals |
+| `force_prefix` | `auto` | Unit scaling: `auto`, `none`, `k`, `M`, `G`, `m`, `u` |
 
-**Smart unit scaling (auto kWh for Wh entities):**
-```yaml
-type: custom:energy-horizon-card
-entity: sensor.energy_consumption_total
-comparison_mode: year_over_year
+Notes:
 
-# Unit scaling — flat keys on the card (optional; omit force_prefix for auto)
-force_prefix: auto   # auto = pick best prefix from data; none = raw values; k/m/M/G/u = force
-precision: 2         # decimal places for displayed numbers
-```
+- `show_forecast: true` displays forecast line on chart when forecast is available.
+- Use `u` in YAML for micro prefix (ASCII-safe form).
 
-**Force specific unit prefix:**
-```yaml
-force_prefix: k      # always show kWh (e.g. 500 Wh → 0.5 kWh)
-# or: force_prefix: none   # no scaling, show raw values from HA
-```
+## Forecast in plain words
 
-Configuration for scaling and precision is **flat** at the card root (`force_prefix`, `precision`). There is no nested `unit_display` block; extra YAML keys are ignored by Home Assistant as usual, so an old `unit_display:` section would not apply—migrate to the keys above.
+The card estimates current period total by comparing progress so far against the same part of a reference period.
 
-## Supported entities
+Forecast may be unavailable when:
 
-The card uses the `recorder/statistics_during_period` API. Use entity IDs that have long-term statistics:
+- there is not enough data in current period,
+- the reference slice is missing or invalid,
+- historical data quality is too low.
 
-- Energy sensors from integrations (Shelly, Tasmota, etc.)
-- Statistics from the Energy dashboard
-- Entities that appear in **Developer Tools → Statistics**
+For the full algorithm and confidence rules, see Wiki:
 
-## Theming and CSS customization
-
-The card follows Home Assistant theming and automatically adapts to light/dark modes by using HA CSS variables such as:
-
-- `--primary-color` / `--accent-color` – main line color for the current period,
-- `--secondary-text-color` – line color for the reference period and secondary labels,
-- `--divider-color` – grid color for chart axes.
-
-Advanced users can further customize the layout using CSS classes exposed on the DOM:
-
-| Section            | CSS class      |
-|--------------------|----------------|
-| Whole card         | `.ehc-card`    |
-| Card content       | `.ehc-content` |
-| Text heading       | `.ehc-header`  |
-| Numeric summary    | `.ehc-stats`   |
-| Forecast section   | `.ehc-forecast`|
-| Chart container    | `.ehc-chart`   |
-
-Example (with Card-Mod) – hide forecast section and increase chart height:
-
-```yaml
-type: custom:energy-horizon-card
-entity: sensor.energy_consumption_total
-comparison_mode: year_over_year
-card_mod:
-  style: |
-    .ehc-forecast {
-      display: none;
-    }
-
-    .ehc-chart {
-      height: 260px;
-    }
-```
-
-Internally, the card’s visual styles are grouped in a dedicated style module imported by the main component, so most visual changes can be done without touching the data/logic code.
-
-## Forecast calculation
-
-The card uses a **scaled remainder** model: compare how much energy you have used so far (**A**) to the reference period over the **same elapsed time** (**B**), then scale the reference period’s **remaining** amount (**C**) by a capped trend factor.
-
-### When a forecast is shown (`enabled`)
-
-The model runs only if all of the following hold:
-
-- Valid **period length** in buckets: `periodTotalBuckets` is the length of the full comparison timeline (depends on `comparison_mode` and `aggregation`: e.g. days in the month or year).
-- At least **3** completed buckets in the current series, and **≥ 5%** of the period completed:  
-  `(currentPoints.length - 1) / periodTotalBuckets ≥ 0.05`.
-- Reference series exists, aligns in time, and **B > 0** (sum of reference usage over the elapsed window).
-
-### Time alignment (not index alignment)
-
-The split between “elapsed” and “remainder” in the **reference** series uses **timestamps**, not array positions—so missing statistics in the middle of the period do not skew **B** and **C** the way a pure day-index split would.
-
-For **year-over-year** and **month-over-year**, reference points come from a different calendar period (e.g. 2024 vs 2025). Before comparing with the cutoff, reference timestamps are **aligned to the current period axis** (same alignment as the chart): `refAlignedTs = refTimestamp + (currentStart − referenceStart)`. This ensures the "elapsed" portion **B** corresponds to the same portion of the period as the current series.
-
-- **cutoff** = start of current series + (time span from first to last **completed** current point).
-- **splitIdx** = last reference point whose **aligned** timestamp is `≤ cutoff`.
-- If no such reference point exists, the forecast is disabled.
-
-### Symbols and formula
-
-Let:
-
-- **A** – sum of `rawValue` over current points from the first bucket through the last **completed** bucket (all but the open “today” bucket).
-- **B** – sum of reference `rawValue` from the first reference point through **splitIdx** (same elapsed window in time).
-- **C** – sum of reference `rawValue` after **splitIdx** (the remainder of the reference period; **C** can be **0** if the reference series ends at the split—then `forecast_total = A`).
-- **rawTrend** = **A / B**
-- **trend** = `rawTrend` clamped to **[0.2, 5]**
-- **forecast_total** = **A + C × trend**
-- **reference_total** = **B + C** (reference period total implied by the same split)
-
-Intuition: the rest of the period is assumed to track the reference remainder, scaled by how this period’s completed slice compares to the reference slice.
-
-### Confidence (`low` / `medium` / `high`)
-
-Based on the fraction of the period that has **completed** buckets:  
-**pct** = `(currentPoints.length - 1) / periodTotalBuckets`
-
-- **high** – pct ≥ **40%**
-- **medium** – **20%** ≤ pct &lt; 40%
-- **low** – pct &lt; 20%
-
-If the year-over-year ratio is extreme (**rawTrend &lt; 0.3** or **rawTrend &gt; 3.3**), the reference year is treated as **anomalous**: confidence is forced to **low** (values **0.3** and **3.3** themselves are *not* flagged). The forecast value is still returned when otherwise enabled; the UI reflects the lowered confidence in the forecast note.
-
-### Implementation note
-
-Details and acceptance criteria for this logic live in [`specs/001-compute-forecast/`](specs/001-compute-forecast/) (spec, plan, tests).
-
-## Smart unit scaling
-
-The card scales energy and current values to readable SI prefixes (Wh → kWh, A → mA, etc.) based on the data range, avoiding cluttered axes with large raw numbers. Use root-level `force_prefix` and `precision` in YAML (not a nested section).
-
-### Modes
-
-- **`auto`** (default) – Choose prefix from maximum value in the series. ≥1000 → scale up (k, M, G); &lt;1 → scale down (m, µ).
-- **`none`** – No scaling; display raw values and units from the entity.
-- **`k`**, **`M`**, **`G`**, **`m`**, **`u`** – Force a specific prefix (e.g. always kWh even for small values).
-
-### Non-scalable units
-
-Time units (`h`, `min`, `s`) and units like `%` or `°C` are never scaled.
-
-### Implementation note
-
-Spec and tasks: [`specs/004-smart-unit-scaling/`](specs/004-smart-unit-scaling/).
+- [Forecast and Data Internals](https://github.com/hello-sebastian/energy-horizon/wiki/Forecast-and-Data-Internals)
 
 ## Troubleshooting
 
-| Issue                           | Solution                                                                 |
-|---------------------------------|---------------------------------------------------------------------------|
-| "Custom element doesn't exist"  | Ensure the resource URL is correct and the file loads (check browser console) |
-| No data / empty chart           | Verify the entity has statistics; check that the recorder is enabled     |
-| No forecast / forecast disabled | Needs ≥3 completed buckets, ≥5% of the period elapsed, valid reference slice (**B** > 0), and time alignment; set `show_forecast: true` for the chart line |
-| Wrong units                     | Ensure all data points use the same unit of measurement                  |
-| Unit scaling unexpected         | Set `force_prefix: none` on the card to disable; check `unit_of_measurement` on the entity |
-| Card shows error                | Open browser console (F12) for details; verify entity ID is correct      |
+| Symptom | Most likely cause | What to check |
+|---|---|---|
+| "Custom element doesn't exist" | Resource not loaded | Resource URL and browser console (F12) |
+| Empty chart / no data | Wrong entity or no statistics | Entity in **Developer Tools -> Statistics** |
+| No forecast | Conditions not met or hidden line | Data coverage and `show_forecast: true` |
+| Wrong units | Mixed or unexpected units in history | Entity `unit_of_measurement` consistency |
+| Values look too big/small | Auto scaling not desired | Set `force_prefix: none` |
+| Card error | Invalid config or entity ID typo | YAML keys and entity name |
+
+## FAQ
+
+### Does this card work without the Energy Dashboard?
+
+Yes, as long as the selected entity has long-term statistics.
+
+### What is the difference between `year_over_year` and `month_over_year`?
+
+- `year_over_year`: compares current year period to previous year period.
+- `month_over_year`: compares current month to the same month in previous year.
+
+### Why do I not see forecast line?
+
+Set `show_forecast: true`, then verify that enough valid data exists.
+
+### Should I use `force_prefix`?
+
+Usually no. Keep `auto` unless you want fixed units (for example always `kWh`).
+
+## Advanced documentation (Wiki)
+
+README is intentionally beginner-focused. Full technical docs live in Wiki:
+
+- [Getting Started](https://github.com/hello-sebastian/energy-horizon/wiki/Getting-Started)
+- [Configuration and Customization](https://github.com/hello-sebastian/energy-horizon/wiki/Configuration-and-Customization)
+- [Forecast and Data Internals](https://github.com/hello-sebastian/energy-horizon/wiki/Forecast-and-Data-Internals)
+- [Troubleshooting and FAQ](https://github.com/hello-sebastian/energy-horizon/wiki/Troubleshooting-and-FAQ)
+- [Releases and Migration](https://github.com/hello-sebastian/energy-horizon/wiki/Releases-and-Migration)
+
+## Support and releases
+
+- Releases: [GitHub Releases](https://github.com/hello-sebastian/energy-horizon/releases)
+- Issues: [GitHub Issues](https://github.com/hello-sebastian/energy-horizon/issues)
+- Discussions: [GitHub Discussions](https://github.com/hello-sebastian/energy-horizon/discussions)
 
 ## Development
 
@@ -306,8 +224,8 @@ Stack: **TypeScript** (strict), **Lit** 3, **Apache ECharts** 5, **Vite** 6, **V
 
 ```bash
 npm install
-npm run build    # Output: dist/energy-horizon-card.js
-npm run dev      # Local dev server
+npm run build
+npm run dev
 npm test
 npm run lint
 ```
