@@ -1,6 +1,6 @@
 # Energy Horizon Card
 [![Buy Me A Coffee](https://img.buymeacoffee.com/button-api/?text=Buy+me+a+coffee&emoji=&slug=hello.sebastian&button_colour=FFDD00&font_colour=000000&font_family=Lato&outline_colour=000000&coffee_colour=ffffff)](https://www.buymeacoffee.com/hello.sebastian)
-<a href="https://buycoffee.to/hello.sebastian" target="_blank"><img src="https://buycoffee.to/static/img/share/share-button-primary.png" style="width: 195px; height: 51px" alt="Buy me a coffee on buycoffee.to"></a>
+[![Buy me a coffee on buycoffee.to](https://buycoffee.to/static/img/share/share-button-primary.png)](https://buycoffee.to/hello.sebastian)
 
 Energy Horizon Card is a Home Assistant Lovelace card for comparing cumulative energy usage between the current period and a historical one (year-over-year or month-over-year).
 
@@ -29,10 +29,13 @@ It is designed for long-term energy statistics (not live instant power charts).
 
 ## What you get on the card
 
-- A chart comparing current cumulative energy vs. reference period
+- A chart comparing current cumulative energy vs. reference period (eg. same month but year ago)
+- Forecast for the current period total
 - Numeric summary (current, reference, difference, percentage)
 - Localized trend text (higher/lower/similar)
-- Optional forecast for the current period total
+
+
+![Energy Horizon Card screenshot](tmp-wiki-live/energy-horizon-card.png)
 
 ## Before you start
 

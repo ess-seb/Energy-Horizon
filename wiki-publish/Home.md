@@ -4,6 +4,8 @@ Welcome to the full documentation for **Energy Horizon Card**.
 
 This Wiki has been intentionally consolidated into fewer, longer guides.
 
+![Energy Horizon Card screenshot](energy-horizon-card.png)
+
 ## Start here
 
 1. [Getting Started](Getting-Started)
