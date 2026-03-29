@@ -2,6 +2,8 @@
   "period.current": "Bieżący okres",
   "period.reference": "Okres referencyjny",
   "status.loading": "Ładowanie danych statystyk długoterminowych...",
+  "status.config_invalid_time_window": "Nieprawidłowa konfiguracja time_window. Sprawdź anchor, duration, step i count w YAML.",
+  "status.config_too_many_windows": "Zbyt wiele okien czasowych (maksimum {{max}}). Zmniejsz count w time_window.",
   "status.error_api": "Nie udało się pobrać danych statystyk długoterminowych.",
   "status.error_generic": "Wystąpił błąd podczas wczytywania danych.",
   "status.no_data": "Brak danych do wyświetlenia dla wybranego okresu.",

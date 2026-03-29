@@ -1,8 +1,12 @@
 # Release readiness: Time Windows Engine
 
+**Placement**: Ten plik leży **obok** `checklists/`, a nie wewnątrz niego. Folder `checklists/` zawiera wyłącznie bramkę **jakości specyfikacji** przed kodowaniem; pozycje poniżej są uzupełniane **po** implementacji i przy zamykaniu release (**T030**) — inaczej `/speckit.implement` błędnie traktowałby niewypełnione pola jako blokadę startu prac.
+
 **Purpose**: Domknąć kryteria, które nie są w pełni automatyczne w CI (wynik `/speckit.analyze`, 2026-03-29).  
-**Feature**: [spec.md](../spec.md) — zwłaszcza **SC-005**.  
-**Powiązane zadanie**: [tasks.md](../tasks.md) — **T030**
+**Feature**: [spec.md](./spec.md) — zwłaszcza **SC-005**.  
+**Powiązane zadanie**: [tasks.md](./tasks.md) — **T030**
+
+**Status implementacji (2026-03-29)**: silnik okien, integracja karty i testy Vitest są wdrożone; poniższe checklisty SC-005 / a11y wymagają jeszcze **ręcznego** podpisu recenzenta przed release (nie blokują merge technicznego).
 
 ## SC-005 — czytelność dokumentacji wiki
 

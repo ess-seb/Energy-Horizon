@@ -23,6 +23,7 @@ It is designed for long-term energy statistics (not live instant power charts).
 - [Visual Editor](#visual-editor)
 - [Troubleshooting](#troubleshooting)
 - [FAQ](#faq)
+- [Time windows (advanced YAML)](#time-windows-advanced-yaml)
 - [Advanced documentation (Wiki)](#advanced-documentation-wiki)
 - [Support and releases](#support-and-releases)
 - [Development](#development)
@@ -219,6 +220,14 @@ Set `show_forecast: true`, then verify that enough valid data exists.
 
 Usually no. Keep `auto` unless you want fixed units (for example always `kWh`).
 
+## Time windows (advanced YAML)
+
+The card resolves **time windows** from `comparison_mode` (preset) and an optional `time_window` block in YAML. Values you set in `time_window` override the same fields from the preset; omitted keys keep preset defaults (deep merge). Supported anchors include `start_of_year`, `start_of_month`, `start_of_hour`, and `now`. Durations and steps use Grafana-style tokens such as `1y`, `1M`, `7d`, and `1h`. Up to **24** windows are accepted from YAML; invalid configuration shows a card error (`ha-alert`) and no data series.
+
+For a full parameter table, merge behaviour, Mermaid diagrams, and copy-paste YAML examples (e.g. two consecutive months, fiscal year from October, hourly windows), see the maintained draft in this repository:
+
+- [Time Windows (draft)](./specs/001-time-windows-engine/wiki-time-windows.md)
+
 ## Advanced documentation (Wiki)
 
 README is intentionally beginner-focused. Full technical docs live in Wiki:
@@ -237,7 +246,7 @@ README is intentionally beginner-focused. Full technical docs live in Wiki:
 
 ## Development
 
-Stack: **TypeScript** (strict), **Lit** 3, **Apache ECharts** 5, **Vite** 6, **Vitest** 2.
+Stack: **TypeScript** (strict), **Lit** 3, **Apache ECharts** 5, **Luxon** 3 (time windows), **Vite** 6, **Vitest** 2.
 
 ```bash
 npm install

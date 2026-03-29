@@ -2,6 +2,8 @@
 
 Treść do wklejenia lub zaadaptowania w wiki projektu **Energy Horizon**. Odpowiada funkcji `001-time-windows-engine`.
 
+**Implementacja (repozytorium)**: moduły w `src/card/time-windows/`; szczegóły przepływu — `speckit.md` (sekcja Time Windows) oraz `README.md` → [Time windows (advanced YAML)](../../README.md#time-windows-advanced-yaml). Testy jednostkowe presetów uruchamiane są z `TZ=UTC` (`npm test`).
+
 ## Po co jest Time Windows
 
 Zamiast osobnych, sztywnych trybów w kodzie, karta buduje **listę okien czasowych**. Każde okno ma swoje granice `start` i `end` oraz opcjonalnie inną **agregację** (np. dzień, godzina). Dzięki temu można dodawać kolejne okresy historyczne i obsługiwać niestandardowe cykle rozliczeniowe — konfiguracją YAML.

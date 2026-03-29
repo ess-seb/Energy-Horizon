@@ -36,7 +36,7 @@ Oczekiwanie: jak YoY z nadpisaną szerokością (SC-004) — regresja względem 
 
 ## Release
 
-- Przed wydaniem: [checklists/release-readiness.md](./checklists/release-readiness.md) (SC-005, T030).
+- Przed wydaniem: [release-readiness.md](./release-readiness.md) (SC-005, T030).
 
 ## Powiązane dokumenty
 

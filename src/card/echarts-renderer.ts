@@ -161,10 +161,14 @@ export class EChartsRenderer {
    * Align series data points to the timeline.
    * Port of alignSeriesOnTimeline from chart-renderer.ts (T004).
    */
+  /**
+   * Map LTS points onto shared timeline slots. `alignStartMs` is window start for this series
+   * (same instant as `timeline[0]` for the primary window, or offset for other windows).
+   */
   private alignSeriesOnTimeline(
     points: TimeSeriesPoint[],
     timeline: number[],
-    referenceStart?: Date
+    alignStartMs: number
   ): (number | null)[] {
     const result: (number | null)[] = new Array(timeline.length).fill(null);
 
@@ -172,33 +176,19 @@ export class EChartsRenderer {
       return result;
     }
 
-    const slotDuration = timeline.length > 1 ? timeline[1] - timeline[0] : 86400000;
+    const slotDuration = timeline.length > 1 ? timeline[1]! - timeline[0]! : 86400000;
+    const timelineStart = timeline[0]!;
 
     for (let i = 0; i < timeline.length; i++) {
-      const slotStart = timeline[i];
-      const slotEnd = timeline[i + 1] ?? slotStart + slotDuration;
+      const slotStart = timeline[i]!;
+      const expectedTs = alignStartMs + (slotStart - timelineStart);
 
       let matchedValue: number | null = null;
-
-      if (referenceStart === undefined) {
-        // Current series: match points within the current slot
-        for (const point of points) {
-          if (point.timestamp >= slotStart && point.timestamp < slotEnd) {
-            matchedValue = point.value;
-            break;
-          }
-        }
-      } else {
-        // Reference series: compute expected timestamp based on offset
-        const expectedTs = referenceStart.getTime() + (slotStart - timeline[0]);
-        for (const point of points) {
-          if (
-            point.timestamp >= expectedTs &&
-            point.timestamp < expectedTs + slotDuration
-          ) {
-            matchedValue = point.value;
-            break;
-          }
+      for (const point of points) {
+        const slotEnd = expectedTs + slotDuration;
+        if (point.timestamp >= expectedTs && point.timestamp < slotEnd) {
+          matchedValue = point.value;
+          break;
         }
       }
 
@@ -343,6 +333,7 @@ export class EChartsRenderer {
   private buildOption(
     currentValues: (number | null)[],
     referenceValues: (number | null)[],
+    contextSeries: Array<{ name: string; values: (number | null)[] }>,
     fullTimeline: number[],
     rendererConfig: ChartRendererConfig,
     labels: { current: string; reference: string },
@@ -363,7 +354,8 @@ export class EChartsRenderer {
     // Compute nice max Y value (no hardcoded minimum — niceMax handles dataMax <= 0)
     const allNonNull = [
       ...(currentValues.filter((v) => v !== null) as number[]),
-      ...(referenceValues.filter((v) => v !== null) as number[])
+      ...(referenceValues.filter((v) => v !== null) as number[]),
+      ...contextSeries.flatMap((c) => c.values.filter((v) => v !== null) as number[])
     ];
     const dataMax = allNonNull.length > 0 ? Math.max(...allNonNull) : 0;
     const yMax = this.niceMax(dataMax, 4);
@@ -466,8 +458,12 @@ export class EChartsRenderer {
       }
     }
 
-    // Reference series (T011) - optional
-    if (rendererConfig.showForecast && referenceValues.some((v) => v !== null)) {
+    const showReferenceLine =
+      rendererConfig.showReferenceComparison !== false &&
+      referenceValues.some((v) => v !== null);
+
+    // Reference series — comparison curve (distinct from forecast overlay).
+    if (showReferenceLine) {
       solidReferenceSeriesIndex = series.length;
       series.push({
         name: labels.reference,
@@ -517,6 +513,25 @@ export class EChartsRenderer {
           emphasis: { focus: 'none' }
         });
       }
+    }
+
+    for (const ctx of contextSeries) {
+      series.push({
+        name: ctx.name,
+        type: "line",
+        color: theme.referenceLine,
+        data: ctx.values.map((y, i) => (y !== null ? [i, y] : null)),
+        lineStyle: { color: theme.referenceLine, width: 1, opacity: 0.42 },
+        areaStyle: { opacity: 0 },
+        connectNulls: false,
+        showSymbol: false,
+        smooth: false,
+        silent: true,
+        tooltip: { show: false },
+        emphasis: { focus: "none" },
+        showInLegend: false,
+        z: 1
+      });
     }
 
     // Today marker computation (T010)
@@ -713,6 +728,15 @@ export class EChartsRenderer {
           for (const p of items) {
             const item: any = p ?? {};
 
+            const seriesName = typeof item?.seriesName === 'string' ? item.seriesName : '';
+            if (
+              seriesName !== labels.current &&
+              seriesName !== labels.reference &&
+              seriesName !== rendererConfig.forecastLabel
+            ) {
+              continue;
+            }
+
             const candidate = item?.data ?? item?.value;
 
             let y: unknown;
@@ -726,8 +750,6 @@ export class EChartsRenderer {
 
             const yNum = typeof y === 'number' ? y : Number(y);
             if (!Number.isFinite(yNum)) continue;
-
-            const seriesName = typeof item?.seriesName === 'string' ? item.seriesName : '';
             const formatted = numberFormatter.format(yNum);
             const escapedSeries = escapeHtml(seriesName);
             const escapedUnit = escapeHtml(unit);
@@ -810,28 +832,45 @@ export class EChartsRenderer {
   ): void {
     if (!this.instance) return;
 
-    // Align series to timeline
+    const t0 = fullTimeline[0] ?? 0;
+    const aligns = rendererConfig.windowAlignStartsMs ?? [];
+    const align0 = aligns[0] ?? t0;
+    const align1 =
+      aligns[1] ??
+      (rendererConfig.referencePeriodStart != null
+        ? rendererConfig.referencePeriodStart
+        : t0);
+
     const currentValues = this.alignSeriesOnTimeline(
       comparisonSeries.current.points,
-      fullTimeline
+      fullTimeline,
+      align0
     );
 
     const referenceValues = comparisonSeries.reference
       ? this.alignSeriesOnTimeline(
           comparisonSeries.reference.points,
           fullTimeline,
-          rendererConfig.referencePeriodStart != null
-            ? new Date(rendererConfig.referencePeriodStart)
-            : undefined
+          align1
         )
       : new Array(fullTimeline.length).fill(null);
 
+    const contextSeries =
+      comparisonSeries.context?.map((ctx, idx) => ({
+        name: ctx.periodLabel,
+        values: this.alignSeriesOnTimeline(
+          ctx.points,
+          fullTimeline,
+          aligns[idx + 2] ?? t0
+        )
+      })) ?? [];
+
     const theme = this.getHaThemeTokens();
 
-    // Compute hash for memoization (FR-012); include theme snapshot so HA light/dark switches refresh the chart.
     const hash = JSON.stringify({
       c: currentValues,
       r: referenceValues,
+      x: contextSeries,
       cfg: rendererConfig,
       theme
     });
@@ -841,16 +880,15 @@ export class EChartsRenderer {
     }
     this.lastHash = hash;
 
-    // Full option replace: drop legend layout sync state so the next `finished` measures from scratch.
     this.lastSyncedGridTop = undefined;
     this.lastSyncedMinHeightTotalPx = undefined;
     this.container.style.minHeight = '';
 
-    // Resolve colors and build option
     const primaryColor = this.resolveColor(rendererConfig.primaryColor);
     const option = this.buildOption(
       currentValues,
       referenceValues,
+      contextSeries,
       fullTimeline,
       rendererConfig,
       labels,
@@ -858,7 +896,6 @@ export class EChartsRenderer {
       theme
     );
 
-    // Update ECharts instance
     this.instance.setOption(option, { notMerge: true });
   }
 }

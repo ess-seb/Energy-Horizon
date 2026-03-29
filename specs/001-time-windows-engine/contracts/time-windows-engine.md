@@ -47,5 +47,5 @@ Dokładne wartości zależą od zegara mocka — testy używają **zamrożonego 
 
 ## Zależności zewnętrzne
 
-- **Luxon** — jedyń wejście timezone dla wyliczeń w tym kontrakcie (po stronie implementacji).
+- **Luxon** — jedyne wejście timezone dla wyliczeń w tym kontrakcie (po stronie implementacji).
 - **Home Assistant** — tylko przez wyjście `LtsStatisticsQuery[]`, nie w silniku.

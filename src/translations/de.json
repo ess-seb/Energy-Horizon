@@ -2,6 +2,8 @@
   "period.current": "Aktueller Zeitraum",
   "period.reference": "Referenzzeitraum",
   "status.loading": "Lade Langzeitstatistiken…",
+  "status.config_invalid_time_window": "Ungültige time_window-Konfiguration. Prüfen Sie anchor, duration, step und count in YAML.",
+  "status.config_too_many_windows": "Zu viele Zeitfenster (Maximum {{max}}). Verringern Sie count in time_window.",
   "status.error_api": "Langzeitstatistiken konnten nicht geladen werden.",
   "status.error_generic": "Beim Laden der Daten ist ein Fehler aufgetreten.",
   "status.no_data": "Für den gewählten Zeitraum sind keine Daten vorhanden.",

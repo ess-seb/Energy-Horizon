@@ -86,4 +86,4 @@ setConfig → merge → validate
   → ok → loading → Promise.all(fetch per window) → map → ready | no-data | error
 ```
 
-**Release (SC-005):** potwierdzenie czytelności wiki dla użytkowników zewnętrznych — procedura w [checklists/release-readiness.md](./checklists/release-readiness.md) (zadanie T030 w `tasks.md`).
+**Release (SC-005):** potwierdzenie czytelności wiki dla użytkowników zewnętrznych — procedura w [release-readiness.md](./release-readiness.md) (zadanie T030 w `tasks.md`; uzupełniane po implementacji, poza `checklists/`).

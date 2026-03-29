@@ -40,4 +40,4 @@
 ## Notes
 
 - Wszystkie pozycje przeszły walidację. Specyfikacja gotowa do `/speckit.plan` lub `/speckit.clarify` w razie doprecyzowania limitów liczby okien lub zachowania przy `count: 1`.
-- **Po `/speckit.analyze` (2026-03-29):** uzupełniono `plan.md` (`duration-parse.ts`), `data-model.md` (preset vs `count: 1`), `tasks.md` (T012 ↔ SC-002, T030, sekcja ustaleń), `quickstart.md`, `speckit.md`, dodano [release-readiness.md](./release-readiness.md) pod SC-005.
+- **Po `/speckit.analyze` (2026-03-29):** uzupełniono `plan.md` (`duration-parse.ts`), `data-model.md` (preset vs `count: 1`), `tasks.md` (T012 ↔ SC-002, T030, sekcja ustaleń), `quickstart.md`, `speckit.md`, dodano [release-readiness.md](../release-readiness.md) pod SC-005 (poziom feature, nie w `checklists/` — patrz [README](./README.md)).

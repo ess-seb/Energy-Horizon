@@ -7,14 +7,15 @@
     "dev": "vite",
     "build": "vite build --config config/vite.config.ts",
     "preview": "vite preview",
-    "test": "vitest run",
+    "test": "TZ=UTC vitest run",
     "test:watch": "vitest",
     "lint": "eslint --config config/eslint.config.js \"src/**/*.{ts,tsx,js,jsx}\""
   },
   "dependencies": {
     "date-fns": "^4.1.0",
     "echarts": "^5.6.0",
-    "lit": "^3.1.0"
+    "lit": "^3.1.0",
+    "luxon": "^3.7.2"
   },
   "devDependencies": {
     "@types/node": "^22.0.0",

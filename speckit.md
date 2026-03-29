@@ -30,20 +30,26 @@ Ten plik zbiera skrótową architekturę funkcji i powiązania ze Speckit (`spec
 - Model danych: `specs/001-time-windows-engine/data-model.md`
 - Kontrakty: `specs/001-time-windows-engine/contracts/time-windows-engine.md`
 - Quickstart: `specs/001-time-windows-engine/quickstart.md`
-- Lista zadań: `specs/001-time-windows-engine/tasks.md` — `/speckit.tasks` (m.in. T029: aktualizacja tej sekcji + tabela presetów FR-004)
-- Checklist release (SC-005): `specs/001-time-windows-engine/checklists/release-readiness.md`
+- Lista zadań: `specs/001-time-windows-engine/tasks.md` — `/speckit.tasks` (T029 zamknięte w tej sekcji + tabela presetów)
+- Checklist release (SC-005): `specs/001-time-windows-engine/release-readiness.md` (po implementacji; T030)
 - Szkic wiki: `specs/001-time-windows-engine/wiki-time-windows.md`
 
-### Moduły `src/card/time-windows/` (plan)
+### Moduły `src/card/time-windows/` (implementacja)
 
 | Plik | Rola |
 |------|------|
-| `duration-parse.ts` | Tokeny `1y` / `1M` / `1h` → Luxon (FR-010) |
-| `presets.ts` | `comparison_mode` → szablon + flagi legacy (`currentEndIsNow`, `referenceFullPeriod`, `period_offset`) |
-| `merge-config.ts` | Deep merge preset + `time_window` (FR-005) |
-| `validate.ts` | Bezpiecznik 24, `step` > 0, FR-014 / FR-016 |
-| `resolve-windows.ts` | Kotwica, offset, duration, `step×index`, strefa czasu |
-| `index.ts` | Eksport publiczny (kontrakt w `contracts/time-windows-engine.md`) |
+| `duration-parse.ts` | Tokeny `1y` / `1M` / `1h` → Luxon `Duration` (FR-010) |
+| `presets.ts` | `comparison_mode` → szablon + flagi legacy (`currentEndIsNow`, `referenceFullPeriod`, `periodOffsetYears`) |
+| `merge-config.ts` | Deep merge preset + `time_window` (FR-005); usuwa flagi legacy przy custom `anchor`/`step`/`count`/`offset` |
+| `validate.ts` | `validateMergedTimeWindowConfig` — max 24, `step`/`duration` > 0, FR-014 / FR-016 |
+| `resolve-windows.ts` | `resolveTimeWindows` — ścieżka legacy YoY/MoY vs generyczna (offset fiskalny: `start_of_year` + `offset`) |
+| `index.ts` | Barrel: eksporty zgodne z `contracts/time-windows-engine.md` |
+
+**Integracja**: `src/card/ha-api.ts` — `buildLtsQueriesForWindows`, `buildChartTimeline` (oś legacy vs najdłuższe okno), `buildTimelineSlots`, `comparisonPeriodFromResolvedWindows`. **Karta**: `cumulative-comparison-chart.ts` (walidacja → `Promise.all` zapytań LTS). **Wykres**: `echarts-renderer.ts` (serie kontekstowe, tooltip: current + reference + forecast label).
+
+**Zależność NPM**: `luxon` (kalendarz / strefa w silniku).
+
+**Testy**: `npm test` ustawia `TZ=UTC` (m.in. złoty test preset ↔ `buildComparisonPeriod`).
 
 ### Pola presetów (FR-004) — skrót dla dokumentacji wewnętrznej
 
@@ -59,4 +65,4 @@ Szczegóły: `research.md` (R2), `data-model.md` (preset vs `count: 1`).
 - Interfejsy konfiguracji: `TimeWindowConfig`, `ComparisonEngineConfig` (lub równoważne nazwy) oraz funkcja scalania preset + YAML.
 - Moduł / klasa silnika (np. `DataEngine`): wejście — rozwiązana konfiguracja; wyjście — tablica okien z `id`, indeksem, `start`, `end`, `aggregation`.
 - Integracja z renderem wykresu: filtrowanie serii w tooltipie; długość osi X; style dla serii „wyciszonych”.
-- Testy: **SC-002** (31 mar → luty); merge tylko `duration`; trzy serie, tooltip; przed release: **checklists/release-readiness.md** (SC-005).
+- Testy: **SC-002** (31 mar → luty); merge tylko `duration`; trzy serie, tooltip; przed release: **release-readiness.md** (SC-005).

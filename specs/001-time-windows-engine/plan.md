@@ -46,6 +46,8 @@ specs/001-time-windows-engine/
 ├── data-model.md        # Encje i walidacja
 ├── quickstart.md        # Jak uruchomić testy / manual smoke
 ├── contracts/           # Kontrakty modułów
+├── checklists/          # Jakość specu (requirements.md) — bramka przed /speckit.implement; patrz checklists/README.md
+├── release-readiness.md # SC-005 / smoke a11y — uzupełniane przy release (T030), poza checklists/ by nie blokować implementacji
 └── tasks.md             # /speckit.tasks (poza zakresem tej komendy)
 ```
 

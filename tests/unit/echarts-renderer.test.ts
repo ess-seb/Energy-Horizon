@@ -346,6 +346,47 @@ describe('EChartsRenderer', () => {
       expect(html1).toContain(`${expectedFmt.format(2)} kWh`);
     });
 
+    it("US2: axis tooltip shows at most two value rows for current+reference when extra series are present", () => {
+      const container = document.createElement("div");
+      document.body.appendChild(container);
+
+      const day0 = Date.UTC(2026, 0, 1);
+      const fullTimeline = [day0, day0 + 86400000];
+
+      const rendererConfig = buildBaseRendererConfig({
+        comparisonMode: "year_over_year",
+        language: "en-US",
+        numberLocale: "en-US",
+        precision: 1,
+        unit: "kWh"
+      });
+
+      const renderer = new EChartsRenderer(container);
+      const comparisonSeries = buildSeries([
+        { timestamp: fullTimeline[0] + 10, value: 1 }
+      ]);
+      renderer.update(
+        comparisonSeries,
+        fullTimeline,
+        rendererConfig,
+        { current: "Current", reference: "Reference" }
+      );
+
+      const option = captureOption(renderer);
+      const formatter = option.tooltip.formatter as (params: unknown) => string;
+
+      const html = formatter([
+        { dataIndex: 0, seriesName: "Current", data: [0, 1] },
+        { dataIndex: 0, seriesName: "Reference", data: [0, 2] },
+        { dataIndex: 0, seriesName: "Context window", data: [0, 99] }
+      ]);
+      const rows = html.match(/class="tooltip-row"/g);
+      expect(rows?.length ?? 0).toBe(2);
+
+      renderer.destroy();
+      document.body.removeChild(container);
+    });
+
     it("formats month_over_year header + values with unit and precision", () => {
       const container = document.createElement("div");
       document.body.appendChild(container);

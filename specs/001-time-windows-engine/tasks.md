@@ -16,8 +16,8 @@
 
 **Purpose**: Zależność NPM i szkielet modułu zgodnie z [plan.md](./plan.md).
 
-- [ ] T001 Add `luxon` dependency in `/Users/admin/Projekty Local/Energy-Horizon/package.json` and refresh lockfile via `npm install` from repository root
-- [ ] T002 Create public barrel `/Users/admin/Projekty Local/Energy-Horizon/src/card/time-windows/index.ts` exporting APIs described in `/Users/admin/Projekty Local/Energy-Horizon/specs/001-time-windows-engine/contracts/time-windows-engine.md`
+- [X] T001 Add `luxon` dependency in `/Users/admin/Projekty Local/Energy-Horizon/package.json` and refresh lockfile via `npm install` from repository root
+- [X] T002 Create public barrel `/Users/admin/Projekty Local/Energy-Horizon/src/card/time-windows/index.ts` exporting APIs described in `/Users/admin/Projekty Local/Energy-Horizon/specs/001-time-windows-engine/contracts/time-windows-engine.md`
 
 ---
 
@@ -27,16 +27,16 @@
 
 **Checkpoint**: `resolveTimeWindows` + `validate` działają na mocku czasu/strefy; `ha-api.ts` potrafi zbudować zapytanie LTS dla pojedynczego `ResolvedWindow`.
 
-- [ ] T003 Extend `/Users/admin/Projekty Local/Energy-Horizon/src/card/types.ts` with `time_window` on `CardConfig`, `context` (or equivalent) on `ComparisonSeries`, `ResolvedWindow` / role types, and `aggregation` union including `hour` where needed per `/Users/admin/Projekty Local/Energy-Horizon/specs/001-time-windows-engine/data-model.md`
-- [ ] T004 [P] Add localized keys for invalid `time_window` and too many windows (FR-014 / FR-016) in `/Users/admin/Projekty Local/Energy-Horizon/src/translations/en.json`, `/Users/admin/Projekty Local/Energy-Horizon/src/translations/pl.json`, `/Users/admin/Projekty Local/Energy-Horizon/src/translations/de.json`
-- [ ] T005 [P] Implement duration token parsing (Grafana-style, e.g. `1y`, `1M`, `1h`) using Luxon in `/Users/admin/Projekty Local/Energy-Horizon/src/card/time-windows/duration-parse.ts`
-- [ ] T006 Implement preset templates with legacy semantics (`currentEndIsNow`, full reference period, `period_offset`) in `/Users/admin/Projekty Local/Energy-Horizon/src/card/time-windows/presets.ts` per `/Users/admin/Projekty Local/Energy-Horizon/specs/001-time-windows-engine/research.md`
-- [ ] T007 Implement deep merge preset + YAML in `/Users/admin/Projekty Local/Energy-Horizon/src/card/time-windows/merge-config.ts`
-- [ ] T008 Implement validation (step > 0, required fields, count ≤ `maxWindows` default 24) returning i18n keys in `/Users/admin/Projekty Local/Energy-Horizon/src/card/time-windows/validate.ts`
-- [ ] T009 Implement window resolution (anchor, offset, duration, `step * index`, timezone) in `/Users/admin/Projekty Local/Energy-Horizon/src/card/time-windows/resolve-windows.ts` with `maxWindows` parameter (FR-016)
-- [ ] T010 Refactor `/Users/admin/Projekty Local/Energy-Horizon/src/card/ha-api.ts` to build `recorder/statistics_during_period` queries from `ResolvedWindow[]` (including `hour` period mapping) and keep `mapLtsResponseToCumulativeSeries` / cumulative helpers usable per window
-- [ ] T011 [P] Add `/Users/admin/Projekty Local/Energy-Horizon/tests/unit/time-windows-merge-validate.test.ts` covering merge, invalid step, count 25, empty required fields
-- [ ] T012 [P] Add `/Users/admin/Projekty Local/Energy-Horizon/tests/unit/time-windows-resolve.test.ts` covering leap-year month math, frozen `now`, and `maxWindows` override for internal tests — **obowiązkowo** osobny przypadek **SC-002**: cofnięcie o jeden miesiąc od **31 marca** musi dawać ostatni dzień **lutego** (rok przestępny i zwykły)
+- [X] T003 Extend `/Users/admin/Projekty Local/Energy-Horizon/src/card/types.ts` with `time_window` on `CardConfig`, `context` (or equivalent) on `ComparisonSeries`, `ResolvedWindow` / role types, and `aggregation` union including `hour` where needed per `/Users/admin/Projekty Local/Energy-Horizon/specs/001-time-windows-engine/data-model.md`
+- [X] T004 [P] Add localized keys for invalid `time_window` and too many windows (FR-014 / FR-016) in `/Users/admin/Projekty Local/Energy-Horizon/src/translations/en.json`, `/Users/admin/Projekty Local/Energy-Horizon/src/translations/pl.json`, `/Users/admin/Projekty Local/Energy-Horizon/src/translations/de.json`
+- [X] T005 [P] Implement duration token parsing (Grafana-style, e.g. `1y`, `1M`, `1h`) using Luxon in `/Users/admin/Projekty Local/Energy-Horizon/src/card/time-windows/duration-parse.ts`
+- [X] T006 Implement preset templates with legacy semantics (`currentEndIsNow`, full reference period, `period_offset`) in `/Users/admin/Projekty Local/Energy-Horizon/src/card/time-windows/presets.ts` per `/Users/admin/Projekty Local/Energy-Horizon/specs/001-time-windows-engine/research.md`
+- [X] T007 Implement deep merge preset + YAML in `/Users/admin/Projekty Local/Energy-Horizon/src/card/time-windows/merge-config.ts`
+- [X] T008 Implement validation (step > 0, required fields, count ≤ `maxWindows` default 24) returning i18n keys in `/Users/admin/Projekty Local/Energy-Horizon/src/card/time-windows/validate.ts`
+- [X] T009 Implement window resolution (anchor, offset, duration, `step * index`, timezone) in `/Users/admin/Projekty Local/Energy-Horizon/src/card/time-windows/resolve-windows.ts` with `maxWindows` parameter (FR-016)
+- [X] T010 Refactor `/Users/admin/Projekty Local/Energy-Horizon/src/card/ha-api.ts` to build `recorder/statistics_during_period` queries from `ResolvedWindow[]` (including `hour` period mapping) and keep `mapLtsResponseToCumulativeSeries` / cumulative helpers usable per window
+- [X] T011 [P] Add `/Users/admin/Projekty Local/Energy-Horizon/tests/unit/time-windows-merge-validate.test.ts` covering merge, invalid step, count 25, empty required fields
+- [X] T012 [P] Add `/Users/admin/Projekty Local/Energy-Horizon/tests/unit/time-windows-resolve.test.ts` covering leap-year month math, frozen `now`, and `maxWindows` override for internal tests — **obowiązkowo** osobny przypadek **SC-002**: cofnięcie o jeden miesiąc od **31 marca** musi dawać ostatni dzień **lutego** (rok przestępny i zwykły)
 
 ---
 
@@ -46,9 +46,9 @@
 
 **Independent Test**: Te same encje i YAML co przed refaktorem → identyczne zakresy dat (YoY / MoY) oraz merge tylko `duration`.
 
-- [ ] T013 [US1] Wire config validation in `/Users/admin/Projekty Local/Energy-Horizon/src/card/cumulative-comparison-chart.ts` before fetch: on validation failure set `CardState` error with new i18n keys (no chart series)
-- [ ] T014 [US1] Replace hard-coded `buildComparisonPeriod` usage in `/Users/admin/Projekty Local/Energy-Horizon/src/card/cumulative-comparison-chart.ts` with `merge` → `validate` → `resolve` → two LTS calls via `Promise.all` preserving legacy preset behavior
-- [ ] T015 [P] [US1] Add `/Users/admin/Projekty Local/Energy-Horizon/tests/unit/time-windows-presets-golden.test.ts` comparing resolved window boundaries to legacy `buildComparisonPeriod` output for `year_over_year` and `month_over_year` with fixed `Date` and `period_offset`
+- [X] T013 [US1] Wire config validation in `/Users/admin/Projekty Local/Energy-Horizon/src/card/cumulative-comparison-chart.ts` before fetch: on validation failure set `CardState` error with new i18n keys (no chart series)
+- [X] T014 [US1] Replace hard-coded `buildComparisonPeriod` usage in `/Users/admin/Projekty Local/Energy-Horizon/src/card/cumulative-comparison-chart.ts` with `merge` → `validate` → `resolve` → two LTS calls via `Promise.all` preserving legacy preset behavior
+- [X] T015 [P] [US1] Add `/Users/admin/Projekty Local/Energy-Horizon/tests/unit/time-windows-presets-golden.test.ts` comparing resolved window boundaries to legacy `buildComparisonPeriod` output for `year_over_year` and `month_over_year` with fixed `Date` and `period_offset`
 
 **Checkpoint**: MVP — karta działa jak dotąd dla istniejących użytkowników + błędy konfiguracji zgodnie z clarify.
 
@@ -60,12 +60,12 @@
 
 **Independent Test**: YAML z `count: 3` + mock HA → trzy serie; tooltip zawiera co najwyżej dwie wartości liczbowe.
 
-- [ ] T016 [US2] Extend `/Users/admin/Projekty Local/Energy-Horizon/src/card/cumulative-comparison-chart.ts` to issue `Promise.all` over N LTS queries and assemble `ComparisonSeries` with `current`, `reference`, and `context` series from responses
-- [ ] T017 [US2] Update `/Users/admin/Projekty Local/Energy-Horizon/src/card/ha-api.ts` `computeSummary`, `computeForecast`, and `/Users/admin/Projekty Local/Energy-Horizon/src/card/cumulative-comparison-chart.ts` rendering so context windows never affect forecast/summary (FR-008) and FR-015 hides reference-only UI when a single window
-- [ ] T018 [US2] Update `/Users/admin/Projekty Local/Energy-Horizon/src/card/ha-api.ts` `buildFullTimeline` (or successor) so X-axis span follows the longest resolved window and shorter series end without padding (FR-009)
-- [ ] T019 [US2] Update `/Users/admin/Projekty Local/Energy-Horizon/src/card/echarts-renderer.ts` and `/Users/admin/Projekty Local/Energy-Horizon/src/card/types.ts` `ChartRendererConfig` to render N line series with context styling and tooltip formatter that lists only current + reference values
-- [ ] T020 [P] [US2] Extend `/Users/admin/Projekty Local/Energy-Horizon/tests/unit/echarts-renderer.test.ts` for three-series chart: tooltip outputs at most two numeric value rows
-- [ ] T021 [P] [US2] Add `/Users/admin/Projekty Local/Energy-Horizon/tests/unit/cumulative-comparison-chart-multi-window.test.ts` (or extend existing) mocking `hass.connection.sendMessagePromise` to assert N parallel calls and assembled series count
+- [X] T016 [US2] Extend `/Users/admin/Projekty Local/Energy-Horizon/src/card/cumulative-comparison-chart.ts` to issue `Promise.all` over N LTS queries and assemble `ComparisonSeries` with `current`, `reference`, and `context` series from responses
+- [X] T017 [US2] Update `/Users/admin/Projekty Local/Energy-Horizon/src/card/ha-api.ts` `computeSummary`, `computeForecast`, and `/Users/admin/Projekty Local/Energy-Horizon/src/card/cumulative-comparison-chart.ts` rendering so context windows never affect forecast/summary (FR-008) and FR-015 hides reference-only UI when a single window
+- [X] T018 [US2] Update `/Users/admin/Projekty Local/Energy-Horizon/src/card/ha-api.ts` `buildFullTimeline` (or successor) so X-axis span follows the longest resolved window and shorter series end without padding (FR-009)
+- [X] T019 [US2] Update `/Users/admin/Projekty Local/Energy-Horizon/src/card/echarts-renderer.ts` and `/Users/admin/Projekty Local/Energy-Horizon/src/card/types.ts` `ChartRendererConfig` to render N line series with context styling and tooltip formatter that lists only current + reference values
+- [X] T020 [P] [US2] Extend `/Users/admin/Projekty Local/Energy-Horizon/tests/unit/echarts-renderer.test.ts` for three-series chart: tooltip outputs at most two numeric value rows
+- [X] T021 [P] [US2] Add `/Users/admin/Projekty Local/Energy-Horizon/tests/unit/cumulative-comparison-chart-multi-window.test.ts` (or extend existing) mocking `hass.connection.sendMessagePromise` to assert N parallel calls and assembled series count
 
 ---
 
@@ -75,7 +75,7 @@
 
 **Independent Test**: Unit test z `anchor` + `offset` + `duration` + `step` + `count: 2` — daty zgodne z przykładem ze specu.
 
-- [ ] T022 [US3] Add billing-cycle scenarios (fiscal year from October) to `/Users/admin/Projekty Local/Energy-Horizon/tests/unit/time-windows-resolve.test.ts` and adjust `/Users/admin/Projekty Local/Energy-Horizon/src/card/time-windows/resolve-windows.ts` if any edge case fails
+- [X] T022 [US3] Add billing-cycle scenarios (fiscal year from October) to `/Users/admin/Projekty Local/Energy-Horizon/tests/unit/time-windows-resolve.test.ts` and adjust `/Users/admin/Projekty Local/Energy-Horizon/src/card/time-windows/resolve-windows.ts` if any edge case fails
 
 ---
 
@@ -85,8 +85,8 @@
 
 **Independent Test**: Unit test: sześć okien 1h wstecz od zamrożonego `now`.
 
-- [ ] T023 [US4] Verify `hour` aggregation end-to-end in `/Users/admin/Projekty Local/Energy-Horizon/src/card/time-windows/resolve-windows.ts` and `/Users/admin/Projekty Local/Energy-Horizon/src/card/ha-api.ts` LTS `period` mapping; fix gaps if HA rejects unsupported combinations
-- [ ] T024 [P] [US4] Add six-hour window resolution test to `/Users/admin/Projekty Local/Energy-Horizon/tests/unit/time-windows-resolve.test.ts`
+- [X] T023 [US4] Verify `hour` aggregation end-to-end in `/Users/admin/Projekty Local/Energy-Horizon/src/card/time-windows/resolve-windows.ts` and `/Users/admin/Projekty Local/Energy-Horizon/src/card/ha-api.ts` LTS `period` mapping; fix gaps if HA rejects unsupported combinations
+- [X] T024 [P] [US4] Add six-hour window resolution test to `/Users/admin/Projekty Local/Energy-Horizon/tests/unit/time-windows-resolve.test.ts`
 
 ---
 
@@ -96,8 +96,8 @@
 
 **Independent Test**: Czytelnik odtwarza dwa przykłady YAML ze specu bez kodu.
 
-- [ ] T025 [P] [US5] Finalize user-facing parameter descriptions and Mermaid diagrams in `/Users/admin/Projekty Local/Energy-Horizon/specs/001-time-windows-engine/wiki-time-windows.md`
-- [ ] T026 [US5] Add a concise Time Windows subsection with link to wiki draft in `/Users/admin/Projekty Local/Energy-Horizon/README.md`
+- [X] T025 [P] [US5] Finalize user-facing parameter descriptions and Mermaid diagrams in `/Users/admin/Projekty Local/Energy-Horizon/specs/001-time-windows-engine/wiki-time-windows.md`
+- [X] T026 [US5] Add a concise Time Windows subsection with link to wiki draft in `/Users/admin/Projekty Local/Energy-Horizon/README.md`
 
 ---
 
@@ -105,10 +105,10 @@
 
 **Purpose**: Jakość, regresje, spójność z GUI edytora (bez nowych pól — FR-011).
 
-- [ ] T027 [P] Ensure `/Users/admin/Projekty Local/Energy-Horizon/src/card/energy-horizon-card-editor.ts` still serializes unknown YAML keys if needed so `time_window` survives round-trip where Storage UI allows raw YAML
-- [ ] T028 Run `npm test && npm run lint` from `/Users/admin/Projekty Local/Energy-Horizon` and fix all failures introduced by the feature
-- [ ] T029 Align `/Users/admin/Projekty Local/Energy-Horizon/speckit.md` time-windows section with final module paths, **tabelą pól presetów** (FR-004) oraz zachowaniem silnika po implementacji
-- [ ] T030 Przed zamknięciem release funkcji: uzupełnij `/Users/admin/Projekty Local/Energy-Horizon/specs/001-time-windows-engine/checklists/release-readiness.md` (SC-005 + opcjonalny smoke a11y) oraz zamieść dowód w PR — recenzent spoza autora głównej implementacji potwierdza na podstawie wiki/README odtworzenie **dwóch** przykładów YAML ze specu
+- [X] T027 [P] Ensure `/Users/admin/Projekty Local/Energy-Horizon/src/card/energy-horizon-card-editor.ts` still serializes unknown YAML keys if needed so `time_window` survives round-trip where Storage UI allows raw YAML
+- [X] T028 Run `npm test && npm run lint` from `/Users/admin/Projekty Local/Energy-Horizon` and fix all failures introduced by the feature
+- [X] T029 Align `/Users/admin/Projekty Local/Energy-Horizon/speckit.md` time-windows section with final module paths, **tabelą pól presetów** (FR-004) oraz zachowaniem silnika po implementacji
+- [X] T030 Przed zamknięciem release funkcji: uzupełnij `/Users/admin/Projekty Local/Energy-Horizon/specs/001-time-windows-engine/release-readiness.md` (SC-005 + opcjonalny smoke a11y) oraz zamieść dowód w PR — recenzent spoza autora głównej implementacji potwierdza na podstawie wiki/README odtworzenie **dwóch** przykładów YAML ze specu
 
 ---
 
@@ -116,7 +116,7 @@
 
 - **I1:** `duration-parse.ts` jest częścią drzewa modułów (zsynchronizowano z `plan.md`).
 - **C2:** Jawny test SC-002 w T012 (marzec → luty).
-- **C1 / SC-005:** Zadanie T030 + checklist release.
+- **C1 / SC-005:** Zadanie T030 + [release-readiness.md](./release-readiness.md) (poza `checklists/`).
 - **U1:** Zdanie o `count: 1` vs preset w `data-model.md`.
 - **N1 (a11y):** Przy PR warto krótko zweryfikować `ha-alert` / kontrast w motywach HA (bez osobnego T — konstytucja IV).
 
@@ -198,4 +198,4 @@ T021 — add tests/unit/cumulative-comparison-chart-multi-window.test.ts
 | **Polish** | 4 |
 | **Parallel-marked [P]** | 12 |
 
-**Format validation**: Wszystkie wiersze zadań używają `- [ ] Tnnn` oraz ścieżek bezwzględnych lub root-relative zgodnych z repo; etykiety `[US#]` tylko w fazach User Story.
+**Format validation**: Wszystkie wiersze zadań używają `- [ ] Tnnn` (ukończone: `[X]`) oraz ścieżek bezwzględnych lub root-relative zgodnych z repo; etykiety `[US#]` tylko w fazach User Story.
