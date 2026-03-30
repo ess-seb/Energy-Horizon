@@ -72,6 +72,7 @@ Rozszerzenie obecnego `ComparisonSeries`:
 - lista serii: current + reference? + context[]
 - metadane: które indeksy wchodzą do tooltipa (0 i 1 tylko)
 - `xMax` / długość osi: liczba „slotów” wynikająca z **najdłuższego** okna (spec FR-009)
+- **Prognoza (`computeForecast`)**: osobno od osi — `periodTotalBuckets` (mianownik ułamka ukończenia okresu) wyliczany dla **okna 0** (`buildTimelineSlots` na `ResolvedWindow[0]`); przy presetach YoY/MoY na ścieżce legacy jest to ten sam co liczba slotów pełnego okresu kalendarzowego bieżącej serii (zgodnie z `buildChartTimeline` w `ha-api.ts`). Patrz FR-017 w [spec.md](./spec.md).
 
 ## 7. Stan karty (`CardState`)
 

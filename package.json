@@ -10,7 +10,7 @@
     "test": "TZ=UTC vitest run",
     "test:watch": "vitest",
     "lint": "eslint --config config/eslint.config.js \"src/**/*.{ts,tsx,js,jsx}\"",
-    "deploy": "npm run build && scp dist/energy-horizon-card.js root@192.168.X.X:/config/www/energy-horizon-card.js"
+    "deploy": "npm run build && scp -O dist/* root@192.168.1.106:/config/www/community/Energy-Horizon/"
   },
   "dependencies": {
     "date-fns": "^4.1.0",

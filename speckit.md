@@ -13,7 +13,7 @@ Ten plik zbiera skrótową architekturę funkcji i powiązania ze Speckit (`spec
 3. **Ekspansja**: z parametrów `step` (dodatni) i `count` wygenerować N okien: dla indeksu `i` odległość wstecz wynosi `i × step` (okno bieżące: `i = 0`).
 4. **Wyliczenie granic**: dla każdego okna — kotwica (`anchor`) + opcjonalny `offset` → punkt bazowy; następnie cofnięcie o wyliczoną odległość; następnie zastosowanie `duration` → para `(start, end)`. Agregacja (`aggregation`) jest atrybutem okna przekazywanym do warstwy zapytań.
 5. **Pobieranie**: osobne żądania danych statystycznych per okno (dopuszczalna równoległość).
-6. **Prezentacja**: serie 0 i 1 — pełna semantyka (styl, prognozy, tooltip); serie ≥ 2 — tylko tło wizualne, wyłączone z tooltipa i z logiki prognoz. Oś X = długość najdłuższego okna; krótsze serie kończą się na swoim ostatnim punkcie.
+6. **Prezentacja**: serie 0 i 1 — pełna semantyka (styl, prognozy, tooltip); serie ≥ 2 — tylko tło wizualne, wyłączone z tooltipa i z logiki prognoz. Oś X = długość najdłuższego okna; krótsze serie kończą się na swoim ostatnim punkcie. **Prognoza** (`computeForecast`): mianownik ułamka ukończenia okresu = liczba slotów agregacji **okna 0** (`buildChartTimeline` → `forecastPeriodBuckets`), nie długość osi X — FR-017 w `specs/001-time-windows-engine/spec.md`.
 
 ### Presety (mapowanie koncepcyjne)
 
@@ -45,7 +45,7 @@ Ten plik zbiera skrótową architekturę funkcji i powiązania ze Speckit (`spec
 | `resolve-windows.ts` | `resolveTimeWindows` — ścieżka legacy YoY/MoY vs generyczna (offset fiskalny: `start_of_year` + `offset`) |
 | `index.ts` | Barrel: eksporty zgodne z `contracts/time-windows-engine.md` |
 
-**Integracja**: `src/card/ha-api.ts` — `buildLtsQueriesForWindows`, `buildChartTimeline` (oś legacy vs najdłuższe okno), `buildTimelineSlots`, `comparisonPeriodFromResolvedWindows`. **Karta**: `cumulative-comparison-chart.ts` (walidacja → `Promise.all` zapytań LTS). **Wykres**: `echarts-renderer.ts` (serie kontekstowe, tooltip: current + reference + forecast label).
+**Integracja**: `src/card/ha-api.ts` — `buildLtsQueriesForWindows`, `buildChartTimeline` (oś legacy vs najdłuższe okno + `forecastPeriodBuckets` dla okna 0), `buildTimelineSlots`, `countBucketsForWindow`, `comparisonPeriodFromResolvedWindows`. **Karta**: `cumulative-comparison-chart.ts` (walidacja → `Promise.all` zapytań LTS). **Wykres**: `echarts-renderer.ts` (serie kontekstowe, tooltip: current + reference + forecast label).
 
 **Zależność NPM**: `luxon` (kalendarz / strefa w silniku).
 

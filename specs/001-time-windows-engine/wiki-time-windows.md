@@ -35,6 +35,10 @@ Przykład: `comparison_mode: year_over_year` + `time_window: { duration: … }` 
 
 Oś pozioma ma długość **najdłuższego** z wygenerowanych okien. Jeśli jedno okno jest krótsze (np. luty vs marzec), seria **urywa się** na ostatnim punkcie — bez rozciągania wartości w prawo.
 
+## Prognoza
+
+Oś może być **dłuższa** niż okno bieżące (indeks 0), gdy któreś z pozostałych okien ma większą rozpiętość. **Prognoza** liczy wtedy ukończenie okresu i progi procentowe wyłącznie względem **okna bieżącego**, a nie względem liczby „slotów” na osi X — tak aby szacunek końca okresu pozostał spójny z parą bieżąca / referencyjna (spec: FR-017).
+
 ## Notacja czasu
 
 W konfiguracji używaj jednoznacznej notacji okresów (w dokumentacji końcowej podaj dokładną składnię — np. w stylu narzędzi analitycznych: `1y`, `6M`, `30d`, `1h`). Wielkość liter ma znaczenie tam, gdzie to zdefiniuje implementacja.

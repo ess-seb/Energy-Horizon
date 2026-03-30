@@ -169,6 +169,8 @@ Notes:
 
 The card estimates current period total by comparing progress so far against the same part of a reference period.
 
+If you use **Time windows** (advanced YAML) with multiple windows of **different lengths**, the forecast still measures progress against the **current** window only; it does not stretch the denominator to match the longest window used for the X-axis.
+
 Forecast may be unavailable when:
 
 - there is not enough data in current period,
@@ -222,7 +224,7 @@ Usually no. Keep `auto` unless you want fixed units (for example always `kWh`).
 
 ## Time windows (advanced YAML)
 
-The card resolves **time windows** from `comparison_mode` (preset) and an optional `time_window` block in YAML. Values you set in `time_window` override the same fields from the preset; omitted keys keep preset defaults (deep merge). Supported anchors include `start_of_year`, `start_of_month`, `start_of_hour`, and `now`. Durations and steps use Grafana-style tokens such as `1y`, `1M`, `7d`, and `1h`. Up to **24** windows are accepted from YAML; invalid configuration shows a card error (`ha-alert`) and no data series.
+The card resolves **time windows** from `comparison_mode` (preset) and an optional `time_window` block in YAML. Values you set in `time_window` override the same fields from the preset; omitted keys keep preset defaults (deep merge). Supported anchors include `start_of_year`, `start_of_month`, `start_of_hour`, and `now`. Durations and steps use Grafana-style tokens such as `1y`, `1M`, `7d`, and `1h`. Up to **24** windows are accepted from YAML; invalid configuration shows a card error (`ha-alert`) and no data series. The chart X-axis follows the **longest** window; **forecast** progress thresholds still use the **current** window (index 0) only.
 
 For a full parameter table, merge behaviour, Mermaid diagrams, and copy-paste YAML examples (e.g. two consecutive months, fiscal year from October, hourly windows), see the maintained draft in this repository:
 
