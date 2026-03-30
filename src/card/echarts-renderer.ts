@@ -388,11 +388,12 @@ export class EChartsRenderer {
       return xLabelStops.has(tick) ? String(tick) : '';
     };
 
-    const series: any[] = [];
-    const solidCurrentSeriesIndex = series.length;
-    let solidReferenceSeriesIndex: number | undefined;
+    // Today slot (needed for forecast + legend order; same semantics as previous block order)
+    const todayMs = new Date();
+    todayMs.setHours(0, 0, 0, 0);
+    const todayTimestamp = todayMs.getTime();
+    const todaySlotIndex = fullTimeline.indexOf(todayTimestamp);
 
-    // Current series (T009)
     const fillCurrentOpacity = Math.min(
       Math.max(rendererConfig.fillCurrentOpacity, 0),
       100
@@ -402,67 +403,33 @@ export class EChartsRenderer {
       100
     ) / 100;
 
-    series.push({
-      name: labels.current,
-      type: 'line',
-      // ECharts uses `series.color` (and/or itemStyle) for hover symbols and tooltip markers.
-      color: primaryColor,
-      data: currentValues.map((y, i) => (y !== null ? [i, y] : null)),
-      lineStyle: { color: primaryColor, width: 1.5 },
-      areaStyle: {
-        // Ensure the filled area matches the line color, with separate opacity.
-        color: primaryColor,
-        opacity: rendererConfig.fillCurrent ? fillCurrentOpacity : 0
-      },
-      connectNulls: false,
-      showSymbol: false,
-      smooth: false,
-      // Show a symbol on hover (with the same color as the line).
-      symbol: 'circle',
-      symbolSize: 6,
-      emphasis: {
-        focus: 'series',
-        showSymbol: true,
-        symbolSize: 6,
-        itemStyle: { color: primaryColor },
-        lineStyle: { color: primaryColor }
-      },
-      itemStyle: { color: primaryColor }
-    });
-
-    // Dashed series over null gaps (T009 null-gap dashed).
-    if (rendererConfig.connectNulls) {
-      const dashedCurrentValues = this.buildDashedNullGapValues(currentValues);
-      if (dashedCurrentValues.some((v) => v !== null)) {
-        series.push({
-          name: `${labels.current} (dashed)`,
-          type: 'line',
-          // ECharts uses `series.color` (and/or itemStyle) for hover symbols and tooltip markers.
-          color: primaryColor,
-          data: dashedCurrentValues.map((y, i) => (y !== null ? [i, y] : null)),
-          lineStyle: { type: 'dashed', color: primaryColor, width: 1.5 },
-          areaStyle: {
-            // Prevent any filled area under interpolated dashed segments.
-            opacity: 0
-          },
-          connectNulls: false,
-          showSymbol: false,
-          smooth: false,
-          itemStyle: { color: primaryColor },
-          showInLegend: false,
-          silent: true,
-          tooltip: { show: false },
-          // Keep focus/hover quiet (series is "silent" anyway, but this avoids edge-cases).
-          emphasis: { focus: 'none' }
-        });
-      }
-    }
-
     const showReferenceLine =
       rendererConfig.showReferenceComparison !== false &&
       referenceValues.some((v) => v !== null);
 
-    // Reference series — comparison curve (distinct from forecast overlay).
+    const series: any[] = [];
+
+    // Paint order (ECharts: later series draw on top): oldest windows first, current last before forecast.
+    // context[] is ordered by rising window index (2,3,…); higher index = further back = older — reverse for bottom→top.
+    for (const ctx of [...contextSeries].reverse()) {
+      series.push({
+        name: ctx.name,
+        type: 'line',
+        color: theme.referenceLine,
+        data: ctx.values.map((y, i) => (y !== null ? [i, y] : null)),
+        lineStyle: { color: theme.referenceLine, width: 1, opacity: 0.42 },
+        areaStyle: { opacity: 0 },
+        connectNulls: false,
+        showSymbol: false,
+        smooth: false,
+        silent: true,
+        tooltip: { show: false },
+        emphasis: { focus: 'none' },
+        showInLegend: false
+      });
+    }
+
+    let solidReferenceSeriesIndex: number | undefined;
     if (showReferenceLine) {
       solidReferenceSeriesIndex = series.length;
       series.push({
@@ -472,7 +439,6 @@ export class EChartsRenderer {
         data: referenceValues.map((y, i) => (y !== null ? [i, y] : null)),
         lineStyle: { color: theme.referenceLine, width: 1.5 },
         areaStyle: {
-          // Ensure the filled area matches the reference line color, with separate opacity.
           color: theme.referenceLine,
           opacity: rendererConfig.fillReference ? fillReferenceOpacity : 0
         },
@@ -500,7 +466,6 @@ export class EChartsRenderer {
           data: dashedReferenceValues.map((y, i) => (y !== null ? [i, y] : null)),
           lineStyle: { type: 'dashed', color: theme.referenceLine, width: 1.5 },
           areaStyle: {
-            // Prevent any filled area under interpolated dashed segments.
             opacity: 0
           },
           connectNulls: false,
@@ -515,30 +480,57 @@ export class EChartsRenderer {
       }
     }
 
-    for (const ctx of contextSeries) {
-      series.push({
-        name: ctx.name,
-        type: "line",
-        color: theme.referenceLine,
-        data: ctx.values.map((y, i) => (y !== null ? [i, y] : null)),
-        lineStyle: { color: theme.referenceLine, width: 1, opacity: 0.42 },
-        areaStyle: { opacity: 0 },
-        connectNulls: false,
-        showSymbol: false,
-        smooth: false,
-        silent: true,
-        tooltip: { show: false },
-        emphasis: { focus: "none" },
-        showInLegend: false,
-        z: 1
-      });
+    const solidCurrentSeriesIndex = series.length;
+    series.push({
+      name: labels.current,
+      type: 'line',
+      color: primaryColor,
+      data: currentValues.map((y, i) => (y !== null ? [i, y] : null)),
+      lineStyle: { color: primaryColor, width: 1.5 },
+      areaStyle: {
+        color: primaryColor,
+        opacity: rendererConfig.fillCurrent ? fillCurrentOpacity : 0
+      },
+      connectNulls: false,
+      showSymbol: false,
+      smooth: false,
+      symbol: 'circle',
+      symbolSize: 6,
+      emphasis: {
+        focus: 'series',
+        showSymbol: true,
+        symbolSize: 6,
+        itemStyle: { color: primaryColor },
+        lineStyle: { color: primaryColor }
+      },
+      itemStyle: { color: primaryColor }
+    });
+
+    if (rendererConfig.connectNulls) {
+      const dashedCurrentValues = this.buildDashedNullGapValues(currentValues);
+      if (dashedCurrentValues.some((v) => v !== null)) {
+        series.push({
+          name: `${labels.current} (dashed)`,
+          type: 'line',
+          color: primaryColor,
+          data: dashedCurrentValues.map((y, i) => (y !== null ? [i, y] : null)),
+          lineStyle: { type: 'dashed', color: primaryColor, width: 1.5 },
+          areaStyle: {
+            opacity: 0
+          },
+          connectNulls: false,
+          showSymbol: false,
+          smooth: false,
+          itemStyle: { color: primaryColor },
+          showInLegend: false,
+          silent: true,
+          tooltip: { show: false },
+          emphasis: { focus: 'none' }
+        });
+      }
     }
 
     // Today marker computation (T010)
-    const todayMs = new Date();
-    todayMs.setHours(0, 0, 0, 0);
-    const todayTimestamp = todayMs.getTime();
-    const todaySlotIndex = fullTimeline.indexOf(todayTimestamp);
 
     if (todaySlotIndex >= 0) {
       const todayCurrentY = currentValues[todaySlotIndex] ?? null;
@@ -634,6 +626,22 @@ export class EChartsRenderer {
       }
     }
 
+    const todayCurrentForLegend =
+      todaySlotIndex >= 0 ? (currentValues[todaySlotIndex] ?? null) : null;
+    const willShowForecast =
+      todaySlotIndex >= 0 &&
+      rendererConfig.showForecast &&
+      todayCurrentForLegend !== null &&
+      rendererConfig.forecastTotal !== undefined;
+
+    const legendData: string[] = [labels.current];
+    if (showReferenceLine) {
+      legendData.push(labels.reference);
+    }
+    if (willShowForecast) {
+      legendData.push(rendererConfig.forecastLabel);
+    }
+
     const option: EChartsOption = {
       animation: false,
       // Explicit grid bounds to avoid ECharts default large paddings.
@@ -648,6 +656,7 @@ export class EChartsRenderer {
       },
       legend: {
         show: rendererConfig.showLegend === true,
+        ...(rendererConfig.showLegend === true ? { data: legendData } : {}),
         top: 0,
         left: 'center',
         textStyle: { color: theme.primaryText },

@@ -110,6 +110,7 @@
 - [X] T029 Align `/Users/admin/Projekty Local/Energy-Horizon/speckit.md` time-windows section with final module paths, **tabelą pól presetów** (FR-004) oraz zachowaniem silnika po implementacji
 - [X] T030 Przed zamknięciem release funkcji: uzupełnij `/Users/admin/Projekty Local/Energy-Horizon/specs/001-time-windows-engine/release-readiness.md` (SC-005 + opcjonalny smoke a11y) oraz zamieść dowód w PR — recenzent spoza autora głównej implementacji potwierdza na podstawie wiki/README odtworzenie **dwóch** przykładów YAML ze specu
 - [X] T031 [P] Spójność prognozy z FR-009 / FR-017: `buildChartTimeline` zwraca `forecastPeriodBuckets` (okno 0; legacy YoY/MoY = długość pełnego okresu kalendarzowego); `computeForecast` używa tej wartości zamiast `timeline.length` przy różnych długościach okien; testy w `/Users/admin/Projekty Local/Energy-Horizon/tests/unit/build-chart-timeline-forecast.test.ts`; dokumentacja speckit + wiki + README
+- [X] T032 [P] FR-018: kolejność rysowania serii ECharts (najstarsze pod spodem, bieżące nad referencją, prognoza na wierzchu) + `legend.data` w `echarts-renderer.ts`; testy w `tests/unit/echarts-renderer.test.ts`; aktualizacja `spec.md` / `data-model.md` (001 + 003)
 
 ---
 
@@ -188,7 +189,7 @@ T021 — add tests/unit/cumulative-comparison-chart-multi-window.test.ts
 
 | Metric | Value |
 |--------|--------|
-| **Total tasks** | 31 |
+| **Total tasks** | 32 |
 | **Phase 1** | 2 |
 | **Phase 2** | 10 |
 | **US1** | 3 |
@@ -196,7 +197,7 @@ T021 — add tests/unit/cumulative-comparison-chart-multi-window.test.ts
 | **US3** | 1 |
 | **US4** | 2 |
 | **US5** | 2 |
-| **Polish** | 5 |
+| **Polish** | 6 |
 | **Parallel-marked [P]** | 13 |
 
 **Format validation**: Wszystkie wiersze zadań używają `- [ ] Tnnn` (ukończone: `[X]`) oraz ścieżek bezwzględnych lub root-relative zgodnych z repo; etykiety `[US#]` tylko w fazach User Story.

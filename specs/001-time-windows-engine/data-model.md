@@ -69,7 +69,9 @@ Rozszerzenie obecnego `ComparisonSeries`:
 
 `ChartRendererConfig` / ECharts:
 
-- lista serii: current + reference? + context[]
+- **Model logiczny** (`ComparisonSeries`) bez zmian: `current`, `reference?`, `context[]` (okna 2..N−1 w kolejności rosnącego indeksu).
+- **Kolejność rysowania** w tablicy `series` ECharts (starsze pod spodem, młodsze na wierzchu): najpierw `context` w kolejności **od najstarszego okna do najmłodszego** (w praktyce odwrócenie tablicy `context` względem indeksów okien), potem seria referencyjna (wraz z opcjonalnym dashed null-gap), potem bieżąca (+ dashed), na końcu prognoza — patrz FR-018 w [spec.md](./spec.md).
+- **Legenda**: kolejność wpisów czytelna dla użytkownika (np. bieżąca → referencja → prognoza) ustawiana **osobno** (`legend.data`), niezależnie od kolejności warstw w `series`.
 - metadane: które indeksy wchodzą do tooltipa (0 i 1 tylko)
 - `xMax` / długość osi: liczba „slotów” wynikająca z **najdłuższego** okna (spec FR-009)
 - **Prognoza (`computeForecast`)**: osobno od osi — `periodTotalBuckets` (mianownik ułamka ukończenia okresu) wyliczany dla **okna 0** (`buildTimelineSlots` na `ResolvedWindow[0]`); przy presetach YoY/MoY na ścieżce legacy jest to ten sam co liczba slotów pełnego okresu kalendarzowego bieżącej serii (zgodnie z `buildChartTimeline` w `ha-api.ts`). Patrz FR-017 w [spec.md](./spec.md).
