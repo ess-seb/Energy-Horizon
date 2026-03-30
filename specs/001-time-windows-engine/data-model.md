@@ -6,7 +6,7 @@
 
 | Pole | Typ | Opis |
 |------|-----|------|
-| `comparison_mode` | `"year_over_year" \| "month_over_year"` | Preset (bez zmian nazw) |
+| `comparison_preset` | `"year_over_year" \| "month_over_year" \| "month_over_month"` | Preset porównania (kanoniczny klucz YAML); w UI edytora: **Comparison Preset**. Legacy: `comparison_mode` (nadal wspierany; priorytet ma `comparison_preset` przy obu). |
 | `time_window` | `TimeWindowYaml \| undefined` | Opcjonalne nadpisania (deep merge z presetem) |
 | `period_offset` | `number \| undefined` | Legacy: przy **wyłącznie** presetowej ścieżce (brak efektywnego `time_window` zmieniającego semantykę) zachowanie jak dziś; dokumentacja planu określi, czy w pełni custom oknach pole jest ignorowane czy mapowane (preferencja: **ignorowane**, gdy użytkownik ustawia pełny `time_window`, aby uniknąć podwójnego przesuwania) |
 | Pozostałe pola | — | Bez zmian (`entity`, `aggregation`, …) |
@@ -26,12 +26,13 @@ Pola logiczne (nazwy dokładne do uzgodnienia w implementacji — spójne z wiki
 
 Struktura **wewnętrzna** (nie eksponowana w YAML):
 
-- `id`: `year_over_year` | `month_over_year`
-- `template`: zestaw domyślnych pól `TimeWindowYaml` + ewentualne flagi **legacy**:
-  - `currentEndIsNow: true` dla obu presetów (bieżące okno kończy się na „teraz”)
+- `id`: `year_over_year` | `month_over_year` | `month_over_month`
+- `template`: zestaw domyślnych pól `TimeWindowYaml` + ewentualne flagi **legacy** (tylko YoY / MoY):
+  - `currentEndIsNow: true` dla `year_over_year` i `month_over_year` (bieżące okno kończy się na „teraz”)
   - `referenceFullPeriod: true` — referencja do końca roku/miesiąca kalendarzowego
+- **`month_over_month`**: szablon `start_of_month` + `duration`/`step` = `1M`, `count: 2` **bez** flag legacy — wyliczenie przez ścieżkę generyczną; okno 0 = bieżący miesiąc kalendarzowy, okno 1 = poprzedni pełny miesiąc
 
-**Preset a liczba okien (ujednolicenie z FR-015):** Domyślnie preset `year_over_year` / `month_over_year` implikuje **dwa** okna (bieżące + referencyjne). Jeśli użytkownik w YAML ustawi `count: 1` (lub równoważnik po merge), jawne nadpisanie **ma pierwszeństwo** — powstaje jedno okno, bez błędu walidacji (FR-015). Nie należy interpretować opisu encji „co najmniej dwa okna dla trybów roku/miesiąca” jako zakazu `count: 1` po nadpisaniu.
+**Preset a liczba okien (ujednolicenie z FR-015):** Domyślnie presety `year_over_year`, `month_over_year` i `month_over_month` implikują **dwa** okna (bieżące + referencyjne), o ile użytkownik nie nadpisze `count`. Jeśli użytkownik w YAML ustawi `count: 1` (lub równoważnik po merge), jawne nadpisanie **ma pierwszeństwo** — powstaje jedno okno, bez błędu walidacji (FR-015). Nie należy interpretować opisu encji „co najmniej dwa okna dla trybów roku/miesiąca” jako zakazu `count: 1` po nadpisaniu.
 
 ## 3. Wynik merge (`MergedTimeWindowConfig`)
 

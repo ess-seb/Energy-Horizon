@@ -19,11 +19,29 @@ Zamiast osobnych, sztywnych trybów w kodzie, karta buduje **listę okien czasow
 | `count` | **Liczba okien** do wygenerowania (np. 2 = bieżące + jedno wstecz). |
 | `aggregation` | **Granulacja** pobieranych danych (np. `day`, `month`, `hour`) — formalnie należy do konfiguracji okna. |
 
-## Preset `comparison_mode`
+## Preset `comparison_preset` (UI: Comparison Preset)
 
-Dotychczasowy `comparison_mode` to **preset**: zestaw domyślnych wartości powyższych pól. Jeśli dodasz blok `time_window`, **nadpisujesz tylko to, co wpiszesz** — reszta zostaje z presetu.
+W YAML kanonicznym kluczem jest **`comparison_preset`** (dawniej `comparison_mode`; legacy nadal działa). Preset to **zestaw domyślnych wartości** powyższych pól. Jeśli dodasz blok `time_window`, **nadpisujesz tylko to, co wpiszesz** — reszta zostaje z presetu.
 
-Przykład: `comparison_mode: year_over_year` + `time_window: { duration: … }` zmienia wyłącznie szerokość okna, nie zerując pozostałych ustawień.
+Przykład: `comparison_preset: year_over_year` + `time_window: { duration: … }` zmienia wyłącznie szerokość okna, nie zerując pozostałych ustawień.
+
+### `month_over_month` — dwa kolejne miesiące kalendarzowe
+
+Preset **`month_over_month`** odpowiada szablonowi: kotwica `start_of_month`, `duration: 1M`, `step: 1M`, `count: 2` (bez flag legacy YoY/MoY). Silnik generuje:
+
+- **okno 0** — bieżący miesiąc kalendarzowy (od 1. dnia miesiąca do końca tego miesiąca),
+- **okno 1** — **poprzedni** pełny miesiąc kalendarzowy (nie „ten sam miesiąc rok temu”; to jest `month_over_year`).
+
+Minimalny YAML:
+
+```yaml
+type: custom:energy-horizon-card
+entity: sensor.twoja_statystyka
+comparison_preset: month_over_month
+aggregation: day
+```
+
+Oś X wykresu ma długość **najdłuższego** z dwóch okien; prognoza (jeśli włączona) opiera się na **oknie 0** (FR-017).
 
 ## Okna 0, 1, 2… na wykresie
 
@@ -81,9 +99,9 @@ flowchart LR
 
 ## Przykłady YAML (skrót)
 
-**Dwa kolejne miesiące** — ustaw `anchor` na początek miesiąca, `duration` = 1 miesiąc, `step` = 1 miesiąc, `count: 2`.
+**Dwa kolejne miesiące** — albo preset `comparison_preset: month_over_month`, albo ręcznie: `anchor` na początek miesiąca, `duration` = 1 miesiąc, `step` = 1 miesiąc, `count: 2`.
 
-**Month over year** — `duration` = 1 miesiąc, `step` = 1 rok, `count: 2`.
+**Month over year** — `duration` = 1 miesiąc, `step` = 1 rok, `count: 2` (preset `month_over_year`).
 
 **Rok rozliczeniowy od października** — kotwica roczna + `offset` przesuwający start na 1 października, `duration` = 1 rok, `step` = 1 rok, `count: 2`.
 

@@ -3,6 +3,8 @@
 **Consumers**: `cumulative-comparison-chart.ts`, testy Vitest  
 **Path (planowany)**: `src/card/time-windows/`
 
+W konfiguracji Lovelace kanoniczny klucz YAML to `comparison_preset` (legacy: `comparison_mode`); po normalizacji w karcie tryb jest przekazywany do merge/resolve jako wartość porównawcza (np. `ComparisonMode`), nie jako surowy string z YAML.
+
 **Prognoza (integracja z kartą)**: warstwa `ha-api.ts` (`buildChartTimeline`, `countBucketsForWindow`) wylicza **`forecastPeriodBuckets`** dla `computeForecast`: przy wielu oknach o różnej długości mianownik opiera się na **oknie 0**, nie na maksymalnej rozpiętości listy okien ani wyłącznie na długości osi X (FR-009).
 
 ## Exports (logiczne)
@@ -44,6 +46,7 @@ Publicznie (dla testów): tablica przypadków złotych:
 |------|-------------------------|----------------------------|---------------------|
 | `year_over_year` | 2 | ≈ `now` (dzień/godzina) | koniec roku kalendarzowego |
 | `month_over_year` | 2 | ≈ `now` | koniec tego samego miesiąca w roku ref. |
+| `month_over_month` | 2 | koniec bieżącego miesiąca kalendarzowego (pełne okno) | koniec poprzedniego pełnego miesiąca kalendarzowego |
 
 Dokładne wartości zależą od zegara mocka — testy używają **zamrożonego `now`**.
 

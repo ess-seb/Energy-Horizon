@@ -3,7 +3,7 @@
 **Feature Branch**: `001-time-windows-engine`  
 **Created**: 2026-03-29  
 **Status**: Draft  
-**Input**: User description: Zaktualizuj dokumentację i zaplanuj refaktoryzację silnika pobierania danych (Comparison Windows Engine): przejście ze sztywnych trybów `comparison_mode` na generyczny model okien czasowych z presetami, scalaniem konfiguracji z YAML, wieloma seriami na wykresie, tooltipami ograniczonymi do dwóch głównych okien oraz osią X dopasowaną do najdłuższego okna.
+**Input**: User description: Zaktualizuj dokumentację i zaplanuj refaktoryzację silnika pobierania danych (Comparison Windows Engine): przejście ze sztywnych trybów opartych o pojedynczy preset (w YAML kanonicznie `comparison_preset`, legacy `comparison_mode`) na generyczny model okien czasowych z presetami, scalaniem konfiguracji z YAML, wieloma seriami na wykresie, tooltipami ograniczonymi do dwóch głównych okien oraz osią X dopasowaną do najdłuższego okna.
 
 ## Clarifications
 
@@ -17,7 +17,7 @@
 
 ### User Story 1 – Presety zachowują znane zachowanie z możliwością nadpisania (Priority: P1)
 
-Użytkownik ma istniejącą kartę z `comparison_mode: year_over_year` lub `month_over_year` i nie zmienia nic więcej. Wykres i porównanie działają tak jak dotychczas (bieżący okres vs jeden okres referencyjny w ustalonej logice kalendarzowej).
+Użytkownik ma istniejącą kartę z `comparison_preset: year_over_year` lub `month_over_year` (lub równoważnym legacy `comparison_mode`) i nie zmienia nic więcej. Wykres i porównanie działają tak jak dotychczas (bieżący okres vs jeden okres referencyjny w ustalonej logice kalendarzowej).
 
 **Why this priority**: Regresja wobec obecnych użytkowników jest niedopuszczalna; preset jest ścieżką domyślną.
 
@@ -25,9 +25,9 @@ Użytkownik ma istniejącą kartę z `comparison_mode: year_over_year` lub `mont
 
 **Acceptance Scenarios**:
 
-1. **Given** `comparison_mode: year_over_year` bez bloku `time_window`, **When** karta ładuje dane, **Then** wyświetlane są dokładnie dwa okna: bieżący rok kalendarzowy i poprzedni rok kalendarzowy (logika odpowiadająca dotychczasowemu presetowi).
-2. **Given** `comparison_mode: month_over_year` bez bloku `time_window`, **When** karta ładuje dane, **Then** wyświetlane są dwa okna: bieżący miesiąc od początku miesiąca oraz ten sam zakres miesięczny w roku poprzednim (logika odpowiadająca dotychczasowemu presetowi).
-3. **Given** `comparison_mode: year_over_year` oraz `time_window` zawierające wyłącznie `duration` (np. dwukrotność domyślnej szerokości okna w sensie biznesowym), **When** konfiguracja jest scalana, **Then** zmienia się wyłącznie szerokość trwania okna; pozostałe parametry pochodzą z presetu.
+1. **Given** `comparison_preset: year_over_year` bez bloku `time_window`, **When** karta ładuje dane, **Then** wyświetlane są dokładnie dwa okna: bieżący rok kalendarzowy i poprzedni rok kalendarzowy (logika odpowiadająca dotychczasowemu presetowi).
+2. **Given** `comparison_preset: month_over_year` bez bloku `time_window`, **When** karta ładuje dane, **Then** wyświetlane są dwa okna: bieżący miesiąc od początku miesiąca oraz ten sam zakres miesięczny w roku poprzednim (logika odpowiadająca dotychczasowemu presetowi).
+3. **Given** `comparison_preset: year_over_year` oraz `time_window` zawierające wyłącznie `duration` (np. dwukrotność domyślnej szerokości okna w sensie biznesowym), **When** konfiguracja jest scalana, **Then** zmienia się wyłącznie szerokość trwania okna; pozostałe parametry pochodzą z presetu.
 
 ---
 
@@ -77,7 +77,7 @@ Użytkownik chce zobaczyć bieżącą godzinę i kilka poprzednich godzin (np. 6
 
 ### User Story 5 – Dokumentacja dla użytkowników zaawansowanych (Priority: P2)
 
-Zaawansowany użytkownik czyta wiki lub dokumentację projektu i rozumie znaczenie parametrów: kotwica, przesunięcie, krok, liczba okien, długość okna, agregacja oraz zasady scalania z presetem `comparison_mode`.
+Zaawansowany użytkownik czyta wiki lub dokumentację projektu i rozumie znaczenie parametrów: kotwica, przesunięcie, krok, liczba okien, długość okna, agregacja oraz zasady scalania z presetem `comparison_preset`.
 
 **Why this priority**: Bez dokumentacji elastyczna konfiguracja YAML jest trudna do utrzymania.
 
@@ -107,7 +107,7 @@ Zaawansowany użytkownik czyta wiki lub dokumentację projektu i rozumie znaczen
 - **FR-001**: System MUSI reprezentować porównanie czasowe jako uporządkowaną listę od zera do N−1 okien czasowych; każde okno ma stabilny identyfikator logiczny oraz indeks pozycji.
 - **FR-002**: Każde okno MUSI być opisane parametrami konfiguracyjnymi: kotwica czasu (np. początek roku, miesiąca, godziny, „teraz”), opcjonalne przesunięcie względem kotwicy, odległość w czasie wstecz (dla okna bieżącego zero; dla kolejnych wyliczana z kroku i indeksu), długość trwania okna oraz granularność agregacji danych.
 - **FR-003**: Wartość kroku (`step`) podana przez użytkownika jako dodatnia wielkość czasu MUSI być mapowana na wielokrotność przesunięcia wstecz proporcjonalną do indeksu okna (okno o indeksie k jest przesunięte o k jednostek kroku względem okna bazowego).
-- **FR-004**: Istniejący parametr `comparison_mode` MUSI traktować się jako preset: zestaw domyślnych wartości parametrów okien; pełna lista pól presetów musi być udokumentowana dla co najmniej `year_over_year` i `month_over_year` zgodnie z dotychczasową semantyką biznesową.
+- **FR-004**: Parametr presetu w YAML (`comparison_preset`; legacy: `comparison_mode`) MUSI być traktowany jako preset: zestaw domyślnych wartości parametrów okien; pełna lista pól presetów musi być udokumentowana dla co najmniej `year_over_year`, `month_over_year` oraz `month_over_month` (porównanie dwóch kolejnych miesięcy kalendarzowych) zgodnie z semantyką biznesową opisaną w `data-model.md` i wiki.
 - **FR-005**: Blok konfiguracji `time_window` w YAML MUSI być łączony z presetem przez scalanie pól: każda właściwość jawnie podana w `time_window` zastępuje wartość z presetu; brak jawnej właściwości zachowuje wartość z presetu.
 - **FR-006**: System MUSI wyliczać dla każdego okna jawne granice `start` i `end` przed pobraniem danych; granice MUSZĄ uwzględniać kalendarz (lata przestępne, różna liczba dni w miesiącach) w sposób zgodny z zachowaniem znanych narzędzi analitycznych (kotwica + przesunięcie + długość + cofanie o krok).
 - **FR-007**: Dla każdego wyliczonego okna system MUSI pobrać dane statystyczne osobno; pobrania dla wielu okien MOGĄ być wykonywane równolegle, aby skrócić czas oczekiwania, przy zachowaniu poprawności zakresów czasu.
@@ -118,14 +118,14 @@ Zaawansowany użytkownik czyta wiki lub dokumentację projektu i rozumie znaczen
 - **FR-011**: Edytor wizualny (GUI) karty NIE MOŻE wymagać zmiany przepływu pracy dla użytkownika końcowego; nowe parametry (`anchor`, `step`, `count`, nadpisywanie `duration`, `offset` itd.) MUSZĄ być dostępne przez YAML (oraz istniejące mechanizmy rozszerzania konfiguracji, jeśli już wspierają surowy YAML).
 - **FR-012**: Dokumentacja wewnętrzna projektu MUSI opisywać architekturę silnika okien (model konfiguracji, preset, scalanie, wyliczanie granic, rola indeksów okien względem wykresu i tooltipa).
 - **FR-013**: Dokumentacja użytkownika (wiki) MUSI zawierać opis parametrów Time Windows oraz diagram wyjaśniający łańcuch czasu od kotwicy do końca okna i generowanie okien historycznych przez `step`.
-- **FR-014**: Gdy walidacja wykryje **niepoprawny** blok `time_window` (po scaleniu z presetem `comparison_mode`), system MUSI wyświetlić na karcie **czytelny komunikat** skierowany do użytkownika oraz MUSI **pominąć** prezentację wykresu z danymi porównawczymi do czasu poprawy YAML; zabronione jest ciche zignorowanie błędu lub automatyczne zastąpienie całego bloku samym presetem bez informacji użytkownika.
+- **FR-014**: Gdy walidacja wykryje **niepoprawny** blok `time_window` (po scaleniu z presetem `comparison_preset`), system MUSI wyświetlić na karcie **czytelny komunikat** skierowany do użytkownika oraz MUSI **pominąć** prezentację wykresu z danymi porównawczymi do czasu poprawy YAML; zabronione jest ciche zignorowanie błędu lub automatyczne zastąpienie całego bloku samym presetem bez informacji użytkownika.
 - **FR-016**: Liczba okien żądana z konfiguracji użytkownika (po scaleniu preset + `time_window`, w tym `count` lub równoważnik) NIE MOŻE przekraczać **24**; wartość **> 24** MUSI być traktowana jak błąd konfiguracji z **tym samym** zachowaniem co w FR-014 (komunikat, brak wykresu danych). Rdzeń wyliczania listy okien (silnik) MUSI być zaprojektowany tak, by **nie** zakładał stałego limitu 24 w samej logice matematycznej okien — limit jest **warstwą walidacji wejścia** (bezpiecznik), umożliwiającą wewnętrznie lub w przyszłości obsługę większego N bez przepisywania algorytmu.
-- **FR-017**: Mianownik prognozy (`periodTotalBuckets` w kontrakcie [001-compute-forecast](../001-compute-forecast/spec.md)) MUSI odpowiadać liczbie slotów agregacji **wyłącznie dla okna bieżącego (indeks 0)** — wyliczonej z `start`/`end`/`aggregation` tego okna — gdy użytkownik definiuje wiele okien o różnej rozpiętości; NIE WOLNO używać liczby slotów osi X z FR-009 (najdłuższe okno) jako tego mianownika. Dla domyślnych presetów `year_over_year` / `month_over_year` na ścieżce legacy (bieżące okno do końca roku lub miesiąca kalendarzowego) mianownik pozostaje zgodny z pełnym okresem kalendarzowym bieżącej serii, tak jak przed wprowadzeniem wielu okien.
+- **FR-017**: Mianownik prognozy (`periodTotalBuckets` w kontrakcie [001-compute-forecast](../001-compute-forecast/spec.md)) MUSI odpowiadać liczbie slotów agregacji **wyłącznie dla okna bieżącego (indeks 0)** — wyliczonej z `start`/`end`/`aggregation` tego okna — gdy użytkownik definiuje wiele okien o różnej rozpiętości; NIE WOLNO używać liczby slotów osi X z FR-009 (najdłuższe okno) jako tego mianownika. Dla domyślnych presetów `year_over_year` / `month_over_year` na ścieżce legacy (bieżące okno do końca roku lub miesiąca kalendarzowego) mianownik pozostaje zgodny z pełnym okresem kalendarzowym bieżącej serii, tak jak przed wprowadzeniem wielu okien. Preset `month_over_month` korzysta ze ścieżki generycznej (bez flag legacy); mianownik wynika z granic wyliczonego okna 0.
 - **FR-018**: Warstwa wizualna wykresu (kolejność rysowania serii w rendererze ECharts) MUSI być taka, że **młodsze okna przykrywają starsze**: od **najstarszych** danych (najwyższy indeks okna / najwcześniejszy zakres przy generycznym `step`) do **najmłodszego** okna bieżącego (indeks 0), z prognozą (jeśli włączona) na wierzchu. Uzupełnia FR-008 (role serii i tooltip); nie zmienia semantyki danych w `ComparisonSeries`.
 
 ### Key Entities
 
-- **Preset porównania (`comparison_mode`)**: Nazwany zestaw domyślnych parametrów okien; mapuje się na co najmniej dwa okna dla trybów roku i miesiąca względem roku, zgodnie z dotychczasową semantyką.
+- **Preset porównania (`comparison_preset` w YAML; legacy: `comparison_mode`)**: Nazwany zestaw domyślnych parametrów okien; w UI edytora Lovelace opisywany jako **Comparison Preset**. Obejmuje m.in. `year_over_year`, `month_over_year` oraz `month_over_month` (dwa kolejne miesiące kalendarzowe).
 - **Konfiguracja okna czasu (`time_window`)**: Opcjonalny fragment YAML nadpisujący wybrane pola presetu; może definiować w pełni niestandardową listę okien poprzez parametry takie jak kotwica, przesunięcie, długość, krok, liczba okien, agregacja.
 - **Okno czasowe (logiczne)**: Jednostka porównania z indeksem, identyfikatorem, wyliczonymi `start`/`end`, powiązaną granularnością agregacji oraz klasyfikacją „bieżące / referencyjne / kontekstowe (wyciszone)”.
 - **Rozwiązana konfiguracja silnika**: Wynik scalenia presetu i nadpisań, gotowy do wyliczenia listy okien i żądań danych.
@@ -143,7 +143,7 @@ Zaawansowany użytkownik czyta wiki lub dokumentację projektu i rozumie znaczen
 - **SC-001**: W konfiguracji z trzema oknami czasowymi użytkownik widzi trzy serie na wykresie, a interaktywny tooltip przy dowolnym punkcie prezentuje co najwyżej dwie wartości liczbowe (bieżąca i referencyjna) — bez wartości dla serii trzeciej i dalszych.
 - **SC-002**: Dla scenariusza kalendarzowego „jeden miesiąc wstecz od końcówki marca” końcowa data krótszego miesiąca (luty) jest poprawna w roku przestępnym i nieprzestępnym — weryfikowalne przez zestawienie wyświetlanych zakresów dat lub punktów końcowych serii z oczekiwanym kalendarzem.
 - **SC-003**: Przy dwóch oknach o różnej liczbie dni w zakresie oś pozioma obejmuje pełny zakres dłuższego okna; krótsza seria nie wypełnia sztucznie prawej strony wykresu danymi poza swoim rzeczywistym zakresem (100% punktów krótszej serii mieści się w jej `start`–`end`).
-- **SC-004**: Konfiguracja zawierająca wyłącznie `comparison_mode: year_over_year` zachowuje semantykę zgodną z wersją karty sprzed wprowadzenia `time_window`; dodanie samego `time_window.duration` (nadpisanie szerokości) zmienia wyłącznie szerokość okna, nie resetując pozostałych parametrów do wartości „pustych” zamiast presetu.
+- **SC-004**: Konfiguracja zawierająca wyłącznie `comparison_preset: year_over_year` (lub legacy `comparison_mode: year_over_year`) zachowuje semantykę zgodną z wersją karty sprzed wprowadzenia `time_window`; dodanie samego `time_window.duration` (nadpisanie szerokości) zmienia wyłącznie szerokość okna, nie resetując pozostałych parametrów do wartości „pustych” zamiast presetu.
 - **SC-005**: Co najmniej jeden recenzent lub tester zewnętrzny względem implementacji potwierdza na podstawie dokumentacji wiki, że potrafi odtworzyć dwa przykłady z specyfikacji (np. „dwa kolejne miesiące” i „month_over_year”) bez wsparcia autora kodu.
 - **SC-006**: Przy celowo błędnym `time_window` (np. `step: 0`) użytkownik widzi komunikat błędu na karcie i **nie** widzi wykresu z seriami danych (stan utrzymuje się do poprawy konfiguracji).
 - **SC-007**: Przy poprawnej konfiguracji z `count: 1` użytkownik widzi **jedną** serię danych na wykresie, **brak** komunikatu błędu z FR-014, brak metryk porównawczych wymagających drugiego okna oraz tooltip z **co najwyżej** jedną wartością liczbową dla punktu.

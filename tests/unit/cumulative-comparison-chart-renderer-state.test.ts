@@ -2,10 +2,13 @@ import { describe, it, expect } from "vitest";
 import type { HomeAssistant } from "../../src/ha-types";
 import type {
   CardConfig,
+  CardConfigInput,
+  ComparisonMode,
   ComparisonPeriod,
   ComparisonSeries,
   CardState
 } from "../../src/card/types";
+import { resolveComparisonPreset } from "../../src/card/types";
 import { EnergyHorizonCard } from "../../src/card/cumulative-comparison-chart";
 
 function createBaseHass(language: string): HomeAssistant {
@@ -58,7 +61,7 @@ describe("EnergyHorizonCard renderer config vs _state", () => {
   const baseConfig: CardConfig = {
     type: "custom:energy-horizon-card",
     entity: "sensor.energy",
-    comparison_mode: "year_over_year"
+    comparison_preset: "year_over_year"
   };
 
   it("setConfig maps forecast alias to show_forecast", () => {
@@ -77,13 +80,45 @@ describe("EnergyHorizonCard renderer config vs _state", () => {
     expect(card._config.show_forecast).toBe(false);
   });
 
-  it("setConfig defaults comparison_mode to year_over_year when missing", () => {
+  it("setConfig defaults comparison_preset to year_over_year when missing", () => {
     const card = new EnergyHorizonCard();
     card.setConfig({
       type: "custom:energy-horizon-card",
       entity: "sensor.energy"
-    } as CardConfig);
-    expect(card._config.comparison_mode).toBe("year_over_year");
+    } as CardConfigInput);
+    expect(card._config.comparison_preset).toBe("year_over_year");
+  });
+
+  it("setConfig maps legacy comparison_mode to comparison_preset", () => {
+    const card = new EnergyHorizonCard();
+    card.setConfig({
+      type: "custom:energy-horizon-card",
+      entity: "sensor.energy",
+      comparison_mode: "year_over_year"
+    } as CardConfigInput);
+    expect(card._config.comparison_preset).toBe("year_over_year");
+  });
+
+  it("setConfig prefers comparison_preset when both keys are set", () => {
+    const card = new EnergyHorizonCard();
+    card.setConfig({
+      type: "custom:energy-horizon-card",
+      entity: "sensor.energy",
+      comparison_preset: "month_over_month",
+      comparison_mode: "year_over_year"
+    } as CardConfigInput);
+    expect(card._config.comparison_preset).toBe("month_over_month");
+  });
+
+  it("setConfig treats whitespace-only comparison_preset as unset and uses legacy comparison_mode", () => {
+    const card = new EnergyHorizonCard();
+    card.setConfig({
+      type: "custom:energy-horizon-card",
+      entity: "sensor.energy",
+      comparison_preset: "   " as unknown as ComparisonMode,
+      comparison_mode: "month_over_year"
+    });
+    expect(card._config.comparison_preset).toBe("month_over_year");
   });
 
   it("_buildRendererConfig sets showForecast true when show_forecast omitted (two windows)", () => {
@@ -244,5 +279,29 @@ describe("EnergyHorizonCard renderer config vs _state", () => {
     (card as unknown as { _buildRendererConfig: () => unknown })._buildRendererConfig();
 
     expect(structuredClone(card._state)).toEqual(before);
+  });
+});
+
+describe("resolveComparisonPreset", () => {
+  it("defaults to year_over_year when both keys are absent", () => {
+    expect(resolveComparisonPreset({})).toBe("year_over_year");
+  });
+
+  it("ignores whitespace-only comparison_preset and uses comparison_mode", () => {
+    expect(
+      resolveComparisonPreset({
+        comparison_preset: "  \t " as unknown as ComparisonMode,
+        comparison_mode: "month_over_year"
+      })
+    ).toBe("month_over_year");
+  });
+
+  it("prefers nonempty comparison_preset over comparison_mode", () => {
+    expect(
+      resolveComparisonPreset({
+        comparison_preset: "month_over_month",
+        comparison_mode: "year_over_year"
+      })
+    ).toBe("month_over_month");
   });
 });

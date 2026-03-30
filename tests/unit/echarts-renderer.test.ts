@@ -460,6 +460,65 @@ describe('EChartsRenderer', () => {
       expect(html2).toContain(expectedHeader2);
       expect(html2).toContain(`${expectedFmt.format(1.04)} MWh`);
     });
+
+    it("formats month_over_month tooltip header with day, month, and year", () => {
+      const container = document.createElement("div");
+      document.body.appendChild(container);
+
+      const ts = Date.UTC(2026, 1, 15);
+      const fullTimeline = [ts];
+
+      const language = "en-US";
+      const numberLocale = "en-US";
+      const precision = 1;
+
+      const rendererConfig = buildBaseRendererConfig({
+        comparisonMode: "month_over_month",
+        language,
+        numberLocale,
+        precision,
+        unit: "kWh"
+      });
+
+      const renderer = new EChartsRenderer(container);
+      const comparisonSeries = buildSeries([
+        { timestamp: fullTimeline[0]! + 10, value: 5.2 }
+      ]);
+
+      renderer.update(
+        comparisonSeries,
+        fullTimeline,
+        rendererConfig,
+        { current: "Current", reference: "Reference" }
+      );
+
+      const option = captureOption(renderer);
+      expect(typeof option.tooltip?.formatter).toBe("function");
+
+      const formatter = option.tooltip.formatter as (params: unknown) => string;
+      const expectedFmt = new Intl.NumberFormat(numberLocale, {
+        minimumFractionDigits: precision,
+        maximumFractionDigits: precision
+      });
+      const expectedHeader = new Intl.DateTimeFormat(language, {
+        day: "numeric",
+        month: "long",
+        year: "numeric"
+      }).format(new Date(fullTimeline[0]!));
+
+      const html = formatter([
+        {
+          dataIndex: 0,
+          seriesName: "Current",
+          data: [0, 5.2]
+        }
+      ]);
+      expect(html).toContain(expectedHeader);
+      expect(html).toContain(`${expectedFmt.format(5.2)} kWh`);
+
+      renderer.destroy();
+      document.body.removeChild(container);
+    });
   });
 
   describe('T026: null-gap dashed series no fill', () => {

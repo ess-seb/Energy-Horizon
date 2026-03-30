@@ -42,7 +42,7 @@
 
 ## Phase 3: User Story 1 — Presety i merge YAML (Priority: P1) — MVP
 
-**Goal**: `comparison_mode` bez `time_window` zachowuje obecną semantykę; `time_window` z samym `duration` nadpisuje tylko szerokość (SC-004); błędna konfiguracja → `ha-alert`, brak wykresu (FR-014).
+**Goal**: `comparison_preset` (lub legacy `comparison_mode`) bez `time_window` zachowuje obecną semantykę; `time_window` z samym `duration` nadpisuje tylko szerokość (SC-004); błędna konfiguracja → `ha-alert`, brak wykresu (FR-014).
 
 **Independent Test**: Te same encje i YAML co przed refaktorem → identyczne zakresy dat (YoY / MoY) oraz merge tylko `duration`.
 
@@ -124,6 +124,12 @@
 
 ---
 
+## Dokumentacja — preset `month_over_month` + nazewnictwo UI (2026-03-30)
+
+- [X] T033 [P] Uzupełniono `month_over_month` oraz etykietę **Comparison Preset** w: [speckit.md](../../speckit.md), [data-model.md](./data-model.md), [wiki-time-windows.md](./wiki-time-windows.md), [quickstart.md](./quickstart.md), [contracts/time-windows-engine.md](./contracts/time-windows-engine.md), [wiki-publish/Configuration-and-Customization.md](../../wiki-publish/Configuration-and-Customization.md), [wiki-publish/Getting-Started.md](../../wiki-publish/Getting-Started.md), [README.md](../../README.md)
+
+---
+
 ## Dependencies & Execution Order
 
 ### Phase Dependencies
@@ -189,7 +195,7 @@ T021 — add tests/unit/cumulative-comparison-chart-multi-window.test.ts
 
 | Metric | Value |
 |--------|--------|
-| **Total tasks** | 32 |
+| **Total tasks** | 33 |
 | **Phase 1** | 2 |
 | **Phase 2** | 10 |
 | **US1** | 3 |
@@ -197,7 +203,7 @@ T021 — add tests/unit/cumulative-comparison-chart-multi-window.test.ts
 | **US3** | 1 |
 | **US4** | 2 |
 | **US5** | 2 |
-| **Polish** | 6 |
-| **Parallel-marked [P]** | 13 |
+| **Polish** | 7 |
+| **Parallel-marked [P]** | 14 |
 
 **Format validation**: Wszystkie wiersze zadań używają `- [ ] Tnnn` (ukończone: `[X]`) oraz ścieżek bezwzględnych lub root-relative zgodnych z repo; etykiety `[US#]` tylko w fazach User Story.

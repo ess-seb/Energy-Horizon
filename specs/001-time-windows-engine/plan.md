@@ -7,7 +7,7 @@
 
 ## Summary
 
-Zastąpić sztywną logikę `buildComparisonPeriod` + dwóch zapytań LTS generycznym **silnikiem okien czasowych**: preset z `comparison_mode` + opcjonalny deep merge z `time_window` (YAML) → walidacja (bezpiecznik 24, błędy jak FR-014) → lista okien z `start`/`end` + `aggregation` → równoległe zapytania `recorder/statistics_during_period` per okno → wyrównanie na oś X (długość najdłuższego okna) → ECharts: serie kontekstowe (indeks ≥ 2) bez tooltipa i bez wpływu na prognozy; **prognoza**: mianownik `computeForecast` z okna bieżącego (FR-017), nie z długości osi; pojedyncze okno (FR-015 time-windows) bez referencji w UI; błąd walidacji — `ha-alert`, brak wykresu.
+Zastąpić sztywną logikę `buildComparisonPeriod` + dwóch zapytań LTS generycznym **silnikiem okien czasowych**: preset z `comparison_preset` (YAML; legacy: `comparison_mode`) + opcjonalny deep merge z `time_window` (YAML) → walidacja (bezpiecznik 24, błędy jak FR-014) → lista okien z `start`/`end` + `aggregation` → równoległe zapytania `recorder/statistics_during_period` per okno → wyrównanie na oś X (długość najdłuższego okna) → ECharts: serie kontekstowe (indeks ≥ 2) bez tooltipa i bez wpływu na prognozy; **prognoza**: mianownik `computeForecast` z okna bieżącego (FR-017), nie z długości osi; pojedyncze okno (FR-015 time-windows) bez referencji w UI; błąd walidacji — `ha-alert`, brak wykresu.
 
 ## Technical Context
 
@@ -63,7 +63,7 @@ src/card/
 ├── localize.ts / i18n          # Nowe stringi błędów konfiguracji
 └── time-windows/               # NOWE (nazwa orientacyjna)
     ├── duration-parse.ts       # Tokeny czasu w stylu Grafany (`1y`, `1M`, `1h`) → Luxon
-    ├── presets.ts              # Mapowanie comparison_mode → TimeWindowTemplate
+    ├── presets.ts              # Mapowanie presetu (comparison_preset / znormalizowany tryb) → TimeWindowTemplate
     ├── merge-config.ts         # Deep merge preset + raw time_window
     ├── validate.ts             # FR-014, FR-016, step > 0, wymagane pola
     ├── resolve-windows.ts      # Luxon: anchor, offset, duration, step×index → [{start,end,aggregation,index,id}]

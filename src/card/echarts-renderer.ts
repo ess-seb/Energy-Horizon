@@ -721,10 +721,19 @@ export class EChartsRenderer {
               return `${dayNumber} ${unitWord}`;
             }
 
-            // month_over_year
             const ts = fullTimeline[slotIndex];
             if (ts == null) return '';
 
+            // month_over_month: two different calendar months — include year (e.g. Dec/Jan).
+            if (comparisonMode === 'month_over_month') {
+              return new Intl.DateTimeFormat(language, {
+                day: 'numeric',
+                month: 'long',
+                year: 'numeric'
+              }).format(new Date(ts));
+            }
+
+            // month_over_year
             return new Intl.DateTimeFormat(language, {
               day: 'numeric',
               month: 'long'

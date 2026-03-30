@@ -14,12 +14,12 @@ Użytkownik konfiguruje kartę w trybie porównania rok do roku z agregacją dzi
 
 **Why this priority**: Bez pełnej osi czasu wykres jest mylący — użytkownik nie może ocenić, czy brakuje danych czy okres jest krótszy. To podstawowe wymaganie poprawności wizualizacji.
 
-**Independent Test**: Można przetestować niezależnie przez skonfigurowanie karty z `comparison_mode: year_over_year` i `aggregation: day` na encji z lukami w danych. Oś pozioma musi pokazywać 365 (lub 366) pozycji; linia musi być przerwana w miejscach bez danych.
+**Independent Test**: Można przetestować niezależnie przez skonfigurowanie karty z `comparison_preset: year_over_year` i `aggregation: day` na encji z lukami w danych. Oś pozioma musi pokazywać 365 (lub 366) pozycji; linia musi być przerwana w miejscach bez danych.
 
 **Acceptance Scenarios**:
 
-1. **Given** karta z `comparison_mode: year_over_year` i `aggregation: day`, **When** część dni roku nie ma danych, **Then** oś pozioma wyświetla wszystkie 365 lub 366 dni, a linia wykresu jest przerwana w dniach bez danych.
-2. **Given** karta z `comparison_mode: month_over_month` i `aggregation: day`, **When** część dni miesiąca nie ma danych, **Then** oś pozioma wyświetla wszystkie dni badanego miesiąca, a linia jest przerwana tam gdzie brak danych.
+1. **Given** karta z `comparison_preset: year_over_year` i `aggregation: day`, **When** część dni roku nie ma danych, **Then** oś pozioma wyświetla wszystkie 365 lub 366 dni, a linia wykresu jest przerwana w dniach bez danych.
+2. **Given** karta z `comparison_preset: month_over_month` i `aggregation: day`, **When** część dni miesiąca nie ma danych, **Then** oś pozioma wyświetla wszystkie dni badanego miesiąca, a linia jest przerwana tam gdzie brak danych.
 3. **Given** agregacja `hour` (godzinowa), **When** brakuje danych dla niektórych godzin, **Then** oś pozioma zawiera wszystkie godziny badanego okresu, a linia przerywa się w miejscach bez danych.
 4. **Given** agregacja `week` lub `month`, **When** brakuje danych, **Then** oś pozioma zawiera wszystkie tygodnie/miesiące okresu, a linia przerywa się odpowiednio.
 5. **Given** seria referencyjna (poprzedni rok/miesiąc) ma luki w danych, **When** wykres jest renderowany, **Then** seria referencyjna również wykazuje przerwy, a oś pozostaje kompletna.
@@ -107,8 +107,8 @@ Użytkownik chce widzieć jasne opisy jednostek dla obu osi wykresu. Oś pionowa
 **Acceptance Scenarios**:
 
 1. **Given** encja z jednostką `kWh`, **When** wykres jest renderowany, **Then** etykieta „kWh" jest widoczna przy najwyższej wartości osi pionowej.
-2. **Given** `comparison_mode: year_over_year` dla roku 2025, **When** wykres jest renderowany, **Then** etykieta osi poziomej wyświetla „2025".
-3. **Given** `comparison_mode: month_over_month` dla marca 2026, **When** wykres jest renderowany, **Then** etykieta osi poziomej wyświetla „Marzec" (lub lokalizowaną nazwę miesiąca zgodną z ustawieniami języka HA).
+2. **Given** `comparison_preset: year_over_year` dla roku 2025, **When** wykres jest renderowany, **Then** etykieta osi poziomej wyświetla „2025".
+3. **Given** `comparison_preset: month_over_month` dla marca 2026, **When** wykres jest renderowany, **Then** etykieta osi poziomej wyświetla „Marzec" (lub lokalizowaną nazwę miesiąca zgodną z ustawieniami języka HA).
 4. **Given** encja bez określonej jednostki, **When** wykres jest renderowany, **Then** etykieta osi pionowej jest pusta lub nie jest wyświetlana.
 
 ---

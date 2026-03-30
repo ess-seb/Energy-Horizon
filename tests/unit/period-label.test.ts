@@ -25,6 +25,18 @@ describe("buildPeriodSuffix", () => {
     expect(result).toMatch(/2026/);
   });
 
+  it("returns month+year for month_over_month mode like month_over_year", () => {
+    const date = new Date("2026-02-01");
+    const result = buildPeriodSuffix(date, "month_over_month", "en");
+    expect(result).toBe("February 2026");
+  });
+
+  it("returns month+year for month_over_month mode with 2026-02-01 in Polish", () => {
+    const date = new Date("2026-02-01");
+    const result = buildPeriodSuffix(date, "month_over_month", "pl");
+    expect(result).toMatch(/2026/);
+  });
+
   it("returns year string for year_over_year mode with period_offset -2 (2024-01-01)", () => {
     const date = new Date("2024-01-01");
     const result = buildPeriodSuffix(date, "year_over_year", "en");
@@ -60,7 +72,7 @@ describe("isForecastLineVisible", () => {
       isForecastLineVisible({
         type: "custom:energy-horizon-card",
         entity: "sensor.e",
-        comparison_mode: "year_over_year"
+        comparison_preset: "year_over_year"
       })
     ).toBe(true);
   });
@@ -70,7 +82,7 @@ describe("isForecastLineVisible", () => {
       isForecastLineVisible({
         type: "custom:energy-horizon-card",
         entity: "sensor.e",
-        comparison_mode: "year_over_year",
+        comparison_preset: "year_over_year",
         show_forecast: false
       })
     ).toBe(false);

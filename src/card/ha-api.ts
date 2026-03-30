@@ -240,7 +240,7 @@ export function buildComparisonPeriod(
   let reference_start: Date;
   let reference_end: Date;
 
-  if (config.comparison_mode === "year_over_year") {
+  if (config.comparison_preset === "year_over_year") {
     const year = current.getFullYear();
 
     current_start = new Date(year, 0, 1, 0, 0, 0, 0);

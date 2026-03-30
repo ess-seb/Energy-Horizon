@@ -16,8 +16,9 @@ type: "custom:energy-horizon-card"
 # Wymagane
 entity: sensor.energy_consumption   # string — ID encji HA (statistic_id)
 
-# Tryb porównania (wymagany)
-comparison_mode: year_over_year      # "year_over_year" | "month_over_year"
+# Preset porównania (wymagany po normalizacji; kanoniczny klucz YAML)
+comparison_preset: year_over_year      # "year_over_year" | "month_over_year" | "month_over_month"
+# Legacy (nadal wczytywany): comparison_mode — jeśli podano oba, wygrywa comparison_preset
 
 # --- Opcje ogólne ---
 title: "Moje zużycie"               # string? — tytuł karty; brak = friendly_name encji
@@ -61,7 +62,8 @@ debug: false                         # boolean? — logowanie diagnostyczne do k
 |---|---|---|---|---|
 | `type` | string | — | ✅ | Zawsze `"custom:energy-horizon-card"` |
 | `entity` | string | — | ✅ | ID encji HA (statistic_id) |
-| `comparison_mode` | `"year_over_year"` \| `"month_over_year"` | — | ✅ | Tryb porównania |
+| `comparison_preset` | `"year_over_year"` \| `"month_over_year"` \| `"month_over_month"` | — | ✅ | Preset porównania (kanoniczny klucz YAML) |
+| `comparison_mode` | (jak wyżej) | — | — | **Deprecated** — alias legacy; gdy oba klucze obecne, obowiązuje `comparison_preset` |
 | `title` | string | friendly_name encji | — | Tytuł wyświetlany na karcie |
 | `show_title` | boolean | `true` | — | Czy wyświetlać tytuł |
 | `icon` | string | ikona z encji | — | Ikona MDI (np. `mdi:lightning-bolt`) |
@@ -101,7 +103,7 @@ Istniejące konfiguracje działają bez modyfikacji:
 ```yaml
 type: "custom:energy-horizon-card"
 entity: sensor.energy_consumption
-comparison_mode: year_over_year
+comparison_preset: year_over_year
 fill_current: false   # wyłącz nowe domyślne wypełnienie
 ```
 
@@ -110,7 +112,7 @@ fill_current: false   # wyłącz nowe domyślne wypełnienie
 ```yaml
 type: "custom:energy-horizon-card"
 entity: sensor.energy_consumption
-comparison_mode: year_over_year
+comparison_preset: year_over_year
 aggregation: day
 primary_color: "#E53935"
 fill_current: true
@@ -125,7 +127,7 @@ show_forecast: true
 ```yaml
 type: "custom:energy-horizon-card"
 entity: sensor.energy_consumption
-comparison_mode: month_over_year
+comparison_preset: month_over_year
 aggregation: day
 fill_current: true
 fill_reference: true

@@ -25,16 +25,27 @@ npm run lint
 ```yaml
 type: custom:energy-horizon-card
 entity: sensor.zuzycie_energii
-comparison_mode: year_over_year
+comparison_preset: year_over_year
 time_window:
   duration: 1y
   step: 1y
   count: 2
 ```
 
-Oczekiwanie: jak YoY z nadpisaną szerokością (SC-004) — regresja względem samego `comparison_mode: year_over_year`.
+Oczekiwanie: jak YoY z nadpisaną szerokością (SC-004) — regresja względem samego `comparison_preset: year_over_year` (lub legacy `comparison_mode: year_over_year`).
 
-**Uwagi UX:** Jeśli w YAML pominięto `comparison_mode`, karta ustawia domyślnie `year_over_year`. Etykiety podsumowania zawierają rok/miesiąc dla presetów; przy w pełni niestandardowych oknach (`time_window`) sufiks może być zakresem dat z wyliczonych okien. Prognoza na wykresie jest domyślnie włączona (`show_forecast`); aby ją ukryć, ustaw `show_forecast: false`.
+**Month over month (kolejne miesiące)** — preset `month_over_month` (ścieżka generyczna, bez legacy YoY/MoY):
+
+```yaml
+type: custom:energy-horizon-card
+entity: sensor.zuzycie_energii
+comparison_preset: month_over_month
+aggregation: day
+```
+
+Oczekiwanie: dwa okna — bieżący miesiąc kalendarzowy vs poprzedni pełny miesiąc; granice jak w `time-windows-presets-golden.test.ts` dla tego trybu.
+
+**Uwagi UX:** Jeśli w YAML pominięto `comparison_preset` (i nie ma niepustego legacy `comparison_mode`), karta ustawia domyślnie `year_over_year`. Etykiety podsumowania zawierają rok/miesiąc dla presetów; przy w pełni niestandardowych oknach (`time_window`) sufiks może być zakresem dat z wyliczonych okien. Prognoza na wykresie jest domyślnie włączona (`show_forecast`); aby ją ukryć, ustaw `show_forecast: false`.
 
 ## Release
 

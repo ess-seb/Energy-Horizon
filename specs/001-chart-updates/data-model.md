@@ -96,7 +96,7 @@ export function buildFullTimeline(period: ComparisonPeriod): number[]
 - `year_over_year` (tryb karty): `fullEnd = new Date(current_start.getFullYear(), 11, 31)`
 - `month_over_year` (tryb karty): `fullEnd = new Date(current_start.getFullYear(), current_start.getMonth() + 1, 0)` (ostatni dzień miesiąca)
 
-Ponieważ `buildFullTimeline` nie zna `comparison_mode` bezpośrednio (ma tylko `ComparisonPeriod`), `ComparisonPeriod` nie zawiera trybu. **Rozwiązanie**: Przekazać `fullEnd: Date` jako drugi argument.
+Ponieważ `buildFullTimeline` nie zna presetu karty (`comparison_preset` / znormalizowanego trybu) bezpośrednio (ma tylko `ComparisonPeriod`), `ComparisonPeriod` nie zawiera trybu. **Rozwiązanie**: Przekazać `fullEnd: Date` jako drugi argument.
 
 **Zmieniona sygnatura**:
 ```typescript
@@ -233,7 +233,7 @@ const hash = JSON.stringify({ c: currentData, r: referenceData, cfg: rendererCon
 W metodzie `updated()` (gdzie inicializowany jest chart renderer):
 
 ```typescript
-// Oblicz fullEnd na podstawie comparison_mode i period
+// Oblicz fullEnd na podstawie comparison_preset (presetu) i period
 const fullEnd = this._computeFullEnd(this._state.period);
 const fullTimeline = buildFullTimeline(this._state.period, fullEnd);
 
@@ -253,7 +253,7 @@ this._chartRenderer.update(
 
 ```typescript
 private _computeFullEnd(period: ComparisonPeriod): Date {
-  if (this._config.comparison_mode === 'year_over_year') {
+  if (this._config.comparison_preset === 'year_over_year') {
     return new Date(period.current_start.getFullYear(), 11, 31);
   }
   // month_over_year
@@ -273,7 +273,7 @@ private _buildRendererConfig(): ChartRendererConfig {
   const period = this._state.period!;
   const lang = this._config.language ?? this.hass?.language ?? 'en';
 
-  const periodLabel = cfg.comparison_mode === 'year_over_year'
+  const periodLabel = cfg.comparison_preset === 'year_over_year'
     ? String(period.current_start.getFullYear())
     : new Intl.DateTimeFormat(lang, { month: 'long' }).format(period.current_start);
 

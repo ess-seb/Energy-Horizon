@@ -1,12 +1,15 @@
 import { LitElement, html } from "lit";
 import type { HomeAssistant, LovelaceCard } from "../ha-types";
-import type {
-  CardConfig,
-  CardState,
-  ComparisonSeries,
-  ChartRendererConfig,
-  ResolvedWindow,
-  TimeSeriesPoint
+import {
+  resolveComparisonPreset,
+  type CardConfig,
+  type CardConfigInput,
+  type CardState,
+  type ComparisonMode,
+  type ComparisonSeries,
+  type ChartRendererConfig,
+  type ResolvedWindow,
+  type TimeSeriesPoint
 } from "./types";
 import {
   mapLtsResponseToCumulativeSeries,
@@ -47,11 +50,15 @@ export function formatSigned(
   return `${formatter.format(0)} ${unit}`;
 }
 
-export function buildPeriodSuffix(date: Date, mode: string, language: string): string {
+export function buildPeriodSuffix(
+  date: Date,
+  mode: ComparisonMode | string,
+  language: string
+): string {
   if (mode === "year_over_year") {
     return String(date.getFullYear());
   }
-  if (mode === "month_over_year") {
+  if (mode === "month_over_year" || mode === "month_over_month") {
     return new Intl.DateTimeFormat(language, { month: "long", year: "numeric" }).format(date);
   }
   return "";
@@ -125,23 +132,22 @@ export class EnergyHorizonCard extends LitElement implements LovelaceCard {
     return translated;
   }
 
-  public setConfig(config: CardConfig): void {
-    const raw = config as CardConfig & { forecast?: boolean };
-    const comparison_mode =
-      raw.comparison_mode != null && String(raw.comparison_mode).trim() !== ""
-        ? raw.comparison_mode
-        : "year_over_year";
+  public setConfig(config: CardConfigInput): void {
+    const raw = config as CardConfigInput & { forecast?: boolean };
+    const comparison_preset = resolveComparisonPreset(raw);
+    const { comparison_mode: _legacyComparisonMode, ...rest } = raw;
     const show_forecast =
       raw.show_forecast !== undefined
         ? raw.show_forecast
         : raw.forecast !== undefined
           ? raw.forecast
           : undefined;
+    void _legacyComparisonMode;
     this._config = {
-      ...config,
-      comparison_mode,
+      ...rest,
+      comparison_preset,
       ...(show_forecast !== undefined ? { show_forecast } : {})
-    };
+    } as CardConfig;
     this._state = { status: "loading" };
   }
 
@@ -179,7 +185,7 @@ export class EnergyHorizonCard extends LitElement implements LovelaceCard {
             this._state.resolvedWindows,
             this._state.mergedTimeWindow!,
             resolved.timeZone,
-            this._config.comparison_mode
+            this._config.comparison_preset
           );
           const rendererConfig = this._buildRendererConfig();
           this._chartRenderer.update(this._state.comparisonSeries, timeline, rendererConfig, {
@@ -199,7 +205,7 @@ export class EnergyHorizonCard extends LitElement implements LovelaceCard {
     const localize = createLocalize(resolved.language);
 
     const mergedBase = mergeTimeWindowConfig({
-      mode: this._config.comparison_mode,
+      mode: this._config.comparison_preset,
       timeWindowPartial: this._config.time_window,
       periodOffset: this._config.period_offset
     });
@@ -314,7 +320,7 @@ export class EnergyHorizonCard extends LitElement implements LovelaceCard {
         windows,
         validated.merged,
         resolved.timeZone,
-        this._config.comparison_mode
+        this._config.comparison_preset
       );
       const forecast = computeForecast(scaledSeries, forecastPeriodBuckets);
 
@@ -468,7 +474,7 @@ export class EnergyHorizonCard extends LitElement implements LovelaceCard {
         forecastTotal: this._state.forecast?.forecast_total,
         unit: this._state.forecast?.unit ?? "",
         periodLabel: "",
-        comparisonMode: this._config.comparison_mode,
+        comparisonMode: this._config.comparison_preset,
         language,
         numberLocale,
         precision: this._config.precision ?? 2,
@@ -483,10 +489,17 @@ export class EnergyHorizonCard extends LitElement implements LovelaceCard {
     const singleWindow = !windows || windows.length < 2;
 
     let periodLabel = "";
-    if (this._config.comparison_mode === "year_over_year") {
+    if (this._config.comparison_preset === "year_over_year") {
       periodLabel = String(period.current_start.getFullYear());
+    } else if (this._config.comparison_preset === "month_over_month") {
+      periodLabel = new Intl.DateTimeFormat(language, {
+        month: "long",
+        year: "numeric"
+      }).format(period.current_start);
     } else {
-      periodLabel = new Intl.DateTimeFormat(language, { month: "long" }).format(period.current_start);
+      periodLabel = new Intl.DateTimeFormat(language, { month: "long" }).format(
+        period.current_start
+      );
     }
 
     const displayUnit = series.current.unit;
@@ -507,7 +520,7 @@ export class EnergyHorizonCard extends LitElement implements LovelaceCard {
       periodLabel,
       referencePeriodStart: period.reference_start.getTime(),
       windowAlignStartsMs: windows?.map((w) => w.start.getTime()),
-      comparisonMode: this._config.comparison_mode,
+      comparisonMode: this._config.comparison_preset,
       language,
       numberLocale,
       precision,
@@ -605,12 +618,12 @@ export class EnergyHorizonCard extends LitElement implements LovelaceCard {
       const lang = this._config.language ?? this.hass?.language ?? "en";
       let currentSuffix = buildPeriodSuffix(
         this._state.period.current_start,
-        this._config.comparison_mode,
+        this._config.comparison_preset,
         lang
       );
       let referenceSuffix = buildPeriodSuffix(
         this._state.period.reference_start,
-        this._config.comparison_mode,
+        this._config.comparison_preset,
         lang
       );
       const rw = this._state.resolvedWindows;
@@ -667,6 +680,8 @@ export class EnergyHorizonCard extends LitElement implements LovelaceCard {
 
     const forecastUnit = forecast?.unit || displayUnit;
 
+    const isMom = this._config.comparison_preset === "month_over_month";
+
     let heading: string | null = null;
     if (textSummary && !singleWindow) {
       const diffText =
@@ -678,19 +693,22 @@ export class EnergyHorizonCard extends LitElement implements LovelaceCard {
         case "higher":
           heading = this._localizeOrError(
             localize,
-            "text_summary.higher",
+            isMom ? "text_summary.higher_mom" : "text_summary.higher",
             diffText ? { diff: diffText } : undefined
           );
           break;
         case "lower":
           heading = this._localizeOrError(
             localize,
-            "text_summary.lower",
+            isMom ? "text_summary.lower_mom" : "text_summary.lower",
             diffText ? { diff: diffText } : undefined
           );
           break;
         case "similar":
-          heading = this._localizeOrError(localize, "text_summary.similar");
+          heading = this._localizeOrError(
+            localize,
+            isMom ? "text_summary.similar_mom" : "text_summary.similar"
+          );
           break;
         case "unknown":
         default:
@@ -816,7 +834,7 @@ export class EnergyHorizonCard extends LitElement implements LovelaceCard {
   }
 
   static getStubConfig(): Partial<CardConfig> {
-    return { entity: "", comparison_mode: "year_over_year" };
+    return { entity: "", comparison_preset: "year_over_year" };
   }
 }
 

@@ -34,7 +34,7 @@ describe("EnergyHorizonCard multi-window fetch", () => {
     card.setConfig({
       type: "custom:energy-horizon-card",
       entity: "sensor.energy",
-      comparison_mode: "year_over_year",
+      comparison_preset: "year_over_year",
       aggregation: "day",
       time_window: {
         anchor: "start_of_month",

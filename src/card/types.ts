@@ -1,6 +1,9 @@
 import type { ForcePrefix } from '../utils/unit-scaler';
 
-export type ComparisonMode = "year_over_year" | "month_over_year";
+export type ComparisonMode =
+  | "year_over_year"
+  | "month_over_year"
+  | "month_over_month";
 
 export type TimeAnchor =
   | "start_of_year"
@@ -51,8 +54,8 @@ export interface CardConfig {
   show_title?: boolean;
   icon?: string;
   show_icon?: boolean;
-  /** Set by card if omitted in YAML (defaults to `year_over_year`). */
-  comparison_mode: ComparisonMode;
+  /** YAML key `comparison_preset`; set by card if omitted (defaults to `year_over_year`). */
+  comparison_preset: ComparisonMode;
   aggregation?: WindowAggregation;
   period_offset?: number;
   time_window?: TimeWindowYaml;
@@ -79,6 +82,32 @@ export interface CardConfig {
    * SI unit scaling: `auto` (default when omitted), `none`, or a forced prefix (`k`, `M`, …).
    */
   force_prefix?: ForcePrefix;
+}
+
+/**
+ * Raw Lovelace config before normalization in the card's `setConfig`.
+ * Prefer `comparison_preset`; deprecated `comparison_mode` is still accepted.
+ */
+export type CardConfigInput = Omit<CardConfig, "comparison_preset"> & {
+  comparison_preset?: ComparisonMode;
+  /** @deprecated Use `comparison_preset`. */
+  comparison_mode?: ComparisonMode;
+};
+
+/** Resolves YAML `comparison_preset` vs legacy `comparison_mode` (non-empty wins; else `year_over_year`). */
+export function resolveComparisonPreset(
+  raw: Pick<CardConfigInput, "comparison_preset" | "comparison_mode">
+): ComparisonMode {
+  const presetNew =
+    raw.comparison_preset != null &&
+    String(raw.comparison_preset).trim() !== ""
+      ? raw.comparison_preset
+      : undefined;
+  const presetLegacy =
+    raw.comparison_mode != null && String(raw.comparison_mode).trim() !== ""
+      ? raw.comparison_mode
+      : undefined;
+  return presetNew ?? presetLegacy ?? "year_over_year";
 }
 
 export interface ComparisonPeriod {

@@ -1,7 +1,7 @@
 import type { ComparisonMode, MergedTimeWindowConfig } from "../types";
 
 /**
- * Internal preset templates for `comparison_mode` (merged with optional YAML).
+ * Internal preset templates for `comparison_preset` (YAML; legacy `comparison_mode`) merged with optional YAML.
  */
 export function getPresetTemplate(
   mode: ComparisonMode,
@@ -17,6 +17,15 @@ export function getPresetTemplate(
       currentEndIsNow: true,
       referenceFullPeriod: true,
       periodOffsetYears: off,
+      comparisonMode: mode
+    };
+  }
+  if (mode === "month_over_month") {
+    return {
+      anchor: "start_of_month",
+      duration: "1M",
+      step: "1M",
+      count: 2,
       comparisonMode: mode
     };
   }
