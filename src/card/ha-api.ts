@@ -74,6 +74,23 @@ export function buildTimelineSlots(
   return timeline;
 }
 
+/**
+ * Slot count for one resolved window — use as `periodTotalBuckets` for {@link computeForecast}.
+ * Chart X-axis may use a longer span (longest window, FR-009); forecast progress must use
+ * the current window (index 0) only.
+ */
+export function countBucketsForWindow(
+  window: ResolvedWindow,
+  timeZone: string
+): number {
+  return buildTimelineSlots(
+    window.start,
+    window.end,
+    window.aggregation,
+    timeZone
+  ).length;
+}
+
 export function buildFullTimeline(
   period: ComparisonPeriod,
   fullEnd: Date
@@ -124,7 +141,12 @@ export function buildChartTimeline(
   merged: MergedTimeWindowConfig,
   timeZone: string,
   comparisonMode: ComparisonMode
-): { timeline: number[]; alignStartsMs: number[] } {
+): {
+  timeline: number[];
+  alignStartsMs: number[];
+  /** Denominator for `computeForecast` — full current-window bucket count, not always `timeline.length` when windows differ in length. */
+  forecastPeriodBuckets: number;
+} {
   const alignStartsMs = windows.map((w) => w.start.getTime());
   const legacyPreset =
     !!merged.currentEndIsNow &&
@@ -154,10 +176,18 @@ export function buildChartTimeline(
       period.aggregation,
       timeZone
     );
-    return { timeline, alignStartsMs };
+    return {
+      timeline,
+      alignStartsMs,
+      forecastPeriodBuckets: timeline.length
+    };
   }
 
-  return buildFullTimelineForWindows(windows, timeZone);
+  const { timeline, alignStartsMs: align } =
+    buildFullTimelineForWindows(windows, timeZone);
+  const forecastPeriodBuckets =
+    windows.length > 0 ? countBucketsForWindow(windows[0]!, timeZone) : 0;
+  return { timeline, alignStartsMs: align, forecastPeriodBuckets };
 }
 
 export function comparisonPeriodFromResolvedWindows(

@@ -3,6 +3,8 @@
 **Consumers**: `cumulative-comparison-chart.ts`, testy Vitest  
 **Path (planowany)**: `src/card/time-windows/`
 
+**Prognoza (integracja z kartą)**: warstwa `ha-api.ts` (`buildChartTimeline`, `countBucketsForWindow`) wylicza **`forecastPeriodBuckets`** dla `computeForecast`: przy wielu oknach o różnej długości mianownik opiera się na **oknie 0**, nie na maksymalnej rozpiętości listy okien ani wyłącznie na długości osi X (FR-009).
+
 ## Exports (logiczne)
 
 ### `mergeTimeWindowConfig`

@@ -7,7 +7,7 @@
 
 ## Summary
 
-Zastąpić sztywną logikę `buildComparisonPeriod` + dwóch zapytań LTS generycznym **silnikiem okien czasowych**: preset z `comparison_mode` + opcjonalny deep merge z `time_window` (YAML) → walidacja (bezpiecznik 24, błędy jak FR-014) → lista okien z `start`/`end` + `aggregation` → równoległe zapytania `recorder/statistics_during_period` per okno → wyrównanie na oś X (długość najdłuższego okna) → ECharts: serie kontekstowe (indeks ≥ 2) bez tooltipa i bez wpływu na prognozy; pojedyncze okno (FR-015) bez referencji w UI; błąd walidacji — `ha-alert`, brak wykresu.
+Zastąpić sztywną logikę `buildComparisonPeriod` + dwóch zapytań LTS generycznym **silnikiem okien czasowych**: preset z `comparison_mode` + opcjonalny deep merge z `time_window` (YAML) → walidacja (bezpiecznik 24, błędy jak FR-014) → lista okien z `start`/`end` + `aggregation` → równoległe zapytania `recorder/statistics_during_period` per okno → wyrównanie na oś X (długość najdłuższego okna) → ECharts: serie kontekstowe (indeks ≥ 2) bez tooltipa i bez wpływu na prognozy; **prognoza**: mianownik `computeForecast` z okna bieżącego (FR-017), nie z długości osi; pojedyncze okno (FR-015 time-windows) bez referencji w UI; błąd walidacji — `ha-alert`, brak wykresu.
 
 ## Technical Context
 

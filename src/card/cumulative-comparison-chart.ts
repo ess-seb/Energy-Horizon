@@ -279,13 +279,13 @@ export class EnergyHorizonCard extends LitElement implements LovelaceCard {
       const scaledSeries = this._applyUnitScalingToSeries(series, entityUnit);
 
       const summary = computeSummary(scaledSeries);
-      const { timeline } = buildChartTimeline(
+      const { forecastPeriodBuckets } = buildChartTimeline(
         windows,
         validated.merged,
         resolved.timeZone,
         this._config.comparison_mode
       );
-      const forecast = computeForecast(scaledSeries, timeline.length);
+      const forecast = computeForecast(scaledSeries, forecastPeriodBuckets);
 
       if (!summary.unit && entityUnit) {
         summary.unit = entityUnit;
