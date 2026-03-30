@@ -5,6 +5,7 @@ import type {
   CardState,
   ComparisonSeries,
   ChartRendererConfig,
+  ResolvedWindow,
   TimeSeriesPoint
 } from "./types";
 import {
@@ -54,6 +55,21 @@ export function buildPeriodSuffix(date: Date, mode: string, language: string): s
     return new Intl.DateTimeFormat(language, { month: "long", year: "numeric" }).format(date);
   }
   return "";
+}
+
+/** Suffix for summary labels when preset suffix is empty (custom `time_window`). */
+export function formatWindowRangeSuffix(w: ResolvedWindow, language: string): string {
+  const fmt = new Intl.DateTimeFormat(language, {
+    day: "numeric",
+    month: "short",
+    year: "numeric"
+  });
+  return `${fmt.format(w.start)} – ${fmt.format(w.end)}`;
+}
+
+/** Chart forecast line: on unless explicitly `show_forecast: false` (alias `forecast` merged in setConfig). */
+export function isForecastLineVisible(config: CardConfig): boolean {
+  return config.show_forecast !== false;
 }
 
 function clampOpacity(value: unknown): number {
@@ -110,7 +126,22 @@ export class EnergyHorizonCard extends LitElement implements LovelaceCard {
   }
 
   public setConfig(config: CardConfig): void {
-    this._config = config;
+    const raw = config as CardConfig & { forecast?: boolean };
+    const comparison_mode =
+      raw.comparison_mode != null && String(raw.comparison_mode).trim() !== ""
+        ? raw.comparison_mode
+        : "year_over_year";
+    const show_forecast =
+      raw.show_forecast !== undefined
+        ? raw.show_forecast
+        : raw.forecast !== undefined
+          ? raw.forecast
+          : undefined;
+    this._config = {
+      ...config,
+      comparison_mode,
+      ...(show_forecast !== undefined ? { show_forecast } : {})
+    };
     this._state = { status: "loading" };
   }
 
@@ -432,7 +463,7 @@ export class EnergyHorizonCard extends LitElement implements LovelaceCard {
         fillReferenceOpacity: clampOpacity(this._config.fill_reference_opacity),
         connectNulls: this._config.connect_nulls ?? true,
         showLegend: this._config.show_legend === true,
-        showForecast: this._config.show_forecast ?? false,
+        showForecast: isForecastLineVisible(this._config),
         showReferenceComparison: false,
         forecastTotal: this._state.forecast?.forecast_total,
         unit: this._state.forecast?.unit ?? "",
@@ -469,7 +500,7 @@ export class EnergyHorizonCard extends LitElement implements LovelaceCard {
       fillReferenceOpacity: clampOpacity(this._config.fill_reference_opacity),
       connectNulls: this._config.connect_nulls ?? true,
       showLegend: this._config.show_legend === true,
-      showForecast: (this._config.show_forecast ?? false) && !singleWindow,
+      showForecast: isForecastLineVisible(this._config) && !singleWindow,
       showReferenceComparison: !singleWindow && series.reference != null,
       forecastTotal: this._state.forecast?.forecast_total,
       unit: displayUnit,
@@ -572,8 +603,23 @@ export class EnergyHorizonCard extends LitElement implements LovelaceCard {
 
     if (this._state.status === "ready" && this._state.period) {
       const lang = this._config.language ?? this.hass?.language ?? "en";
-      const currentSuffix = buildPeriodSuffix(this._state.period.current_start, this._config.comparison_mode, lang);
-      const referenceSuffix = buildPeriodSuffix(this._state.period.reference_start, this._config.comparison_mode, lang);
+      let currentSuffix = buildPeriodSuffix(
+        this._state.period.current_start,
+        this._config.comparison_mode,
+        lang
+      );
+      let referenceSuffix = buildPeriodSuffix(
+        this._state.period.reference_start,
+        this._config.comparison_mode,
+        lang
+      );
+      const rw = this._state.resolvedWindows;
+      if (!currentSuffix && rw?.[0]) {
+        currentSuffix = formatWindowRangeSuffix(rw[0], lang);
+      }
+      if (!referenceSuffix && rw?.[1]) {
+        referenceSuffix = formatWindowRangeSuffix(rw[1], lang);
+      }
       currentPeriodLabel = `${currentPeriodLabel} (${currentSuffix})`;
       referencePeriodLabel = `${referencePeriodLabel} (${referenceSuffix})`;
     }
@@ -617,7 +663,7 @@ export class EnergyHorizonCard extends LitElement implements LovelaceCard {
       !singleWindow &&
       forecast != null &&
       forecast.enabled &&
-      this._config.show_forecast !== false;
+      isForecastLineVisible(this._config);
 
     const forecastUnit = forecast?.unit || displayUnit;
 

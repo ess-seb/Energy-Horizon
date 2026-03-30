@@ -11,7 +11,7 @@
   "summary.reference_period": "Referenzzeitraum",
   "summary.difference": "Differenz",
   "summary.difference_percent": "Differenz [%]",
-  "summary.incomplete_reference": "Referenzdaten für diesen Tag sind unvollständig…",
+  "summary.incomplete_reference": "Referenzdaten für diesen Zeitraum sind unvollständig…",
   "forecast.current_forecast": "Prognose aktueller Zeitraum",
   "forecast.reference_consumption": "Verbrauch im Referenzzeitraum",
   "forecast.confidence": "Prognose-Konfidenz: {{confidence}}.",

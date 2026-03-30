@@ -31,7 +31,7 @@ period_offset: -1                    # number? — offset okresu referencyjnego 
 precision: 1                         # number? — miejsca po przecinku; domyślnie: 1
 
 # --- Opcje prognozy ---
-show_forecast: false                 # boolean? — linia prognozy na wykresie; domyślnie: false
+show_forecast: true                  # boolean? — linia prognozy na wykresie; domyślnie: true; false = ukryj. Alias: forecast
 
 # --- Opcje null gap (łączenie braków) ---
 connect_nulls: true                 # boolean? — rysuje przerywane interpolacje w lukach (sloty z brakami danych); domyślnie: true
@@ -69,7 +69,7 @@ debug: false                         # boolean? — logowanie diagnostyczne do k
 | `aggregation` | `"day"` \| `"week"` \| `"month"` | `"day"` | — | Jednostka agregacji osi X |
 | `period_offset` | number | `-1` | — | Offset roku/okresu referencyjnego |
 | `precision` | number | `1` | — | Liczba miejsc dziesiętnych w wartościach |
-| `show_forecast` | boolean | `false` | — | **US5**: Linia prognozy na wykresie |
+| `show_forecast` | boolean | `true` | — | **US5**: Linia prognozy na wykresie (`false` = ukryj); alias: `forecast` |
 | `connect_nulls` | boolean | `true` | — | Włącza/wyłącza rysowanie przerywanej interpolacji w lukach dla `null` (brak danych) |
 | `primary_color` | string (CSS color) | `--accent-color` HA | — | **US4**: Kolor linii serii bieżącej |
 | `fill_current` | boolean | `true` | — | **US3**: Wypełnienie pod serią bieżącą |
@@ -88,9 +88,9 @@ Wszystkie nowe opcje mają wartości domyślne — **brak zmian łamiących komp
 Istniejące konfiguracje działają bez modyfikacji:
 - `fill_current: true` (domyślna) — wygląd nieznacznie zmieniony (pojawia się fill pod bieżącą serią)
 - `primary_color` (brak) — kolor akcentu HA jak poprzednio
-- `show_forecast: false` (domyślna) — bez zmian
+- `show_forecast` — domyślnie **włączone** (linia prognozy na wykresie, gdy prognoza jest dostępna); użytkownicy preferujący brak linii bez ustawiania opcji powinni dodać `show_forecast: false`
 
-**Jedyna widoczna różnica dla istniejących użytkowników**: Domyślne `fill_current: true` powoduje pojawienie się półprzezroczystego wypełnienia (30%) pod serią bieżącą po aktualizacji. Jeśli użytkownik tego nie chce, może ustawić `fill_current: false`.
+**Widoczne różnice dla istniejących użytkowników**: (1) Domyślne `fill_current: true` powoduje pojawienie się półprzezroczystego wypełnienia (30%) pod serią bieżącą po aktualizacji. Jeśli użytkownik tego nie chce, może ustawić `fill_current: false`. (2) Domyślnie włączona linia prognozy na wykresie — aby ją ukryć jak wcześniej (bez jawnej opcji), ustaw `show_forecast: false`.
 
 ---
 

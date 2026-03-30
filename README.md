@@ -142,7 +142,6 @@ type: custom:energy-horizon-card
 entity: sensor.energy_consumption_total
 comparison_mode: month_over_year
 aggregation: day
-show_forecast: true
 ```
 
 ## Beginner-friendly options
@@ -152,9 +151,9 @@ Start with defaults. Change only what you need.
 | Option | Default | Typical use |
 |---|---|---|
 | `entity` | required | Your statistics entity ID |
-| `comparison_mode` | required | `year_over_year` for yearly trend, `month_over_year` for month trend |
+| `comparison_mode` | `year_over_year` if omitted | `year_over_year` for yearly trend, `month_over_year` for month trend |
 | `aggregation` | `day` | Use `week`/`month` for less detail |
-| `show_forecast` | `false` | Set `true` if you want forecast line on chart |
+| `show_forecast` | `true` (on) | Set `false` to hide the forecast line on the chart |
 | `title` | auto | Custom card title |
 | `icon` | entity icon | Custom icon, e.g. `mdi:flash` |
 | `precision` | `2` | Number of decimals |
@@ -162,7 +161,7 @@ Start with defaults. Change only what you need.
 
 Notes:
 
-- `show_forecast: true` displays forecast line on chart when forecast is available.
+- Forecast line on the chart is shown when a forecast can be computed, unless you set `show_forecast: false`. The alias `forecast` (boolean) is accepted and means the same as `show_forecast`.
 - Use `u` in YAML for micro prefix (ASCII-safe form).
 
 ## Forecast in plain words
@@ -198,7 +197,7 @@ The editor includes a **YAML** (text) mode toggle so you can edit the **full** c
 |---|---|---|
 | "Custom element doesn't exist" | Resource not loaded | Resource URL and browser console (F12) |
 | Empty chart / no data | Wrong entity or no statistics | Entity in **Developer Tools -> Statistics** |
-| No forecast | Conditions not met or hidden line | Data coverage and `show_forecast: true` |
+| No forecast line | Not enough data, today outside range, or `show_forecast: false` | Data coverage; set `show_forecast: false` only if you intentionally hide the line |
 | Wrong units | Mixed or unexpected units in history | Entity `unit_of_measurement` consistency |
 | Values look too big/small | Auto scaling not desired | Set `force_prefix: none` |
 | Card error | Invalid config or entity ID typo | YAML keys and entity name |
@@ -216,7 +215,7 @@ Yes, as long as the selected entity has long-term statistics.
 
 ### Why do I not see forecast line?
 
-Set `show_forecast: true`, then verify that enough valid data exists.
+By default the line is enabled. If it is missing, check that you did not set `show_forecast: false`, that there is enough data in the current period, and that “today” falls inside the compared window.
 
 ### Should I use `force_prefix`?
 
@@ -224,7 +223,7 @@ Usually no. Keep `auto` unless you want fixed units (for example always `kWh`).
 
 ## Time windows (advanced YAML)
 
-The card resolves **time windows** from `comparison_mode` (preset) and an optional `time_window` block in YAML. Values you set in `time_window` override the same fields from the preset; omitted keys keep preset defaults (deep merge). Supported anchors include `start_of_year`, `start_of_month`, `start_of_hour`, and `now`. Durations and steps use Grafana-style tokens such as `1y`, `1M`, `7d`, and `1h`. Up to **24** windows are accepted from YAML; invalid configuration shows a card error (`ha-alert`) and no data series. The chart X-axis follows the **longest** window; **forecast** progress thresholds still use the **current** window (index 0) only.
+The card resolves **time windows** from `comparison_mode` (preset) and an optional `time_window` block in YAML. If `comparison_mode` is omitted in YAML, it defaults to **`year_over_year`** (same as the card stub in the UI editor). Values you set in `time_window` override the same fields from the preset; omitted keys keep preset defaults (deep merge). Supported anchors include `start_of_year`, `start_of_month`, `start_of_hour`, and `now`. Durations and steps use Grafana-style tokens such as `1y`, `1M`, `7d`, and `1h`. Up to **24** windows are accepted from YAML; invalid configuration shows a card error (`ha-alert`) and no data series. The chart X-axis follows the **longest** window; **forecast** progress thresholds still use the **current** window (index 0) only. Period labels in the summary use year/month presets when applicable, and otherwise show a **date range** for each resolved window.
 
 For a full parameter table, merge behaviour, Mermaid diagrams, and copy-paste YAML examples (e.g. two consecutive months, fiscal year from October, hourly windows), see the maintained draft in this repository:
 

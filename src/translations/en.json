@@ -11,7 +11,7 @@
   "summary.reference_period": "Reference period",
   "summary.difference": "Difference",
   "summary.difference_percent": "Difference [%]",
-  "summary.incomplete_reference": "Reference data for this day is incomplete…",
+  "summary.incomplete_reference": "Reference data for this period is incomplete…",
   "forecast.current_forecast": "Current period forecast",
   "forecast.reference_consumption": "Consumption in reference period",
   "forecast.confidence": "Forecast confidence level: {{confidence}}.",

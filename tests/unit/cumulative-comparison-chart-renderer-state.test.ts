@@ -61,6 +61,131 @@ describe("EnergyHorizonCard renderer config vs _state", () => {
     comparison_mode: "year_over_year"
   };
 
+  it("setConfig maps forecast alias to show_forecast", () => {
+    const card = new EnergyHorizonCard();
+    card.setConfig({ ...baseConfig, forecast: true });
+    expect(card._config.show_forecast).toBe(true);
+  });
+
+  it("setConfig prefers show_forecast over forecast when both are set", () => {
+    const card = new EnergyHorizonCard();
+    card.setConfig({
+      ...baseConfig,
+      show_forecast: false,
+      forecast: true
+    });
+    expect(card._config.show_forecast).toBe(false);
+  });
+
+  it("setConfig defaults comparison_mode to year_over_year when missing", () => {
+    const card = new EnergyHorizonCard();
+    card.setConfig({
+      type: "custom:energy-horizon-card",
+      entity: "sensor.energy"
+    } as CardConfig);
+    expect(card._config.comparison_mode).toBe("year_over_year");
+  });
+
+  it("_buildRendererConfig sets showForecast true when show_forecast omitted (two windows)", () => {
+    const card = new EnergyHorizonCard();
+    card.hass = createBaseHass("en");
+    card.setConfig(baseConfig);
+
+    const ready: CardState = {
+      status: "ready",
+      period: buildMinimalPeriod(),
+      comparisonSeries: buildMinimalComparisonSeries(),
+      resolvedWindows: [
+        {
+          index: 0,
+          id: "a",
+          role: "current",
+          start: new Date(2024, 0, 1),
+          end: new Date(2024, 11, 31),
+          aggregation: "day"
+        },
+        {
+          index: 1,
+          id: "b",
+          role: "reference",
+          start: new Date(2023, 0, 1),
+          end: new Date(2023, 11, 31),
+          aggregation: "day"
+        }
+      ],
+      summary: {
+        current_cumulative: 100,
+        reference_cumulative: 90,
+        difference: 10,
+        differencePercent: 11.1,
+        unit: "kWh"
+      },
+      forecast: {
+        enabled: true,
+        forecast_total: 120,
+        reference_total: 90,
+        confidence: "medium",
+        unit: "kWh"
+      }
+    };
+
+    card._state = ready;
+    const cfg = (
+      card as unknown as { _buildRendererConfig: () => { showForecast: boolean } }
+    )._buildRendererConfig();
+    expect(cfg.showForecast).toBe(true);
+  });
+
+  it("_buildRendererConfig sets showForecast false when show_forecast is false", () => {
+    const card = new EnergyHorizonCard();
+    card.hass = createBaseHass("en");
+    card.setConfig({ ...baseConfig, show_forecast: false });
+
+    const ready: CardState = {
+      status: "ready",
+      period: buildMinimalPeriod(),
+      comparisonSeries: buildMinimalComparisonSeries(),
+      resolvedWindows: [
+        {
+          index: 0,
+          id: "a",
+          role: "current",
+          start: new Date(2024, 0, 1),
+          end: new Date(2024, 11, 31),
+          aggregation: "day"
+        },
+        {
+          index: 1,
+          id: "b",
+          role: "reference",
+          start: new Date(2023, 0, 1),
+          end: new Date(2023, 11, 31),
+          aggregation: "day"
+        }
+      ],
+      summary: {
+        current_cumulative: 100,
+        reference_cumulative: 90,
+        difference: 10,
+        differencePercent: 11.1,
+        unit: "kWh"
+      },
+      forecast: {
+        enabled: true,
+        forecast_total: 120,
+        reference_total: 90,
+        confidence: "medium",
+        unit: "kWh"
+      }
+    };
+
+    card._state = ready;
+    const cfg = (
+      card as unknown as { _buildRendererConfig: () => { showForecast: boolean } }
+    )._buildRendererConfig();
+    expect(cfg.showForecast).toBe(false);
+  });
+
   /**
    * Regression: `_buildRendererConfig()` must not assign to `this._state` (or otherwise
    * mutate card state). Doing so from `updated()` caused an infinite Lit update loop and

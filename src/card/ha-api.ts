@@ -412,17 +412,45 @@ function toCumulativeSeries(
   };
 }
 
+/**
+ * Cumulative reference value at the same aligned time as the last current point
+ * (same periodAlignMs logic as {@link computeForecast} / chart).
+ */
+export function referenceCumulativeAtAlignedCurrentEnd(
+  currentPoints: TimeSeriesPoint[],
+  refPoints: TimeSeriesPoint[]
+): number | undefined {
+  if (currentPoints.length === 0 || refPoints.length === 0) {
+    return undefined;
+  }
+  const periodAlignMs =
+    currentPoints[0]!.timestamp - refPoints[0]!.timestamp;
+  const lastTs = currentPoints[currentPoints.length - 1]!.timestamp;
+  let bestIdx = -1;
+  for (let i = refPoints.length - 1; i >= 0; i--) {
+    const alignedTs = refPoints[i]!.timestamp + periodAlignMs;
+    if (alignedTs <= lastTs) {
+      bestIdx = i;
+      break;
+    }
+  }
+  if (bestIdx === -1) {
+    return undefined;
+  }
+  return refPoints[bestIdx]!.value;
+}
+
 export function computeSummary(series: ComparisonSeries): SummaryStats {
   const currentPoints = series.current.points;
   const current_cumulative =
     currentPoints[currentPoints.length - 1]?.value ?? 0;
 
   let reference_cumulative: number | undefined;
-  if (series.reference && series.reference.points.length >= currentPoints.length) {
-    const refPoints = series.reference.points;
-    reference_cumulative =
-      refPoints[currentPoints.length - 1]?.value ??
-      refPoints[refPoints.length - 1]?.value;
+  if (series.reference?.points?.length) {
+    reference_cumulative = referenceCumulativeAtAlignedCurrentEnd(
+      currentPoints,
+      series.reference.points
+    );
   }
 
   let difference: number | undefined;

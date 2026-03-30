@@ -34,6 +34,8 @@ time_window:
 
 Oczekiwanie: jak YoY z nadpisaną szerokością (SC-004) — regresja względem samego `comparison_mode: year_over_year`.
 
+**Uwagi UX:** Jeśli w YAML pominięto `comparison_mode`, karta ustawia domyślnie `year_over_year`. Etykiety podsumowania zawierają rok/miesiąc dla presetów; przy w pełni niestandardowych oknach (`time_window`) sufiks może być zakresem dat z wyliczonych okien. Prognoza na wykresie jest domyślnie włączona (`show_forecast`); aby ją ukryć, ustaw `show_forecast: false`.
+
 ## Release
 
 - Przed wydaniem: [release-readiness.md](./release-readiness.md) (SC-005, T030).

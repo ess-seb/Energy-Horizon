@@ -21,7 +21,7 @@ This page combines full option reference with practical customization notes.
 | `icon` | string | entity icon | Custom icon |
 | `show_icon` | boolean | `true` | Show icon |
 | `show_legend` | boolean | `false` | Show ECharts legend |
-| `show_forecast` | boolean | `false` | Show forecast line when forecast is available |
+| `show_forecast` | boolean | `true` | Show forecast line when a forecast is available; set `false` to hide. Alias: `forecast` |
 
 ## Units, precision, language
 

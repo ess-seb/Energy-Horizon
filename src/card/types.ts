@@ -51,11 +51,14 @@ export interface CardConfig {
   show_title?: boolean;
   icon?: string;
   show_icon?: boolean;
+  /** Set by card if omitted in YAML (defaults to `year_over_year`). */
   comparison_mode: ComparisonMode;
   aggregation?: WindowAggregation;
   period_offset?: number;
   time_window?: TimeWindowYaml;
   show_forecast?: boolean;
+  /** Alias for `show_forecast` (same meaning). Prefer `show_forecast` in docs. */
+  forecast?: boolean;
   precision?: number;
   debug?: boolean;
   language?: string;

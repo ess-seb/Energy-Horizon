@@ -290,7 +290,7 @@ private _buildRendererConfig(): ChartRendererConfig {
     fillReference: cfg.fill_reference ?? false,
     fillCurrentOpacity,
     fillReferenceOpacity,
-    showForecast: cfg.show_forecast ?? false,
+    showForecast: cfg.show_forecast !== false,
     forecastTotal: this._state.forecast?.enabled
       ? this._state.forecast.forecast_total
       : undefined,
@@ -345,7 +345,7 @@ Dodać sekcję dokumentacji nowych opcji YAML (FR-022, FR-023). Przykład:
 | `fill_reference` | boolean | `false` | Wypełnienie pod serią referencyjną |
 | `fill_current_opacity` | number (0–100) | `30` | Krycie wypełnienia serii bieżącej (%) |
 | `fill_reference_opacity` | number (0–100) | `30` | Krycie wypełnienia serii referencyjnej (%) |
-| `show_forecast` | boolean | `false` | Linia prognozy na wykresie |
+| `show_forecast` | boolean | `true` | Linia prognozy na wykresie (`false` = ukryj) |
 ```
 
 ---
@@ -388,6 +388,6 @@ ChartRenderer.update(
 | `fill_reference_opacity` | Jak wyżej | 30 |
 | `fill_current` | Boolean; brak → `true` | `true` |
 | `fill_reference` | Boolean; brak → `false` | `false` |
-| `show_forecast` | Boolean; brak → `false` | `false` |
+| `show_forecast` | Boolean; brak → włączone (`!== false`) | `true` (wizualnie) |
 | Dzisiejszy dzień poza okresem | `_todaySlotIndex = -1` → plugin nic nie rysuje | brak marker/linii |
 | Brak danych dla dziś | `_todayCurrentY = undefined` → kropka pominięta | linia pionowa do chartArea.top |

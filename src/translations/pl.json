@@ -11,7 +11,7 @@
   "summary.reference_period": "Okres referencyjny",
   "summary.difference": "Różnica",
   "summary.difference_percent": "Różnica [%]",
-  "summary.incomplete_reference": "Dane referencyjne dla tego dnia są niepełne…",
+  "summary.incomplete_reference": "Dane referencyjne dla tego okresu są niepełne…",
   "forecast.current_forecast": "Prognoza bieżącego okresu",
   "forecast.reference_consumption": "Zużycie w okresie referencyjnym",
   "forecast.confidence": "Poziom pewności prognozy: {{confidence}}.",

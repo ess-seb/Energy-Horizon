@@ -47,11 +47,7 @@ comparison_mode: year_over_year
 aggregation: day
 ```
 
-Optional forecast line:
-
-```yaml
-show_forecast: true
-```
+The forecast line on the chart is **on by default**. Set `show_forecast: false` only if you want to hide it.
 
 ## 4) Choose the right entity
 
