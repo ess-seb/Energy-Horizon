@@ -20,6 +20,7 @@ This Wiki has been intentionally consolidated into fewer, longer guides.
 
 ### Advanced internals
 - [Forecast and Data Internals](Forecast-and-Data-Internals)
+- [Aggregation and Axis Labels (draft)](Aggregation-and-Axis-Labels)
 
 ### Help and releases
 - [Troubleshooting and FAQ](Troubleshooting-and-FAQ)

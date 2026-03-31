@@ -24,6 +24,7 @@ It is designed for long-term energy statistics (not live instant power charts).
 - [Troubleshooting](#troubleshooting)
 - [FAQ](#faq)
 - [Time windows (advanced YAML)](#time-windows-advanced-yaml)
+- [Aggregation and axis labels (specification)](#aggregation-and-axis-labels-specification)
 - [Advanced documentation (Wiki)](#advanced-documentation-wiki)
 - [Support and releases](#support-and-releases)
 - [Development](#development)
@@ -243,6 +244,13 @@ For a full parameter table, merge behaviour, Mermaid diagrams, and copy-paste YA
 
 - [Time Windows (draft)](./specs/001-time-windows-engine/wiki-time-windows.md)
 
+## Aggregation and axis labels (specification)
+
+A **draft specification** covers automatic aggregation from window duration, optional YAML overrides, adaptive X-axis labels (Grafana-style boundaries), locale cascade, mobile-first label density, and a safety limit on points per series. It is **not** implemented until released and documented in the changelog.
+
+- **Specification**: [specs/001-aggregation-axis-labels/spec.md](./specs/001-aggregation-axis-labels/spec.md)
+- **Wiki placeholder** (published with releases): [Aggregation and Axis Labels (draft)](https://github.com/hello-sebastian/energy-horizon/wiki/Aggregation-and-Axis-Labels)
+
 ## Advanced documentation (Wiki)
 
 README is intentionally beginner-focused. Full technical docs live in Wiki:
@@ -250,6 +258,7 @@ README is intentionally beginner-focused. Full technical docs live in Wiki:
 - [Getting Started](https://github.com/hello-sebastian/energy-horizon/wiki/Getting-Started)
 - [Configuration and Customization](https://github.com/hello-sebastian/energy-horizon/wiki/Configuration-and-Customization)
 - [Forecast and Data Internals](https://github.com/hello-sebastian/energy-horizon/wiki/Forecast-and-Data-Internals)
+- [Aggregation and Axis Labels (draft)](https://github.com/hello-sebastian/energy-horizon/wiki/Aggregation-and-Axis-Labels)
 - [Troubleshooting and FAQ](https://github.com/hello-sebastian/energy-horizon/wiki/Troubleshooting-and-FAQ)
 - [Releases and Migration](https://github.com/hello-sebastian/energy-horizon/wiki/Releases-and-Migration)
 

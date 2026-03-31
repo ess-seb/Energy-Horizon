@@ -1,38 +1,51 @@
 # Changelog
 
-User-facing release notes for **Energy Horizon Card** (Home Assistant Lovelace / HACS).
+All notable changes to **Energy Horizon Card** (Home Assistant Lovelace / HACS) are documented in this file.
 
-The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 ## [Unreleased]
 
-- No user-facing changes documented yet.
+### Added (documentation)
 
-## [0.4.0] - 2026-03-29
+- Draft feature specification for intelligent aggregation and X-axis labeling (`specs/001-aggregation-axis-labels/spec.md`): auto-interval from `duration`, YAML overrides, adaptive axis labels, locale cascade, no bundled month/day dictionaries for the axis, mobile-friendly horizontal labels, hard cap on points per series, README and Wiki placeholder links.
+
+## [0.4.0-beta] - 2026-03-29
 
 ### Added
-
-- **Advanced “time windows” configuration**: you can define one or more custom date ranges in YAML (with validation and safe limits) to control what the card compares and how the timeline is built.
+- Time windows engine: advanced YAML `time_window` support (preset merge, validation, LTS constraints, up to 24 windows).
+- Luxon dependency for resolving anchored time ranges and window calculations.
 
 ### Changed
+- Clarified `comparison_preset` semantics in docs (`year_over_year`, `month_over_year`, `month_over_month`, including “month over month” meaning two consecutive full calendar months).
+- Documented forecast default behavior and configuration (`show_forecast`, alias `forecast`).
 
-- **Clearer comparison presets**: documentation and behavior descriptions were aligned so it’s easier to understand what each `comparison_preset` does (especially `month_over_month` as two consecutive full calendar months).
-- **Forecast option clarity**: the forecast line is controlled via `show_forecast` (alias: `forecast`), making it easier to explicitly hide/show it.
+### Fixed
+- ECharts renderer refactors (series layering and legend ordering).
 
-## [0.3.2-beta] - 2026-03-26
 
-### Added
-
-- **Visual editor (UI)** in Lovelace for common settings (entity, title, comparison preset, unit prefix). YAML mode remains available and preserves advanced keys.
-
-## [0.3.1-beta] - 2026-03-23
-
+## [0.3.1-beta] - First public beta release 
 ### Changed
+  – Visual configuration form: lovelace visual editor (`getConfigElement` / `getStubConfig`) for common fields: entity, title, comparison preset, and `force_prefix`, with YAML mode preserving YAML-only keys.
+  - Chartjs -> ECharts migration
 
-- Release/tag housekeeping (no notable user-facing difference vs `0.3.0`).
 
-## [0.3.0] - 2026-03-23
-
+## [0.2.0]
 ### Added
+  - Localization / locale formatting
+  - Smart unit scaling
+  - Theming and style separation
+### Fixed
+  – Chart fixies
 
-- Early public beta of the Energy Horizon Card experience: cumulative comparison chart, summary values, and forecast (when available).
+
+## [0.1.0]
+### Added
+  - Base functionality
+  – Data visualizing
+  - Base card/LTS support
+  – Forecasting
+  – Statistics
+
+
+### Notes
+The format is based on [Keep a Changelog](https://keepachangelog.com/).

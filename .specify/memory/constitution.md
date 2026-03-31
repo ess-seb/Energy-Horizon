@@ -46,7 +46,7 @@ Konstytucja dotyczy rozwoju, utrzymania i ewolucji uniwersalnych kart Lovelace d
 
 ## Dodatkowe wymagania i ograniczenia
 
-- Projekt utrzymuje spójny styl pracy z ekosystemem open‑source: przejrzysty `README`, jasne zasady zgłaszania problemów i kontrybucji, szacunek dla użytkowników i współtwórców.
+- Projekt utrzymuje spójny styl pracy z ekosystemem open‑source: przejrzysty `README`,`changelog`, wiki na github, jasne zasady zgłaszania problemów i kontrybucji, szacunek dla użytkowników i współtwórców.
 - Biblioteki zewnętrzne dobieramy rozważnie: preferujemy lekkie, dobrze utrzymane, szeroko stosowane pakiety; unikamy nadmiernych zależności i „vendor lock‑in”, a każda nowa zależność NPM musi być uzasadniona i nie duplikować funkcjonalności dostępnej natywnie, w Home Assistant lub w istniejącym kodzie.
 - Wszelkie operacje na danych energii powinny szanować lokalne uwarunkowania (strefa czasowa, jednostki, formaty dat/liczb) i jak najpełniej wykorzystywać natywne możliwości Home Assistant.
 - Funkcje eksperymentalne lub „zaawansowane” muszą być wyraźnie oznaczone i domyślnie nie powinny komplikować podstawowego doświadczenia użytkownika.
