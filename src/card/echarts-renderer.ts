@@ -7,6 +7,10 @@ import type { ECharts } from 'echarts/core';
 import type { EChartsOption } from 'echarts';
 
 import type { ComparisonSeries, ChartRendererConfig, TimeSeriesPoint } from './types';
+import {
+  formatAdaptiveTickLabel,
+  formatForcedTickLabel
+} from './axis/axis-label-format';
 
 // Register modular ECharts components at module level (FR-016)
 echartsUse([
@@ -385,7 +389,32 @@ export class EChartsRenderer {
     const formatXAxisLabel = (value: number): string => {
       const tick = Math.round(value);
       if (tick < 0 || tick > xMax) return '';
-      return xLabelStops.has(tick) ? String(tick) : '';
+      if (!xLabelStops.has(tick)) return '';
+      if (tick >= fullTimeline.length) return '';
+
+      const mode = rendererConfig.xAxisMode ?? "adaptive";
+      const zone = rendererConfig.haTimeZone ?? "UTC";
+      const labelLocale =
+        rendererConfig.xAxisLabelLocale ?? rendererConfig.language ?? "en";
+
+      if (mode === "forced" && rendererConfig.xAxisFormatPattern) {
+        const ms = fullTimeline[tick]!;
+        return formatForcedTickLabel(
+          ms,
+          zone,
+          labelLocale,
+          rendererConfig.xAxisFormatPattern
+        );
+      }
+
+      const agg = rendererConfig.primaryAggregation ?? "day";
+      return formatAdaptiveTickLabel(
+        tick,
+        fullTimeline,
+        zone,
+        labelLocale,
+        agg
+      );
     };
 
     // Today slot (needed for forecast + legend order; same semantics as previous block order)
@@ -798,6 +827,7 @@ export class EChartsRenderer {
           color: theme.primaryText,
           formatter: (value: number) => formatXAxisLabel(value),
           margin: tickLabelGapPx,
+          rotate: 0,
           hideOverlap: true,
           // Keep both edge labels inside the grid area.
           alignMinLabel: 'left',

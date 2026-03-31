@@ -29,11 +29,20 @@ import {
 } from "./time-windows";
 import { EChartsRenderer } from "./echarts-renderer";
 import {
+  assertPointCountWithinCap,
+  MAX_POINTS_PER_SERIES,
+  pickAutoAggregation,
+  PointCapExceededError,
+  resolveLabelLocale,
+  validateXAxisFormat
+} from "./axis";
+import {
   resolveLocale,
   createLocalize,
   numberFormatToLocale,
   MISSING_TRANSLATION_KEY
 } from "./localize";
+import { durationToMillis, parseDurationToken } from "./time-windows/duration-parse";
 import { scaleSeriesValues } from "../utils/unit-scaler";
 import { energyHorizonCardStyles } from "./energy-horizon-card-styles";
 import "./energy-horizon-card-editor.js";
@@ -153,6 +162,20 @@ export class EnergyHorizonCard extends LitElement implements LovelaceCard {
       comparison_preset,
       ...(show_forecast !== undefined ? { show_forecast } : {})
     } as CardConfig;
+
+    const formatRaw = this._config.x_axis_format;
+    if (formatRaw !== undefined && String(formatRaw).trim() !== "") {
+      try {
+        validateXAxisFormat(String(formatRaw).trim());
+      } catch {
+        this._state = {
+          status: "error",
+          errorMessage: "status.config_invalid_x_axis_format"
+        };
+        return;
+      }
+    }
+
     this._mergedTimeWindow = buildMergedTimeWindowConfig(this._config);
     assertLtsHardLimits(this._mergedTimeWindow);
     assertMergedTimeWindowConfig(this._mergedTimeWindow);
@@ -195,7 +218,7 @@ export class EnergyHorizonCard extends LitElement implements LovelaceCard {
             resolved.timeZone,
             this._config.comparison_preset
           );
-          const rendererConfig = this._buildRendererConfig();
+          const rendererConfig = this._buildRendererConfig(timeline);
           this._chartRenderer.update(this._state.comparisonSeries, timeline, rendererConfig, {
             current: this._localizeOrError(localize, "period.current"),
             reference: this._localizeOrError(localize, "period.reference")
@@ -212,7 +235,12 @@ export class EnergyHorizonCard extends LitElement implements LovelaceCard {
     const resolved = resolveLocale(this.hass, this._config);
     const localize = createLocalize(resolved.language);
 
-    const merged = this._mergedTimeWindow;
+    const merged: MergedTimeWindowConfig = { ...this._mergedTimeWindow };
+    if (merged.aggregation === undefined) {
+      const dur = parseDurationToken(merged.duration ?? "1y");
+      const durationMs = dur ? durationToMillis(dur) : 0;
+      merged.aggregation = pickAutoAggregation(durationMs);
+    }
 
     const windows = resolveTimeWindows(
       merged,
@@ -221,6 +249,31 @@ export class EnergyHorizonCard extends LitElement implements LovelaceCard {
       24,
       merged.aggregation ?? "day"
     );
+
+    try {
+      const { timeline: capTimeline } = buildChartTimeline(
+        windows,
+        merged,
+        resolved.timeZone,
+        this._config.comparison_preset
+      );
+      assertPointCountWithinCap(capTimeline.length);
+    } catch (e) {
+      if (e instanceof PointCapExceededError) {
+        if (this._config.debug) {
+          console.warn(
+            `[Energy Horizon] Point cap exceeded: ${e.actual} timeline slots (maximum ${e.maxPoints}). Reduce aggregation step or window duration.`
+          );
+        }
+        this._state = {
+          status: "error",
+          errorMessage: "status.point_cap_exceeded",
+          errorParams: { max: MAX_POINTS_PER_SERIES }
+        };
+        return;
+      }
+      throw e;
+    }
     const period = comparisonPeriodFromResolvedWindows(
       windows,
       resolved.timeZone,
@@ -437,7 +490,7 @@ export class EnergyHorizonCard extends LitElement implements LovelaceCard {
     };
   }
 
-  private _buildRendererConfig(): ChartRendererConfig {
+  private _buildRendererConfig(fullTimeline: number[] = []): ChartRendererConfig {
     const resolved = resolveLocale(this.hass ?? null, this._config);
     const language = resolved.language;
     const numberLocale = numberFormatToLocale(resolved.numberFormat, resolved.language);
@@ -446,6 +499,9 @@ export class EnergyHorizonCard extends LitElement implements LovelaceCard {
       localize,
       "forecast.current_forecast"
     );
+    const xAxisLabelLocale = resolveLabelLocale(this.hass, this._config);
+    const xf = this._config.x_axis_format?.trim();
+    const xAxisMode = xf ? ("forced" as const) : ("adaptive" as const);
 
     if (!this._state.period || !this._state.comparisonSeries) {
       return {
@@ -466,7 +522,13 @@ export class EnergyHorizonCard extends LitElement implements LovelaceCard {
         numberLocale,
         precision: this._config.precision ?? 2,
         forecastLabel,
-        singleWindowMode: true
+        singleWindowMode: true,
+        xAxisMode,
+        xAxisFormatPattern: xAxisMode === "forced" ? xf : undefined,
+        xAxisLabelLocale,
+        haTimeZone: resolved.timeZone,
+        primaryAggregation: "day",
+        fullTimeline
       };
     }
 
@@ -512,7 +574,13 @@ export class EnergyHorizonCard extends LitElement implements LovelaceCard {
       numberLocale,
       precision,
       forecastLabel,
-      singleWindowMode: singleWindow
+      singleWindowMode: singleWindow,
+      xAxisMode,
+      xAxisFormatPattern: xAxisMode === "forced" ? xf : undefined,
+      xAxisLabelLocale,
+      haTimeZone: resolved.timeZone,
+      primaryAggregation: period.aggregation,
+      fullTimeline
     };
   }
 

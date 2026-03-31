@@ -3,24 +3,22 @@
 All notable changes to **Energy Horizon Card** (Home Assistant Lovelace / HACS) are documented in this file.
 
 
-## [Unreleased]
 
-### Added (documentation)
-
-- Draft feature specification for intelligent aggregation and X-axis labeling (`specs/001-aggregation-axis-labels/spec.md`): auto-interval from `duration`, YAML overrides, adaptive axis labels, locale cascade, no bundled month/day dictionaries for the axis, mobile-friendly horizontal labels, hard cap on points per series, README and Wiki placeholder links.
-
-## [0.4.0-beta] - 2026-03-29
+## [0.4.0-beta]
 
 ### Added
-- Time windows engine: advanced YAML `time_window` support (preset merge, validation, LTS constraints, up to 24 windows).
-- Luxon dependency for resolving anchored time ranges and window calculations.
+- **Time windows engine**: advanced YAML `time_window` support (preset merge, validation, LTS constraints, up to 24 windows).
+- **Luxon** dependency for resolving anchored time ranges and window calculations.
+- **Inteligent Aggregation & X-axis**: optional card-level `x_axis_format` (Luxon subset, validated at config time); automatic `hour`/`day`/`week`/`month` selection from merged `duration` when `aggregation` is omitted (~20–100 slot target).
+- **Inteligent X-axis labeling**: adaptive Intl-based X labels (HA time zone; first tick is always a boundary); label locale cascade (`language` → HA → `en`); horizontal X labels with overlap hiding.
 
 ### Changed
-- Clarified `comparison_preset` semantics in docs (`year_over_year`, `month_over_year`, `month_over_month`, including “month over month” meaning two consecutive full calendar months).
-- Documented forecast default behavior and configuration (`show_forecast`, alias `forecast`).
+- **Clarified `comparison_preset`** semantics in docs (`year_over_year`, `month_over_year`, `month_over_month`, including “month over month” meaning two consecutive full calendar months).
+- **Forecast default behavior** and configuration (`show_forecast`, alias `forecast`).
 
 ### Fixed
-- ECharts renderer refactors (series layering and legend ordering).
+- **ECharts renderer refactors** (series layering and legend ordering).
+–  **5000** max timeline slots per series with localized error and optional `debug` console details.
 
 
 ## [0.3.1-beta] - First public beta release 

@@ -19,7 +19,7 @@
 
 **Purpose**: Add axis module entry point for the feature.
 
-- [ ] T001 Add `src/card/axis/index.ts` exporting the public symbols implemented in Phase 2 (update exports when modules are added)
+- [x] T001 Add `src/card/axis/index.ts` exporting the public symbols implemented in Phase 2 (update exports when modules are added)
 
 ---
 
@@ -29,18 +29,18 @@
 
 **Checkpoint**: `npm test` passes for new unit files; `pickAutoAggregation` + validators + locale helpers available for import; invalid `x_axis_format` rejected in `setConfig` before timeline resolution (**T006**).
 
-- [ ] T002 Add optional `x_axis_format?: string`, exported `MAX_POINTS_PER_SERIES`, and extended `ChartRendererConfig` fields for X-axis display in `src/card/types.ts`
-- [ ] T003 [P] Implement `pickAutoAggregation(durationMs: number)` and threshold table in `src/card/axis/auto-aggregation.ts` per `specs/001-aggregation-axis-labels/research.md`
-- [ ] T004 [P] Implement `assertPointCountWithinCap` in `src/card/axis/point-cap.ts`
-- [ ] T005 [P] Implement `validateXAxisFormat` (Luxon token subset) in `src/card/axis/x-axis-format-validate.ts`
-- [ ] T006 Call `validateXAxisFormat` during `setConfig` when `x_axis_format` is present in `src/card/cumulative-comparison-chart.ts` (fail-fast per **FR-005** before `resolveTimeWindows` / `buildChartTimeline`; use helper from `src/card/axis/x-axis-format-validate.ts`)
-- [ ] T007 Implement `resolveLabelLocale`, adaptive and forced tick label helpers in `src/card/axis/axis-label-format.ts` (use `Intl` / Luxon per research; no month JSON in repo)
-- [ ] T008 Update `src/card/axis/index.ts` to re-export `src/card/axis/auto-aggregation.ts`, `src/card/axis/point-cap.ts`, `src/card/axis/x-axis-format-validate.ts`, `src/card/axis/axis-label-format.ts`
-- [ ] T009 [P] Add `tests/unit/auto-aggregation.test.ts` covering representative duration bands
-- [ ] T010 [P] Add `tests/unit/point-cap.test.ts`
-- [ ] T011 [P] Add `tests/unit/x-axis-format-validate.test.ts`
-- [ ] T012 Add `tests/unit/axis-label-format.test.ts` for locale cascade and sample tick formatting
-- [ ] T013 Apply auto-interval when merged `aggregation` is undefined: compute duration from merged config and set effective aggregation before `resolveTimeWindows` in `src/card/cumulative-comparison-chart.ts` (and/or `src/card/ha-api.ts` — **single source of truth** per [plan.md](./plan.md) remediation)
+- [x] T002 Add optional `x_axis_format?: string`, exported `MAX_POINTS_PER_SERIES`, and extended `ChartRendererConfig` fields for X-axis display in `src/card/types.ts`
+- [x] T003 [P] Implement `pickAutoAggregation(durationMs: number)` and threshold table in `src/card/axis/auto-aggregation.ts` per `specs/001-aggregation-axis-labels/research.md`
+- [x] T004 [P] Implement `assertPointCountWithinCap` in `src/card/axis/point-cap.ts`
+- [x] T005 [P] Implement `validateXAxisFormat` (Luxon token subset) in `src/card/axis/x-axis-format-validate.ts`
+- [x] T006 Call `validateXAxisFormat` during `setConfig` when `x_axis_format` is present in `src/card/cumulative-comparison-chart.ts` (fail-fast per **FR-005** before `resolveTimeWindows` / `buildChartTimeline`; use helper from `src/card/axis/x-axis-format-validate.ts`)
+- [x] T007 Implement `resolveLabelLocale`, adaptive and forced tick label helpers in `src/card/axis/axis-label-format.ts` (use `Intl` / Luxon per research; no month JSON in repo)
+- [x] T008 Update `src/card/axis/index.ts` to re-export `src/card/axis/auto-aggregation.ts`, `src/card/axis/point-cap.ts`, `src/card/axis/x-axis-format-validate.ts`, `src/card/axis/axis-label-format.ts`
+- [x] T009 [P] Add `tests/unit/auto-aggregation.test.ts` covering representative duration bands
+- [x] T010 [P] Add `tests/unit/point-cap.test.ts`
+- [x] T011 [P] Add `tests/unit/x-axis-format-validate.test.ts`
+- [x] T012 Add `tests/unit/axis-label-format.test.ts` for locale cascade and sample tick formatting
+- [x] T013 Apply auto-interval when merged `aggregation` is undefined: compute duration from merged config and set effective aggregation before `resolveTimeWindows` in `src/card/cumulative-comparison-chart.ts` (and/or `src/card/ha-api.ts` — **single source of truth** per [plan.md](./plan.md) remediation)
 
 ---
 
@@ -52,7 +52,7 @@
 
 **FR-002 (v1)**: Obecny model ma **jedno** pole `aggregation` po merge (`MergedTimeWindowConfig`). Per-window różne wartości wymagają rozszerzenia schematu YAML — do czasu tego **T013** realizuje precedencję przez deep merge + `config.aggregation` jak w `src/card/time-windows/merge-config.ts`.
 
-- [ ] T014 [US1] End-to-end verification: merged config without `aggregation` uses `pickAutoAggregation` path; with `aggregation` from YAML or card unchanged — confirm in `src/card/cumulative-comparison-chart.ts` and add short maintainer notes in `src/card/axis/auto-aggregation.ts` (opcjonalnie test integracyjny pod **SC-001**)
+- [x] T014 [US1] End-to-end verification: merged config without `aggregation` uses `pickAutoAggregation` path; with `aggregation` from YAML or card unchanged — confirm in `src/card/cumulative-comparison-chart.ts` and add short maintainer notes in `src/card/axis/auto-aggregation.ts` (opcjonalnie test integracyjny pod **SC-001**)
 
 ---
 
@@ -64,9 +64,9 @@
 
 **Manual (SC-003)**: Przed release zweryfikować na telefonie / wąskim viewportcie: przy przekroczeniu limitu — stan błędu, brak „białego ekranu” (dopisać w `wiki-publish` lub release checklist jeśli potrzeba).
 
-- [ ] T015 [US2] After `buildChartTimeline` (or equivalent), call `assertPointCountWithinCap(timeline.length)` and set card error state in `src/card/cumulative-comparison-chart.ts`
-- [ ] T016 [US2] Add translation keys for point-cap / axis config errors in `src/translations/en.json`; **dla każdego istniejącego języka** w `src/translations/*.json` dodać te same klucze (lub jawnie udokumentować fallback do `en` w opisie PR) — wire through `src/card/localize.ts` / `createLocalize` w `src/card/cumulative-comparison-chart.ts`
-- [ ] T017 [US2] Emit detailed cap message to console when `config.debug` in `src/card/cumulative-comparison-chart.ts`
+- [x] T015 [US2] After `buildChartTimeline` (or equivalent), call `assertPointCountWithinCap(timeline.length)` and set card error state in `src/card/cumulative-comparison-chart.ts`
+- [x] T016 [US2] Add translation keys for point-cap / axis config errors in `src/translations/en.json`; **dla każdego istniejącego języka** w `src/translations/*.json` dodać te same klucze (lub jawnie udokumentować fallback do `en` w opisie PR) — wire through `src/card/localize.ts` / `createLocalize` w `src/card/cumulative-comparison-chart.ts`
+- [x] T017 [US2] Emit detailed cap message to console when `config.debug` in `src/card/cumulative-comparison-chart.ts`
 
 ---
 
@@ -78,8 +78,8 @@
 
 **FR-009**: Zachować istniejące semantyki osi z `buildChartTimeline` / wyrównania serii — **T018** tylko podmienia treść etykiet, nie długość osi ani gapy.
 
-- [ ] T018 [US3] Pass `fullTimeline`, HA time zone, resolved label locale, `primaryAggregation`, and `x_axis_mode: 'adaptive'` via `ChartRendererConfig` from `src/card/cumulative-comparison-chart.ts` into `src/card/echarts-renderer.ts`
-- [ ] T019 [US3] In `src/card/echarts-renderer.ts` `buildOption`, replace index-only `formatXAxisLabel` with adaptive formatting from `src/card/axis/axis-label-format.ts` when `x_axis_mode` is adaptive; **indeks 0 zawsze traktowany jako granica kontekstu** (spec: pierwszy punkt poza granicą kalendarza)
+- [x] T018 [US3] Pass `fullTimeline`, HA time zone, resolved label locale, `primaryAggregation`, and `x_axis_mode: 'adaptive'` via `ChartRendererConfig` from `src/card/cumulative-comparison-chart.ts` into `src/card/echarts-renderer.ts`
+- [x] T019 [US3] In `src/card/echarts-renderer.ts` `buildOption`, replace index-only `formatXAxisLabel` with adaptive formatting from `src/card/axis/axis-label-format.ts` when `x_axis_mode` is adaptive; **indeks 0 zawsze traktowany jako granica kontekstu** (spec: pierwszy punkt poza granicą kalendarza)
 
 ---
 
@@ -89,7 +89,7 @@
 
 **Independent Test**: Valid Luxon subset string formats every tick; invalid string fails at `setConfig` (**T006**).
 
-- [ ] T020 [US4] When forced mode, use Luxon `toFormat` in `src/card/echarts-renderer.ts` (via `src/card/axis/axis-label-format.ts`) for each tick index mapped to `fullTimeline`
+- [x] T020 [US4] When forced mode, use Luxon `toFormat` in `src/card/echarts-renderer.ts` (via `src/card/axis/axis-label-format.ts`) for each tick index mapped to `fullTimeline`
 
 ---
 
@@ -99,7 +99,7 @@
 
 **Independent Test**: Changing HA user language changes `Intl`/format output when card language unset.
 
-- [ ] T021 [US5] Resolve label locale string in `_buildRendererConfig` (or shared helper) consistent with `src/card/localize.ts` / spec cascade in `src/card/cumulative-comparison-chart.ts`
+- [x] T021 [US5] Resolve label locale string in `_buildRendererConfig` (or shared helper) consistent with `src/card/localize.ts` / spec cascade in `src/card/cumulative-comparison-chart.ts`
 
 ---
 
@@ -109,7 +109,7 @@
 
 **Independent Test**: `axisLabel.rotate === 0`; at narrow viewport first/last tick still visible where possible (**SC-004** — uzupełnić ręcznie jeśli brak testu automatycznego).
 
-- [ ] T022 [US7] Explicitly set `axisLabel.rotate: 0` and validate `hideOverlap: true` / tick `interval` strategy in `src/card/echarts-renderer.ts` for X axis
+- [x] T022 [US7] Explicitly set `axisLabel.rotate: 0` and validate `hideOverlap: true` / tick `interval` strategy in `src/card/echarts-renderer.ts` for X axis
 
 ---
 
@@ -117,8 +117,8 @@
 
 **Purpose**: Documentation and release notes.
 
-- [ ] T023 [P] Update `README.md` and `wiki-publish/Aggregation-and-Axis-Labels.md` with `x_axis_format`, auto-interval, point cap, locale behavior, and **manual smoke** (over-cap error, wąski viewport — SC-003 / SC-004)
-- [ ] T024 [P] Update `changelog.md` Unreleased section with user-visible changes
+- [x] T023 [P] Update `README.md` and `wiki-publish/Aggregation-and-Axis-Labels.md` with `x_axis_format`, auto-interval, point cap, locale behavior, and **manual smoke** (over-cap error, wąski viewport — SC-003 / SC-004)
+- [x] T024 [P] Update `changelog.md` Unreleased section with user-visible changes
 
 ---
 

@@ -1,5 +1,7 @@
 import type { ForcePrefix } from '../utils/unit-scaler';
 
+export { MAX_POINTS_PER_SERIES } from "./axis/point-cap";
+
 export type ComparisonMode =
   | "year_over_year"
   | "month_over_year"
@@ -78,6 +80,11 @@ export interface CardConfig {
   connect_nulls?: boolean;
   /** When omitted or false, the chart legend is hidden. Set to true to show it. */
   show_legend?: boolean;
+  /**
+   * Optional Luxon format string for X-axis tick labels (Home Assistant time zone).
+   * When set, adaptive boundary labels are disabled.
+   */
+  x_axis_format?: string;
   /**
    * SI unit scaling: `auto` (default when omitted), `none`, or a forced prefix (`k`, `M`, …).
    */
@@ -240,5 +247,17 @@ export interface ChartRendererConfig {
   windowAlignStartsMs?: number[];
   /** True when only one logical window — hides reference-only UI (FR-015). */
   singleWindowMode?: boolean;
+  /** X-axis tick label strategy. */
+  xAxisMode?: "adaptive" | "forced";
+  /** Luxon pattern when `xAxisMode === 'forced'`. */
+  xAxisFormatPattern?: string;
+  /** BCP-47 locale for axis `Intl` / Luxon. */
+  xAxisLabelLocale?: string;
+  /** Home Assistant `time_zone` (IANA) for tick timestamps. */
+  haTimeZone?: string;
+  /** Aggregation driving adaptive label density. */
+  primaryAggregation?: WindowAggregation;
+  /** Shared chart timeline (ms); tick index maps to this array. */
+  fullTimeline?: number[];
 }
 

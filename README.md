@@ -24,7 +24,7 @@ It is designed for long-term energy statistics (not live instant power charts).
 - [Troubleshooting](#troubleshooting)
 - [FAQ](#faq)
 - [Time windows (advanced YAML)](#time-windows-advanced-yaml)
-- [Aggregation and axis labels (specification)](#aggregation-and-axis-labels-specification)
+- [Aggregation and axis labels](#aggregation-and-axis-labels)
 - [Advanced documentation (Wiki)](#advanced-documentation-wiki)
 - [Support and releases](#support-and-releases)
 - [Development](#development)
@@ -162,7 +162,8 @@ Start with defaults. Change only what you need.
 |---|---|---|
 | `entity` | required | Your statistics entity ID |
 | `comparison_preset` | `year_over_year` if omitted | `year_over_year` (year vs last year), `month_over_year` (this month vs same month last year), `month_over_month` (this month vs previous full month) |
-| `aggregation` | `day` | Use `week`/`month` for less detail |
+| `aggregation` | omitted → **auto** from `duration` (see [Aggregation and axis labels](#aggregation-and-axis-labels)) | Set `hour` / `day` / `week` / `month` explicitly when needed |
+| `x_axis_format` | omitted (adaptive axis labels) | Optional Luxon format string for every X tick (Home Assistant time zone); invalid patterns show a card error |
 | `show_forecast` | `true` (on) | Set `false` to hide the forecast line on the chart |
 | `title` | auto | Custom card title |
 | `icon` | entity icon | Custom icon, e.g. `mdi:flash` |
@@ -236,7 +237,7 @@ Usually no. Keep `auto` unless you want fixed units (for example always `kWh`).
 
 The card resolves **time windows** from `comparison_preset` (comparison preset) and an optional `time_window` block in YAML. If `comparison_preset` is omitted in YAML, it defaults to **`year_over_year`** (same as the card stub in the UI editor). The legacy key **`comparison_mode`** is deprecated but still read for backward compatibility (same values; if both keys are present, `comparison_preset` wins). Values you set in `time_window` override the same fields from the preset; omitted keys keep preset defaults (deep merge).
 
-**Recorder / long-term statistics (LTS)** only support hourly-or-coarser buckets for the data this card uses. There is **no** support for sub-hour granularity: each resolved window must have **duration ≥ 1 hour**, **aggregation** (after merge with card-level `aggregation`) must be one of `hour`, `day`, `week`, `month`, or omitted (defaults to `day` only when not explicitly set), and **anchors** must be exactly one of `start_of_year`, `start_of_month`, `start_of_hour`, or `now`. Violations cause a **standard Lovelace card configuration error** (the card throws on invalid config) so you get a clear failure instead of an empty chart.
+**Recorder / long-term statistics (LTS)** only support hourly-or-coarser buckets for the data this card uses. There is **no** support for sub-hour granularity: each resolved window must have **duration ≥ 1 hour**, **aggregation** (after merge with card-level `aggregation`) must be one of `hour`, `day`, `week`, `month`, or **omitted** — when omitted after merge, the card picks a step from **window duration** (readability target roughly **20–100** buckets), and **anchors** must be exactly one of `start_of_year`, `start_of_month`, `start_of_hour`, or `now`. Violations cause a **standard Lovelace card configuration error** (the card throws on invalid config) so you get a clear failure instead of an empty chart. If the implied timeline has **more than 5000** slots per series, the card shows an error instead of loading data.
 
 Durations and steps use Grafana-style tokens such as `1y`, `1M`, `7d`, and `1h`. Up to **24** windows are accepted from YAML; other invalid configuration shows a card error (`ha-alert`) and no data series. The chart X-axis follows the **longest** window; **forecast** progress thresholds still use the **current** window (index 0) only. Period labels in the summary use year/month presets when applicable, and otherwise show a **date range** for each resolved window.
 
@@ -244,12 +245,18 @@ For a full parameter table, merge behaviour, Mermaid diagrams, and copy-paste YA
 
 - [Time Windows (draft)](./specs/001-time-windows-engine/wiki-time-windows.md)
 
-## Aggregation and axis labels (specification)
+## Aggregation and axis labels
 
-A **draft specification** covers automatic aggregation from window duration, optional YAML overrides, adaptive X-axis labels (Grafana-style boundaries), locale cascade, mobile-first label density, and a safety limit on points per series. It is **not** implemented until released and documented in the changelog.
+The card can **infer the LTS aggregation step** from **merged `duration`** when **`aggregation` is omitted** after preset / `time_window` / card merge (explicit `aggregation` anywhere in that chain skips auto-selection). The goal is roughly **20–100** timeline slots using Home Assistant’s supported steps only (`hour`, `day`, `week`, `month`).
+
+**X-axis labels** use **Home Assistant’s time zone**. By default they are **adaptive** (Intl-based, boundary-aware; first tick always gets full context). Set optional card-level **`x_axis_format`** to a **Luxon** pattern (supported **token subset**); invalid patterns fail at configuration time. Label **locale**: card `language` → HA user language → `en`.
+
+**Safety**: if the resolved timeline has **more than 5000** points per series, the card refuses to render and shows a localized error. With **`debug: true`**, details are logged to the browser console.
+
+**Manual checks** (recommended before release): narrow viewport — labels stay horizontal with overlap hiding; over-cap config — error state, not a blank panel.
 
 - **Specification**: [specs/001-aggregation-axis-labels/spec.md](./specs/001-aggregation-axis-labels/spec.md)
-- **Wiki placeholder** (published with releases): [Aggregation and Axis Labels (draft)](https://github.com/hello-sebastian/energy-horizon/wiki/Aggregation-and-Axis-Labels)
+- **Wiki**: [Aggregation and Axis Labels](https://github.com/hello-sebastian/energy-horizon/wiki/Aggregation-and-Axis-Labels)
 
 ## Advanced documentation (Wiki)
 
@@ -258,7 +265,7 @@ README is intentionally beginner-focused. Full technical docs live in Wiki:
 - [Getting Started](https://github.com/hello-sebastian/energy-horizon/wiki/Getting-Started)
 - [Configuration and Customization](https://github.com/hello-sebastian/energy-horizon/wiki/Configuration-and-Customization)
 - [Forecast and Data Internals](https://github.com/hello-sebastian/energy-horizon/wiki/Forecast-and-Data-Internals)
-- [Aggregation and Axis Labels (draft)](https://github.com/hello-sebastian/energy-horizon/wiki/Aggregation-and-Axis-Labels)
+- [Aggregation and Axis Labels](https://github.com/hello-sebastian/energy-horizon/wiki/Aggregation-and-Axis-Labels)
 - [Troubleshooting and FAQ](https://github.com/hello-sebastian/energy-horizon/wiki/Troubleshooting-and-FAQ)
 - [Releases and Migration](https://github.com/hello-sebastian/energy-horizon/wiki/Releases-and-Migration)
 
