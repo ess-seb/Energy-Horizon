@@ -10,6 +10,9 @@ Logical entities derived from `spec.md` and current `src/card/types.ts`. This is
 | `entity` | string | Energy statistics entity. |
 | `title`, `show_title` | optional | `show_title === false` → no friendly title **and** no `entity_id` subtitle (clarifications). |
 | `icon`, `show_icon` | optional | Icon in 42×42 wrapper, 24px MDI via `ha-icon` / `ha-state-icon`. |
+| `show_comparison_summary` | optional boolean | Figma **Data series info** — comparison panel. Omitted or not `false` → panel shown when `summary` exists. |
+| `show_forecast_total_panel` | optional boolean | Figma **Surface Container** (Forecast \| Total). Omitted or not `false` → panel shown when forecast UI gating passes; still suppressed entirely when `show_forecast === false` (clarifications). |
+| `show_narrative_comment` | optional boolean | Figma **Inteligent comment**. Omitted or not `false` → section shown when narrative content exists. |
 | `comparison_preset`, `time_window`, … | existing | Unchanged contract unless plan adds optional keys (editor/types sync). |
 
 **Validation**: Existing `setConfig` / `assertMergedTimeWindowConfig`; no untrusted HTML in strings (constitution II).
@@ -51,7 +54,7 @@ Used for period captions, LTS queries, and chart timeline.
 
 | Field | Type | Semantics (target) |
 |-------|------|---------------------|
-| `enabled` | boolean | Part of gating the forecast **data** block; **UI:** second panel is shown only when forecast is enabled in config (`show_forecast` / `forecast` not `false`, see `isForecastLineVisible`) **and** this path is active — spec: entire panel hidden if forecast off (**Clarifications**). |
+| `enabled` | boolean | Part of gating the forecast **data** block; **UI:** second panel is shown only when forecast is enabled in config (`show_forecast` / `forecast` not `false`, see `isForecastLineVisible`), forecast stats are active, **and** `show_forecast_total_panel !== false` — spec: entire panel hidden if forecast off (**Clarifications**); `show_forecast_total_panel: false` hides the panel only when forecast would otherwise be on (chart line still follows `show_forecast`). |
 | `forecast_total` | number \| undefined | **Forecast** — full **current** window end projection (§1.3). |
 | `reference_total` | number \| undefined | Must represent **Total** = full **reference** window cumulative (US-3). *If current code uses this field differently, align implementation with §1.3 and update this doc.* |
 | `confidence` | enum | Existing confidence note (may stay in forecast panel or be restyled). |

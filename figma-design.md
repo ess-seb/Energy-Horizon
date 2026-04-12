@@ -41,6 +41,8 @@ Inne presety / okna czasu: ta sama zasada semantyczna — *Total* = pełny zakre
 
 Poniżej kolejność **od góry do dołu** (zgodna z pionowym stackiem w eksporcie): odpowiada to **przepływowi informacji** na karcie: tożsamość → porównanie okresów → prognoza vs całkowite referencyjne → wykres → komentarz narracyjny → ostrzeżenie.
 
+**Widoczność warstw:** opcjonalne klucze YAML `show_comparison_summary`, `show_forecast_total_panel`, `show_narrative_comment` (oraz edytor wizualny) pozwalają ukryć odpowiednio pierwszy panel, panel Forecast \| Total i komentarz — zob. `src/card/types.ts` i [Configuration and Customization](wiki-publish/Configuration-and-Customization.md) (sekcja *Layout sections*).
+
 | Warstwa / grupa (nazwa w Figmie) | Rola UX | Odniesienie do danych / logiki |
 |----------------------------------|---------|--------------------------------|
 | **Energy Horizon Card v0.5.0** (`113:437`) | Ramka prezentacyjna / viewport (np. 480px) | Artefakt „jak na dashboardzie” |

@@ -41,7 +41,10 @@ export class EnergyHorizonCardEditor extends LitElement {
       entity: cfg.entity ?? "",
       title: cfg.title,
       comparison_preset: resolveComparisonPreset(cfg as CardConfigInput),
-      force_prefix: cfg.force_prefix
+      force_prefix: cfg.force_prefix,
+      show_comparison_summary: cfg.show_comparison_summary !== false,
+      show_forecast_total_panel: cfg.show_forecast_total_panel !== false,
+      show_narrative_comment: cfg.show_narrative_comment !== false
     };
   }
 
@@ -98,7 +101,10 @@ export class EnergyHorizonCardEditor extends LitElement {
             ]
           }
         }
-      }
+      },
+      { name: "show_comparison_summary", selector: { boolean: {} } },
+      { name: "show_forecast_total_panel", selector: { boolean: {} } },
+      { name: "show_narrative_comment", selector: { boolean: {} } }
     ];
   }
 

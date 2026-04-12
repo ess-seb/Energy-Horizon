@@ -44,6 +44,9 @@
   "editor.force_prefix": "Prefiks jednostki",
   "editor.visual_mode": "Wizualny",
   "editor.yaml_mode": "YAML",
-  "editor.yaml_error": "Nieprawidłowy YAML"
+  "editor.yaml_error": "Nieprawidłowy YAML",
+  "editor.show_comparison_summary": "Panel porównania „do dziś” (Data series info — aktualne zużycie)",
+  "editor.show_forecast_total_panel": "Panel prognozy i sumy okresu (Surface Container — zużycie w całym okresie)",
+  "editor.show_narrative_comment": "Komentarz z ikoną trendu (Inteligent comment)"
 }
 

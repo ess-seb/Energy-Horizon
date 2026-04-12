@@ -4,6 +4,13 @@ All notable changes to **Energy Horizon Card** (Home Assistant Lovelace / HACS) 
 
 
 
+## [0.5.1]
+
+### Added
+
+- **Layout visibility toggles** (YAML + Lovelace visual editor): `show_comparison_summary` (Figma *Data series info* — current vs reference “to this day”), `show_forecast_total_panel` (*Surface Container* — Forecast | Total), and `show_narrative_comment` (*Inteligent comment*). Each defaults to **on** when omitted or any value other than `false`.
+- With forecast **on**, `show_forecast_total_panel: false` hides only the Forecast | Total **panel** while keeping the dashed forecast line behavior driven by `show_forecast`. `show_forecast: false` still removes the entire second panel (unchanged).
+
 ## [0.5.0]
 
 ### Added

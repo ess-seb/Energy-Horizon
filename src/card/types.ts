@@ -88,6 +88,22 @@ export interface CardConfig {
   /** When omitted or false, the chart legend is hidden. Set to true to show it. */
   show_legend?: boolean;
   /**
+   * Figma **Data series info** — current vs reference “to today” panel (`.ebc-section--comparison`).
+   * Omitted or not `false` → shown when summary data exists.
+   */
+  show_comparison_summary?: boolean;
+  /**
+   * Figma **Surface Container** — Forecast | Total panel (`.ebc-section--forecast-total`).
+   * Omitted or not `false` → shown when forecast panel logic applies; still suppressed when
+   * `show_forecast` is `false` (entire panel absent, same as pre–v0.5.1).
+   */
+  show_forecast_total_panel?: boolean;
+  /**
+   * Figma **Inteligent comment** — narrative + trend icon (`.ebc-section--comment`).
+   * Omitted or not `false` → shown when narrative content exists.
+   */
+  show_narrative_comment?: boolean;
+  /**
    * Optional Luxon format string for X-axis tick labels (Home Assistant time zone).
    * When set, adaptive boundary labels are disabled.
    */

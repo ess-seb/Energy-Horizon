@@ -185,6 +185,25 @@
 
 ---
 
+### User Story 10 — Opcjonalna widoczność sekcji UI (Priority: P2)
+
+**Jako** użytkownik konfigurujący kartę  
+**chcę** móc **osobno** włączać i wyłączać widoczność panelu porównania (*Data series info*), panelu Forecast \| Total (*Surface Container*) oraz bloku komentarza narracyjnego (*Inteligent comment*) — w YAML i w edytorze wizualnym  
+**aby** uprościć układ dashboardu bez tracenia danych na wykresie tam, gdzie to ma sens (np. ukryty panel Forecast \| Total przy widocznej linii prognozy).
+
+**Why this priority**: Elastyczność layoutu przy zachowaniu istniejącej semantyki danych i regresji `show_forecast`.
+
+**Independent Test**: Przy pełnym stanie `ready` i danych dla wszystkich sekcji: każda flaga `show_* === false` usuwa odpowiedni region z DOM; `show_forecast: false` usuwa panel Forecast \| Total **niezależnie** od `show_forecast_total_panel`.
+
+**Acceptance Scenarios**:
+
+1. **Given** `show_comparison_summary: false`, **When** render przy dostępnym `summary`, **Then** brak `.ebc-section--comparison`.  
+2. **Given** `show_forecast_total_panel: false` oraz prognoza włączona i dane prognozy aktywne, **When** render, **Then** brak `.ebc-section--forecast-total`; linia prognozy na wykresie zgodna z `show_forecast` (bez zmiany istniejącej logiki linii).  
+3. **Given** `show_narrative_comment: false`, **When** render przy zbudowanym narracyjnym tekście, **Then** brak `.ebc-section--comment`.  
+4. **Given** `show_forecast: false` i `show_forecast_total_panel: true`, **When** render, **Then** panel Forecast \| Total **nie** występuje (**Clarifications** — bez zmiany wstecznej).
+
+---
+
 ### Edge Cases
 
 - Encja bez przyjaznej nazwy lub bez ikony — przy **włączonym** tytule nadal pokazuj `entity_id` w drugiej linii; ikona zachowuje się jak w standardzie HA dla braków. Przy **wyłączonym** tytule — brak linii z `entity_id` (**Clarifications**, opcja B).  
@@ -209,6 +228,9 @@
 - **FR-008**: Kolorystyka i typografia **MUSZĄ** respektować US-7 i mapowanie tokenów z `figma-design.md` §4.  
 - **FR-009**: Tłumaczenia i edytor **MUSZĄ** spełniać US-8.  
 - **FR-010**: Pokrycie testami **MUSI** spełniać US-9 na poziomie uzgodnionym w planie implementacji.
+- **FR-011**: Karta **MUSI** akceptować opcjonalne pola `show_comparison_summary`, `show_forecast_total_panel`, `show_narrative_comment` w `CardConfig`; domyślnie sekcje są **widoczne**, gdy klucz jest pominięty lub wartość nie jest `false` (spójnie z `show_title` / `show_icon`).  
+- **FR-012**: Edytor Lovelace **MUSI** eksponować te trzy pola w trybie wizualnym (`ha-form`, selektory boolean), z etykietami z tłumaczeń karty; tryb YAML pozostaje nadrzędny zgodnie z kontraktem 005-gui-editor.  
+- **FR-013**: Gdy `show_forecast` jest `false` (lub alias `forecast: false`), **cały** panel Forecast \| Total **MUSI** pozostać ukryty (**Clarifications**), niezależnie od `show_forecast_total_panel`.
 
 ### Wymagania szczegółowe — nagłówek i wykres (kryteria akceptacji)
 
@@ -247,7 +269,8 @@ Te punkty **MUSZĄ** być zweryfikowane przy odbiorze; odniesienie projektowe: `
 - **Oś X bez serii bieżącej:** potwierdzone w **Clarifications** — zachowanie etykiet jak przed v0.5.0; plan implementacji może wskazać konkretny tag/commit baseline do testów regresji.  
 - **`entity_id` przy wyłączonym tytule:** potwierdzone w **Clarifications** — ukryty razem z blokiem tytułu (opcja B).  
 - **Chip delty:** potwierdzone w **Clarifications** — zawsze widoczny; zero w jednostce z formattera + **0%**; brak danych → **`---` + jednostka z formattera** lub samo **`---`** jeśli jednostki brak, potem **`| -- %`**.  
-- **Panel Forecast \| Total przy wyłączonej prognozie:** potwierdzone w **Clarifications** — **ukryty w całości** (`show_forecast: false` / alias); brak wymogu pokazywania samego **Total** w osobnym panelu.
+- **Panel Forecast \| Total przy wyłączonej prognozie:** potwierdzone w **Clarifications** — **ukryty w całości** (`show_forecast: false` / alias); brak wymogu pokazywania samego **Total** w osobnym panelu.  
+- **Panel Forecast \| Total przy włączonej prognozie:** opcjonalnie ukrywalny sam panel UI przez `show_forecast_total_panel: false` (US-10), bez zmiany reguły **Clarifications** dla `show_forecast: false`.
 
 ## Dependencies & Risks
 

@@ -823,6 +823,9 @@ export class EnergyHorizonCard extends LitElement implements LovelaceCard {
       forecast.enabled &&
       isForecastLineVisible(this._config);
 
+    const showForecastTotalPanel =
+      shouldShowForecast && this._config.show_forecast_total_panel !== false;
+
     const forecastUnit = forecast?.unit || displayUnit;
 
     const isMom = this._config.comparison_preset === "month_over_month";
@@ -939,7 +942,7 @@ export class EnergyHorizonCard extends LitElement implements LovelaceCard {
             </div>`
           : null}
 
-        ${summary
+        ${summary && this._config.show_comparison_summary !== false
           ? html`<div
               class="ebc-section ebc-section--comparison"
               role="region"
@@ -1007,7 +1010,7 @@ export class EnergyHorizonCard extends LitElement implements LovelaceCard {
             </div>`
           : null}
 
-        ${shouldShowForecast && forecast
+        ${showForecastTotalPanel && forecast
           ? html`<div
               class="ebc-section ebc-section--forecast-total"
               role="region"
@@ -1062,7 +1065,7 @@ export class EnergyHorizonCard extends LitElement implements LovelaceCard {
           <div class="chart-container ebc-chart"></div>
         </div>
 
-        ${narrativeBody
+        ${narrativeBody && this._config.show_narrative_comment !== false
           ? html`<div
               class="ebc-section ebc-section--comment"
               role="region"

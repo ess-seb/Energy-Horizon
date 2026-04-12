@@ -36,11 +36,12 @@ npm run build
 1. **Themes**: Toggle HA light/dark; confirm no hardcoded-only contrast failures (SC-002).
 2. **Header**: Title on → title + `entity_id` + 42/24 icon; title off → no title lines; icon per config (US-1, clarifications).
 3. **Panels**: Two-column comparison + single delta chip; always-visible chip including `0` and `---` cases (US-2, FR-003).
-4. **Forecast | Total** (only when `show_forecast` is not `false`): Total equals **full reference window** cumulative, not “to today” (US-3, SC-001). With forecast off, the whole second panel is absent (**Clarifications**).
-5. **Comment**: Same narrative as today + trend icon states (US-4).
-6. **Warning**: Incomplete reference text **only** at bottom (US-5).
-7. **Chart**: Today line full height; delta segment; 3 X labels when current visible; Y 5 splits + 3 labels (US-6, SC-004).
-8. **i18n**: Switch language; no missing keys (SC-003).
+4. **Forecast | Total** (only when `show_forecast` is not `false`): Total equals **full reference window** cumulative, not “to today” (US-3, SC-001). With forecast off, the whole second panel is absent (**Clarifications**). Optional `show_forecast_total_panel: false` hides only that panel when forecast is on (US-10).
+5. **Comment**: Same narrative as today + trend icon states (US-4). Optional `show_narrative_comment: false` hides the block (US-10).
+6. **Comparison panel**: Optional `show_comparison_summary: false` hides current/reference “to today” panel (US-10).
+7. **Warning**: Incomplete reference text **only** at bottom (US-5).
+8. **Chart**: Today line full height; delta segment; 3 X labels when current visible; Y 5 splits + 3 labels (US-6, SC-004).
+9. **i18n**: Switch language; no missing keys (SC-003).
 
 ## Regression baseline
 

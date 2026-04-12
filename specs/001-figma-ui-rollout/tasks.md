@@ -237,6 +237,19 @@ tests/unit/echarts-renderer.test.ts  # T031
 
 ---
 
+## Phase 13: Layout section visibility (US-10, FR-011–FR-013)
+
+**Goal**: Optional YAML + visual editor toggles for comparison panel, Forecast \| Total panel, and narrative comment; regressions: `show_forecast: false` still hides entire second panel.
+
+- [x] T036 [US10] Add `show_comparison_summary`, `show_forecast_total_panel`, `show_narrative_comment` to `CardConfig` in `src/card/types.ts` with Figma-oriented comments
+- [x] T037 [US10] Gate `.ebc-section--comparison`, `.ebc-section--forecast-total`, `.ebc-section--comment` in `src/card/cumulative-comparison-chart.ts` (forecast panel: `showForecastTotalPanel` after `shouldShowForecast`)
+- [x] T038 [US10] [P] Extend `HaFormSchema` boolean variant in `src/ha-types.ts`; add fields to `_formData` / `_buildSchema` in `src/card/energy-horizon-card-editor.ts`
+- [x] T039 [P] [US10] Add `editor.show_*` strings to `src/translations/en.json`, `pl.json`, `de.json`
+- [x] T040 [US10] Vitest: `tests/integration/card-render.test.ts` — sections present by default; each `show_*: false`; `show_forecast: false` + `show_forecast_total_panel: true` → no forecast panel
+- [x] T041 [P] [US10] Docs: `changelog.md`, `README.md`, `README.advanced.md`, `wiki-publish/Configuration-and-Customization.md`, `wiki-publish/Documentation-Maintenance.md`, `figma-design.md`; update `specs/001-figma-ui-rollout/*` (this rollout spec)
+
+---
+
 ## Implementation strategy
 
 ### MVP (minimal vertical slice)
@@ -253,7 +266,7 @@ tests/unit/echarts-renderer.test.ts  # T031
 
 ### Format validation
 
-- All tasks use `- [ ] Tnnn` with sequential IDs T001–T035  
+- All tasks use `- [ ] Tnnn` with sequential IDs T001–T041 (T036–T041 = layout visibility)  
 - `[USn]` only on user-story phase tasks (Phases 3–11)  
 - `[P]` only where parallel-safe  
 - Each task references at least one concrete path (`src/…`, `tests/…`, `specs/…`, or `package.json` / `CHANGELOG.md` / `README.md`)
@@ -276,7 +289,8 @@ tests/unit/echarts-renderer.test.ts  # T031
 | US8 | 2 |
 | US9 | 5 |
 | Polish | 2 |
-| **Total** | **35** |
+| US10 layout visibility | 6 |
+| **Total** | **41** |
 
 **Suggested MVP scope**: Phase 1–2 + Phase 3 (US1) — then validate before US2.
 

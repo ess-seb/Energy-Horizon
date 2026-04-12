@@ -28,7 +28,8 @@ export type HaFormSchema =
       name: string;
       selector: { select: { options: Array<{ value: string; label: string }> } };
       required?: boolean;
-    };
+    }
+  | { name: string; selector: { boolean: Record<string, never> }; required?: boolean };
 
 export interface LovelaceCardEditor extends HTMLElement {
   hass?: HomeAssistant;

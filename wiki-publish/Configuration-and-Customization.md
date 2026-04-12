@@ -58,6 +58,20 @@ If you came here from the project README:
 
 ---
 
+## Layout sections (Figma-aligned)
+
+Optional **visibility** flags (default **on**: omit the key or use any value other than `false`). Map to layers in [`figma-design.md`](https://github.com/hello-sebastian/energy-horizon/blob/main/figma-design.md) §2.
+
+| Key | Figma layer (reference) | Effect |
+|-----|-------------------------|--------|
+| `show_comparison_summary` | **Data series info** (current vs reference “to this day”) | When `false`, the comparison panel (`.ebc-section--comparison`) is not rendered. |
+| `show_forecast_total_panel` | **Surface Container** (Forecast \| Total) | When `false`, hides that panel **only** if it would otherwise show. Still requires `show_forecast` not to be `false` and forecast data gating — if forecast is off, the whole panel stays absent (same as before these flags). |
+| `show_narrative_comment` | **Inteligent comment** | When `false`, the comment block (icon + narrative) is not rendered. |
+
+The Lovelace **visual editor** exposes these three fields; YAML mode remains authoritative for the full config (see editor contract in the card repo).
+
+---
+
 ## Chart styling (fills, colors, gaps)
 
 | Key | Type | Default | Mental model | Common failure / gotcha | Related |

@@ -8,6 +8,100 @@ import type {
   ComparisonSeries
 } from "../../src/card/types";
 
+type EnergyHorizonCardEl = import("../../src/card/cumulative-comparison-chart").EnergyHorizonCard & {
+  setConfig: (c: unknown) => void;
+  hass: HomeAssistant;
+  _state: unknown;
+  updateComplete: Promise<boolean>;
+};
+
+function energyCardHass(): HomeAssistant {
+  return {
+    language: "en",
+    locale: { language: "en", number_format: "language" },
+    config: { time_zone: "UTC" },
+    states: {
+      "sensor.energy": {
+        state: "10",
+        attributes: { friendly_name: "Energy", unit_of_measurement: "kWh" }
+      }
+    },
+    connection: {
+      sendMessagePromise: async () => ({})
+    }
+  } as HomeAssistant;
+}
+
+function baseYoYReadyState(): CardState {
+  const period: ComparisonPeriod = {
+    current_start: new Date(Date.UTC(2024, 0, 1)),
+    current_end: new Date(Date.UTC(2024, 11, 31)),
+    reference_start: new Date(Date.UTC(2023, 0, 1)),
+    reference_end: new Date(Date.UTC(2023, 11, 31)),
+    aggregation: "day",
+    time_zone: "UTC"
+  };
+  const comparisonSeries: ComparisonSeries = {
+    current: {
+      points: [{ timestamp: Date.UTC(2024, 0, 1), value: 100 }],
+      unit: "kWh",
+      periodLabel: "2024",
+      total: 100
+    },
+    reference: {
+      points: [{ timestamp: Date.UTC(2023, 0, 1), value: 90 }],
+      unit: "kWh",
+      periodLabel: "2023",
+      total: 90
+    },
+    aggregation: "day",
+    time_zone: "UTC"
+  };
+  return {
+    status: "ready",
+    period,
+    comparisonSeries,
+    resolvedWindows: [
+      {
+        index: 0,
+        id: "a",
+        role: "current",
+        start: new Date(Date.UTC(2024, 0, 1)),
+        end: new Date(Date.UTC(2024, 11, 31)),
+        aggregation: "day"
+      },
+      {
+        index: 1,
+        id: "b",
+        role: "reference",
+        start: new Date(Date.UTC(2023, 0, 1)),
+        end: new Date(Date.UTC(2023, 11, 31)),
+        aggregation: "day"
+      }
+    ],
+    mergedTimeWindow: {
+      duration: "1y",
+      currentEndIsNow: true,
+      referenceFullPeriod: true
+    },
+    summary: {
+      current_cumulative: 100,
+      reference_cumulative: 90,
+      difference: 10,
+      differencePercent: 11.11,
+      unit: "kWh"
+    },
+    textSummary: { trend: "similar", unit: "kWh" },
+    forecast: {
+      enabled: true,
+      forecast_total: 120,
+      reference_total: 95,
+      confidence: "high",
+      unit: "kWh"
+    }
+  };
+}
+
 describe("energy-horizon-card integration", () => {
   it("can be instantiated without crashing", () => {
     const el = document.createElement("energy-horizon-card");
@@ -340,6 +434,111 @@ describe("energy-horizon-card integration", () => {
     expect(comp!.textContent).not.toContain(
       "Reference data for this period is incomplete"
     );
+    document.body.removeChild(el);
+  });
+
+  it("ready: comparison, forecast panel, and comment sections render by default", async () => {
+    const el = document.createElement("energy-horizon-card") as EnergyHorizonCardEl;
+    document.body.appendChild(el);
+    if (typeof el.setConfig !== "function") return;
+
+    el.setConfig({
+      type: "custom:energy-horizon-card",
+      entity: "sensor.energy",
+      comparison_preset: "year_over_year"
+    });
+    el.hass = energyCardHass();
+    el._state = baseYoYReadyState();
+    await el.updateComplete;
+
+    const root = el.shadowRoot!;
+    expect(root.querySelector(".ebc-section--comparison")).not.toBeNull();
+    expect(root.querySelector(".ebc-section--forecast-total")).not.toBeNull();
+    expect(root.querySelector(".ebc-section--comment")).not.toBeNull();
+    document.body.removeChild(el);
+  });
+
+  it("ready: show_comparison_summary false hides comparison panel", async () => {
+    const el = document.createElement("energy-horizon-card") as EnergyHorizonCardEl;
+    document.body.appendChild(el);
+    if (typeof el.setConfig !== "function") return;
+
+    el.setConfig({
+      type: "custom:energy-horizon-card",
+      entity: "sensor.energy",
+      comparison_preset: "year_over_year",
+      show_comparison_summary: false
+    });
+    el.hass = energyCardHass();
+    el._state = baseYoYReadyState();
+    await el.updateComplete;
+
+    const root = el.shadowRoot!;
+    expect(root.querySelector(".ebc-section--comparison")).toBeNull();
+    expect(root.querySelector(".ebc-section--forecast-total")).not.toBeNull();
+    document.body.removeChild(el);
+  });
+
+  it("ready: show_forecast_total_panel false hides forecast panel only", async () => {
+    const el = document.createElement("energy-horizon-card") as EnergyHorizonCardEl;
+    document.body.appendChild(el);
+    if (typeof el.setConfig !== "function") return;
+
+    el.setConfig({
+      type: "custom:energy-horizon-card",
+      entity: "sensor.energy",
+      comparison_preset: "year_over_year",
+      show_forecast_total_panel: false
+    });
+    el.hass = energyCardHass();
+    el._state = baseYoYReadyState();
+    await el.updateComplete;
+
+    const root = el.shadowRoot!;
+    expect(root.querySelector(".ebc-section--comparison")).not.toBeNull();
+    expect(root.querySelector(".ebc-section--forecast-total")).toBeNull();
+    expect(root.querySelector(".ebc-section--comment")).not.toBeNull();
+    document.body.removeChild(el);
+  });
+
+  it("ready: show_narrative_comment false hides comment section", async () => {
+    const el = document.createElement("energy-horizon-card") as EnergyHorizonCardEl;
+    document.body.appendChild(el);
+    if (typeof el.setConfig !== "function") return;
+
+    el.setConfig({
+      type: "custom:energy-horizon-card",
+      entity: "sensor.energy",
+      comparison_preset: "year_over_year",
+      show_narrative_comment: false
+    });
+    el.hass = energyCardHass();
+    el._state = baseYoYReadyState();
+    await el.updateComplete;
+
+    const root = el.shadowRoot!;
+    expect(root.querySelector(".ebc-section--comment")).toBeNull();
+    document.body.removeChild(el);
+  });
+
+  it("ready: show_forecast false hides forecast panel even when show_forecast_total_panel is true", async () => {
+    const el = document.createElement("energy-horizon-card") as EnergyHorizonCardEl;
+    document.body.appendChild(el);
+    if (typeof el.setConfig !== "function") return;
+
+    el.setConfig({
+      type: "custom:energy-horizon-card",
+      entity: "sensor.energy",
+      comparison_preset: "year_over_year",
+      show_forecast: false,
+      show_forecast_total_panel: true
+    });
+    el.hass = energyCardHass();
+    el._state = baseYoYReadyState();
+    await el.updateComplete;
+
+    const root = el.shadowRoot!;
+    expect(root.querySelector(".ebc-section--forecast-total")).toBeNull();
     document.body.removeChild(el);
   });
 });

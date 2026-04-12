@@ -13,6 +13,7 @@
 
 - **Stable keys**: All keys documented in `CardConfig` (`src/card/types.ts`) remain valid for existing dashboards.
 - **New keys**: Only additive, optional keys allowed if introduced for v0.5.0; must be reflected in `energy-horizon-card-editor.ts` and docs.
+- **Layout visibility (post v0.5.0)**: `show_comparison_summary`, `show_forecast_total_panel`, `show_narrative_comment` — optional booleans; default **visible** when omitted or not `false`. Exposed in the visual editor (`ha-form` boolean selectors). Technical editor contract: `specs/005-gui-editor/contracts/lovelace-editor-api.md`.
 - **Deprecated keys**: Continue accepting `comparison_mode` alias per `resolveComparisonPreset`.
 
 ## 3. Data ingestion
@@ -27,10 +28,10 @@ The rendered card **SHOULD** expose stable, testable regions (class names or rol
 | Region | Purpose |
 |--------|---------|
 | Card header | Title (optional), `entity_id` subtitle (only when title shown), icon |
-| Comparison panel | Current vs reference + delta chip |
-| Forecast / Total panel | Present only when forecast is **enabled** (`show_forecast` not `false`); then end-of-period forecast vs full reference total (§1.3). When forecast is **disabled**, this region is **absent** (entire panel hidden). |
+| Comparison panel | Current vs reference + delta chip — **absent** when `show_comparison_summary === false` (optional). |
+| Forecast / Total panel | Present only when forecast is **enabled** (`show_forecast` not `false`); then end-of-period forecast vs full reference total (§1.3), **and** `show_forecast_total_panel !== false`. When forecast is **disabled**, this region is **absent** (entire panel hidden) regardless of `show_forecast_total_panel`. |
 | Chart | ECharts container |
-| Narrative comment | `textSummary` + trend icon |
+| Narrative comment | `textSummary` + trend icon — **absent** when `show_narrative_comment === false` (optional). |
 | Warning | Data-quality messages (e.g. incomplete reference) — **exclusive** full text for that case |
 
 ## 5. Behavioral contract (selected)

@@ -84,6 +84,9 @@ Target types: `CardConfig` / `CardConfigInput` in [`src/card/types.ts`](src/card
 | `primary_color` | string | empty → card token `#119894` | Current series line, fill, and caption swatch. Use `var(--accent-color)`, `ha-accent` / `ha-primary-accent`, or `ha-primary` to follow HA theme; override `--eh-series-current` with Card Mod if needed. |
 | `connect_nulls` | boolean | `true` | Dashed visual interpolation across `null` gaps; `false` = gaps on the chart. |
 | `show_legend` | boolean | `false` | Legend **only** with explicit `show_legend: true`. |
+| `show_comparison_summary` | boolean | `true` (visible when not `false`) | Hides the **comparison** panel (current vs reference “to this day” + delta chip) when `false`. |
+| `show_forecast_total_panel` | boolean | `true` | Hides the **Forecast \| Total** panel when `false`. Still requires forecast gating: if `show_forecast` is `false`, the panel stays absent regardless of this flag. |
+| `show_narrative_comment` | boolean | `true` | Hides the **narrative comment** block (trend icon + text) when `false`. |
 | `x_axis_format` | string | — | Luxon pattern for X-axis labels; disables adaptive label mode. |
 | `tooltip_format` | string | — | Luxon pattern for tooltip header (first line). Validated like `x_axis_format`. |
 | `force_prefix` | see [scaling](#unit-scaling-force_prefix) | `auto` (when omitted) | SI prefix control for scalable units. |
@@ -263,7 +266,7 @@ For **`count` ≥ 3**:
 
 `EnergyHorizonCard` exposes `getConfigElement()` → `energy-horizon-card-editor`.
 
-**Visual mode (`ha-form`):** entity (`sensor` domain), title, `comparison_preset`, `force_prefix`.
+**Visual mode (`ha-form`):** entity (`sensor` domain), title, `comparison_preset`, `force_prefix`, `show_comparison_summary`, `show_forecast_total_panel`, `show_narrative_comment` (boolean toggles).
 
 **YAML mode:** requires global `window.jsyaml` (standard HA frontend). All other fields are set in YAML or by pasting full config.
 
