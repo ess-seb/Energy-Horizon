@@ -4,6 +4,17 @@ All notable changes to **Energy Horizon Card** (Home Assistant Lovelace / HACS) 
 
 
 
+## Unreleased
+
+### Changed
+
+- **Unified multi-window chart axis (spec 006)**: `buildChartTimeline` uses one rule for all `N ≥ 2` windows — axis length is the **maximum nominal bucket count** at window 0’s aggregation (not a separate YoY/MoY “legacy” axis path). **Forecast** still uses `forecastPeriodBuckets` from **window 0** only when it differs from axis length.
+- **FR-B tail labels**: X-axis ticks past the current window’s nominal end use compact date-style tail formatting; **FR-G** carry-forward fills the current cumulative at the “today” slot when LTS has not closed that bucket yet (day/week/month).
+
+### Documentation
+
+- Cross-linked specs and wiki mental model with the unified axis + forecast rules (`specs/006-time-windows-unify/`, `wiki-publish/Mental-Model-Comparisons-and-Timelines.md`).
+
 ## [0.5.1]
 
 ### Added

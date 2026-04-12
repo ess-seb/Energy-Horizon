@@ -46,7 +46,7 @@ comparison_preset: year_over_year
 | **Data source** | One entity, multiple LTS queries — one per resolved time window. |
 | **Time windows** | Preset (`comparison_preset`) + optional override via `time_window` (deep merge). |
 | **Chart** | Apache ECharts: current series (window 0), reference (window 1), optional background for windows ≥ 2. |
-| **X-axis** | Shared axis = longest window (by time span); shorter series end earlier. |
+| **X-axis** | Shared axis length = **max nominal bucket count** across windows at the chart aggregation (window 0’s grain), not wall‑clock span alone; shorter series end earlier on that axis. |
 | **Numeric summary** | Cumulative values at the end of the current timeline vs reference, using the same alignment as the chart. |
 | **Trend text** | Higher / lower / similar vs reference (“similar” threshold: difference &lt; 0.01 in display units). |
 | **Forecast** | End-of-period estimate from elapsed fraction and reference profile; disabled in single-window mode or with `show_forecast: false`. |

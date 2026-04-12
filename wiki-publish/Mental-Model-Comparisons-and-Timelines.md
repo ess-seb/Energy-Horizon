@@ -25,7 +25,7 @@ Window 0 is the **current** window. Window 1 is the **reference** window. Window
 
 ### 2) The chart uses a shared X-axis (normalized by position in the window)
 
-The card renders all series against a **shared timeline** whose length is the **longest resolved window**.
+The card renders all series against a **shared timeline** whose length is the **largest nominal bucket count** among all windows at the chart’s aggregation grain (the same grain as window 0). That is **not** the same as picking the longest span by wall‑clock alone—two months with different numbers of days can differ in slot count even when wall‑clock ranges look similar.
 
 That means:
 
@@ -67,6 +67,8 @@ For `year_over_year` and `month_over_year` **without customizations that break t
 - reference window is a **full calendar period** (shifted by `period_offset`)
 
 This gives “so far this year/month vs the full reference year/month”.
+
+**Chart axis (unified rule):** regardless of preset, the shared X-axis length is still the **maximum nominal slot count** across windows at the chart aggregation (see §2). YoY/MoY only change **how** `ResolvedWindow` bounds are computed, not a second axis formula.
 
 ### Generic path (MoM + most custom time_window)
 

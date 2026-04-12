@@ -33,7 +33,8 @@ function deepMerge<T extends Record<string, unknown>>(
 
 /**
  * If the user overrides structural fields vs the preset, drop legacy YoY/MoY flags
- * so generic resolution runs (FR-005 / custom windows).
+ * so generic resolution runs (FR-005 / custom windows). **FR-F**: decisions use only
+ * structural deltas (`count`, `anchor`, `step`, `offset`), never the preset *name* or label keys.
  */
 function stripLegacyWhenGeneric(
   merged: MergedTimeWindowConfig,

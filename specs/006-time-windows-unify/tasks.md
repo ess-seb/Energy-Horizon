@@ -26,8 +26,8 @@
 
 **Purpose**: Przygotowanie artefaktów akceptacji i kontekstu przed zmianami w kodzie.
 
-- [ ] T001 Create golden scenario matrix (presets + representative overrides, FR-H) in `specs/006-time-windows-unify/golden-scenarios.md`; **uwzględnij jeden wiersz N=2 z nierówną liczbą slotów dziennych** (np. porównanie dwóch miesięcy kalendarzowych) jako odniesienie dla T012
-- [ ] T002 [P] Add pre-flight checklist (FR-B/FR-C/FR-D invariants + file pointers) to `specs/006-time-windows-unify/quickstart.md` linking `specs/006-time-windows-unify/contracts/unified-time-windows-axis.md`
+- [X] T001 Create golden scenario matrix (presets + representative overrides, FR-H) in `specs/006-time-windows-unify/golden-scenarios.md`; **uwzględnij jeden wiersz N=2 z nierówną liczbą slotów dziennych** (np. porównanie dwóch miesięcy kalendarzowych) jako odniesienie dla T012
+- [X] T002 [P] Add pre-flight checklist (FR-B/FR-C/FR-D invariants + file pointers) to `specs/006-time-windows-unify/quickstart.md` linking `specs/006-time-windows-unify/contracts/unified-time-windows-axis.md`
 
 ---
 
@@ -39,11 +39,11 @@
 
 **Ordering (analyze)**: **T003 przed T004** — oba dotykają `ha-api.ts` / timeline; najpierw `buildFullTimelineForWindows`, potem ujednolicenie `buildChartTimeline`, żeby uniknąć podwójnej refaktoryzacji w konflikcie.
 
-- [ ] T003 Replace longest-window selection in `src/card/ha-api.ts` (`buildFullTimelineForWindows`) with **max nominal slot count** at `windows[0].aggregation` per `specs/006-time-windows-unify/research.md`
-- [ ] T004 Unify `buildChartTimeline` in `src/card/ha-api.ts` to **one** code path for **`windows.length >= 2`**: **Longest-window axis span** (**FR-C**) + **FR-B** labeling/alignment per `specs/006-time-windows-unify/contracts/unified-time-windows-axis.md`; keep `forecastPeriodBuckets` from window 0 (**FR-D**); ensure forecast path accepts `timeline.length > forecastPeriodBuckets` (**after T003**)
-- [ ] T005 [P] Reduce `resolveLegacy` vs `resolveGeneric` split in `src/card/time-windows/resolve-windows.ts` toward single explainable merge→resolve model (**FR-A**)
-- [ ] T006 [P] Audit `stripLegacyWhenGeneric` and deep merge in `src/card/time-windows/merge-config.ts` for **FR-F** (explicit YAML overrides preset; no label-keyed behavior)
-- [ ] T007 [P] Add Vitest cases in `tests/unit/ha-api.test.ts` asserting `buildChartTimeline` / slot builders use the passed **IANA `timeZone` string** (mock HA zone), not browser-local drift — **FR-H**
+- [X] T003 Replace longest-window selection in `src/card/ha-api.ts` (`buildFullTimelineForWindows`) with **max nominal slot count** at `windows[0].aggregation` per `specs/006-time-windows-unify/research.md`
+- [X] T004 Unify `buildChartTimeline` in `src/card/ha-api.ts` to **one** code path for **`windows.length >= 2`**: **Longest-window axis span** (**FR-C**) + **FR-B** labeling/alignment per `specs/006-time-windows-unify/contracts/unified-time-windows-axis.md`; keep `forecastPeriodBuckets` from window 0 (**FR-D**); ensure forecast path accepts `timeline.length > forecastPeriodBuckets` (**after T003**)
+- [X] T005 [P] Reduce `resolveLegacy` vs `resolveGeneric` split in `src/card/time-windows/resolve-windows.ts` toward single explainable merge→resolve model (**FR-A**)
+- [X] T006 [P] Audit `stripLegacyWhenGeneric` and deep merge in `src/card/time-windows/merge-config.ts` for **FR-F** (explicit YAML overrides preset; no label-keyed behavior)
+- [X] T007 [P] Add Vitest cases in `tests/unit/ha-api.test.ts` asserting `buildChartTimeline` / slot builders use the passed **IANA `timeZone` string** (mock HA zone), not browser-local drift — **FR-H**
 
 **Checkpoint**: Timeline + `forecastPeriodBuckets` spójne z kontraktem 006 — można wdrażać US1+.
 
@@ -57,11 +57,11 @@
 
 ### Implementation for User Story 1
 
-- [ ] T008 [US1] Thread effective `ResolvedWindow[]`, `timeline`, and `alignStartsMs` from `buildChartTimeline` into chart/renderer state in `src/card/cumulative-comparison-chart.ts` (single source for oś + serie)
-- [ ] T009 [US1] Ensure `computeForecast`, summary / `TextSummary` (or equivalent text stats), and cumulative LTS→series mapping in `src/card/cumulative-comparison-chart.ts` consume the **same** `forecastPeriodBuckets` and timeline semantics exported from `src/card/ha-api.ts` — brak rozjazdu „oś vs prognoza vs podsumowanie”. **FR-F**: copy w podsumowaniu / statystykach nie może zaprzeczać **effective windows** (preset tylko etykieta marketingowa po merge).
-- [ ] T010 [P] [US1] In `src/card/echarts-renderer.ts`: align ECharts axis category/time labels with **FR-B** (current-window grain within its nominal span; **ordinal tail** when axis longer — Session 2026-04-13); **FR-H** dla strefy. **FR-F**: teksty **tooltipów** wykresu (okresy / serie) muszą wynikać z **effective** `ResolvedWindow[]` lub neutralnego copy — bez sugerowania narracji `comparison_preset`, gdy merge się z nią rozjeżdża.
-- [ ] T011 [P] [US1] Align compact period captions with effective windows in `src/card/labels/compact-period-caption.ts`
-- [ ] T012 [US1] Extend expectations for `buildChartTimeline` in `tests/unit/ha-api.test.ts`: **N=2** — `timeline.length` = **max** nominal slot counts of both windows at `windows[0].aggregation`; shorter window has no values past its end; **`forecastPeriodBuckets` still from window 0** (**FR-D**). **N=2 nierówna długość (wymagane w Phase 1)**: w `golden-scenarios.md` (T001) wpisz wiersz scenariusza np. **dwa miesiące kalendarzowe przy ziarnie `day`** (różna liczba dni, ta sama strefa FR-H) i dodaj test Vitest odpowiadający temu wierszowi — bez formuły „when feasible”.
+- [X] T008 [US1] Thread effective `ResolvedWindow[]`, `timeline`, and `alignStartsMs` from `buildChartTimeline` into chart/renderer state in `src/card/cumulative-comparison-chart.ts` (single source for oś + serie)
+- [X] T009 [US1] Ensure `computeForecast`, summary / `TextSummary` (or equivalent text stats), and cumulative LTS→series mapping in `src/card/cumulative-comparison-chart.ts` consume the **same** `forecastPeriodBuckets` and timeline semantics exported from `src/card/ha-api.ts` — brak rozjazdu „oś vs prognoza vs podsumowanie”. **FR-F**: copy w podsumowaniu / statystykach nie może zaprzeczać **effective windows** (preset tylko etykieta marketingowa po merge).
+- [X] T010 [P] [US1] In `src/card/echarts-renderer.ts`: align ECharts axis category/time labels with **FR-B** (current-window grain within its nominal span; **ordinal tail** when axis longer — Session 2026-04-13); **FR-H** dla strefy. **FR-F**: teksty **tooltipów** wykresu (okresy / serie) muszą wynikać z **effective** `ResolvedWindow[]` lub neutralnego copy — bez sugerowania narracji `comparison_preset`, gdy merge się z nią rozjeżdża.
+- [X] T011 [P] [US1] Align compact period captions with effective windows in `src/card/labels/compact-period-caption.ts`
+- [X] T012 [US1] Extend expectations for `buildChartTimeline` in `tests/unit/ha-api.test.ts`: **N=2** — `timeline.length` = **max** nominal slot counts of both windows at `windows[0].aggregation`; shorter window has no values past its end; **`forecastPeriodBuckets` still from window 0** (**FR-D**). **N=2 nierówna długość (wymagane w Phase 1)**: w `golden-scenarios.md` (T001) wpisz wiersz scenariusza np. **dwa miesiące kalendarzowe przy ziarnie `day`** (różna liczba dni, ta sama strefa FR-H) i dodaj test Vitest odpowiadający temu wierszowi — bez formuły „when feasible”.
 
 **Checkpoint**: US1 zamknięty — MVP semantyczny dla N=2.
 
@@ -75,10 +75,10 @@
 
 ### Tests & documentation for User Story 2
 
-- [ ] T013 [US2] Refresh golden preset assertions in `tests/unit/time-windows-presets-golden.test.ts` after timeline/resolve refactors
-- [ ] T014 [P] [US2] Add or extend override scenarios (duration-only, anchor/step) in `tests/unit/time-windows-merge-validate.test.ts` and/or `tests/unit/time-windows-resolve.test.ts`
-- [ ] T015 [US2] Sync documented expected boundaries in `specs/006-time-windows-unify/golden-scenarios.md` with passing tests
-- [ ] T016 [P] [US2] Add Vitest in `tests/unit/ha-api.test.ts` for **≥3** `ResolvedWindow[]`: `timeline.length` equals **max** per-window nominal slot count at `windows[0].aggregation` (**Longest-window axis span / FR-C**, same rule as **N=2**); assert `forecastPeriodBuckets` still from window 0 (**FR-D**)
+- [X] T013 [US2] Refresh golden preset assertions in `tests/unit/time-windows-presets-golden.test.ts` after timeline/resolve refactors
+- [X] T014 [P] [US2] Add or extend override scenarios (duration-only, anchor/step) in `tests/unit/time-windows-merge-validate.test.ts` and/or `tests/unit/time-windows-resolve.test.ts`
+- [X] T015 [US2] Sync documented expected boundaries in `specs/006-time-windows-unify/golden-scenarios.md` with passing tests
+- [X] T016 [P] [US2] Add Vitest in `tests/unit/ha-api.test.ts` for **≥3** `ResolvedWindow[]`: `timeline.length` equals **max** per-window nominal slot count at `windows[0].aggregation` (**Longest-window axis span / FR-C**, same rule as **N=2**); assert `forecastPeriodBuckets` still from window 0 (**FR-D**)
 
 **Checkpoint**: US1+US2 — domyślni użytkownicy presetów bez regresji; wielookienność pokryta testem.
 
@@ -92,9 +92,9 @@
 
 ### Implementation for User Story 3
 
-- [ ] T017 [US3] Implement cumulative carry-forward at the timeline slot containing “now” for series index 0 in `src/card/ha-api.ts` (LTS→slot mapping path)
-- [ ] T018 [US3] Align vertical “now” marker index with carry-forward slot in `src/card/cumulative-comparison-chart.ts` (and `src/card/echarts-renderer.ts` if markLine data is built there)
-- [ ] T019 [P] [US3] Add regression cases (null raw at now; week/month where feasible) in `tests/unit/ha-api.test.ts`
+- [X] T017 [US3] Implement cumulative carry-forward at the timeline slot containing “now” for series index 0 in `src/card/ha-api.ts` (LTS→slot mapping path)
+- [X] T018 [US3] Align vertical “now” marker index with carry-forward slot in `src/card/cumulative-comparison-chart.ts` (and `src/card/echarts-renderer.ts` if markLine data is built there)
+- [X] T019 [P] [US3] Add regression cases (null raw at now; week/month where feasible) in `tests/unit/ha-api.test.ts`
 
 **Checkpoint**: US3 — wizualna spójność „teraz” vs podsumowanie.
 
@@ -108,9 +108,9 @@
 
 ### Implementation for User Story 4
 
-- [ ] T020 [US4] Verify invalid merged config surfaces only via explicit error path in `src/card/time-windows/validate.ts` and `src/card/cumulative-comparison-chart.ts` (**FR-E**)
-- [ ] T021 [P] [US4] Add negative tests for invalid merge (no silent fallback) in `tests/unit/time-windows-merge-validate.test.ts`
-- [ ] T022 [P] [US4] Add or adjust user-facing error keys in `src/translations/en.json` and `src/translations/pl.json`
+- [X] T020 [US4] Verify invalid merged config surfaces only via explicit error path in `src/card/time-windows/validate.ts` and `src/card/cumulative-comparison-chart.ts` (**FR-E**)
+- [X] T021 [P] [US4] Add negative tests for invalid merge (no silent fallback) in `tests/unit/time-windows-merge-validate.test.ts`
+- [X] T022 [P] [US4] Add or adjust user-facing error keys in `src/translations/en.json` and `src/translations/pl.json`
 
 **Checkpoint**: US4 — konfiguracja zaufana i czytelna w błędzie.
 
@@ -120,12 +120,12 @@
 
 **Purpose**: SC-3, SC-4 — jedna prawda w docs; release notes; a11y spot-check (Konstytucja IV).
 
-- [ ] T023 [P] Remove contradictions vs 006 in `specs/001-time-windows-engine/contracts/time-windows-engine.md`, `specs/001-aggregation-axis-labels/spec.md`, and `specs/001-compute-forecast/spec.md` (and linked contracts where needed)
-- [ ] T024 [P] Update end-user mental model in `wiki-publish/Mental-Model-Comparisons-and-Timelines.md` (plus related `wiki-publish/*.md` if they duplicate axis/forecast rules)
-- [ ] T025 Update `README.md`, `README.advanced.md`, and `changelog.md` for unified axis, **Longest-window axis span**, and forecast denominator (**FR-D**)
-- [ ] T026 [P] Spot-check error overlay (`ha-alert`) and chart “now” marker for contrast / screen-reader-friendly labels consistent with existing card patterns (Konstytucja IV) in `src/card/cumulative-comparison-chart.ts` and `src/card/echarts-renderer.ts`
-- [ ] T027 Run `npm test && npm run lint` from `/Users/admin/Projekty Local/Energy-Horizon` and fix any failures
-- [ ] T028 [P] **SC-4**: Po T024 (i przed zamknięciem release) — krótka **self-review checklist** w PR lub akapit w `golden-scenarios.md`: czytelnicy wiki mogą z YAML zbudować „this month vs previous”, MoY, YoY **bez** znajomości ścieżek kodu; linki do stron `wiki-publish/` zaktualizowanych w T024
+- [X] T023 [P] Remove contradictions vs 006 in `specs/001-time-windows-engine/contracts/time-windows-engine.md`, `specs/001-aggregation-axis-labels/spec.md`, and `specs/001-compute-forecast/spec.md` (and linked contracts where needed)
+- [X] T024 [P] Update end-user mental model in `wiki-publish/Mental-Model-Comparisons-and-Timelines.md` (plus related `wiki-publish/*.md` if they duplicate axis/forecast rules)
+- [X] T025 Update `README.md`, `README.advanced.md`, and `changelog.md` for unified axis, **Longest-window axis span**, and forecast denominator (**FR-D**)
+- [X] T026 [P] Spot-check error overlay (`ha-alert`) and chart “now” marker for contrast / screen-reader-friendly labels consistent with existing card patterns (Konstytucja IV) in `src/card/cumulative-comparison-chart.ts` and `src/card/echarts-renderer.ts`
+- [X] T027 Run `npm test && npm run lint` from `/Users/admin/Projekty Local/Energy-Horizon` and fix any failures
+- [X] T028 [P] **SC-4**: Po T024 (i przed zamknięciem release) — krótka **self-review checklist** w PR lub akapit w `golden-scenarios.md`: czytelnicy wiki mogą z YAML zbudować „this month vs previous”, MoY, YoY **bez** znajomości ścieżek kodu; linki do stron `wiki-publish/` zaktualizowanych w T024
 
 ---
 

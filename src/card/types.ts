@@ -229,6 +229,14 @@ export interface ForecastStats {
   unit: string;
 }
 
+/** Single source for chart axis + forecast denominator after `buildChartTimeline` (006). */
+export interface ChartTimeContext {
+  timeline: number[];
+  alignStartsMs: number[];
+  forecastPeriodBuckets: number;
+  tailLabelFromIndex: number;
+}
+
 export interface CardState {
   status: "loading" | "error" | "no-data" | "ready";
   errorMessage?: string;
@@ -241,6 +249,7 @@ export interface CardState {
   period?: ComparisonPeriod;
   resolvedWindows?: ResolvedWindow[];
   mergedTimeWindow?: MergedTimeWindowConfig;
+  chartTime?: ChartTimeContext;
 }
 
 /** Theme colors read from the card host via `getComputedStyle` (US-7 / T020). */
@@ -306,6 +315,13 @@ export interface ChartRendererConfig {
   xAxisLabelLocale?: string;
   /** Home Assistant `time_zone` (IANA) for tick timestamps. */
   haTimeZone?: string;
+  /**
+   * First X-axis category index that uses FR-B tail labeling (axis longer than current window).
+   */
+  tailLabelFromIndex?: number;
+  /** Resolved current window bounds (ms) for FR-G carry-forward and slot checks. */
+  currentWindowStartMs?: number;
+  currentWindowEndMs?: number;
   /** Aggregation driving adaptive label density. */
   primaryAggregation?: WindowAggregation;
   /** Shared chart timeline (ms); tick index maps to this array. */

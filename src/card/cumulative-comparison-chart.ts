@@ -9,9 +9,11 @@ import {
   type ChartThemeResolved,
   type ComparisonSeries,
   type MergedTimeWindowConfig,
+  type ResolvedWindow,
   type TimeSeriesPoint
 } from "./types";
 import { trendMdiIcon, trendToneClass } from "./trend-visual";
+import { DateTime } from "luxon";
 import {
   mapLtsResponseToCumulativeSeries,
   computeSummary,
@@ -19,7 +21,8 @@ import {
   computeTextSummary,
   buildLtsQueriesForWindows,
   buildChartTimeline,
-  comparisonPeriodFromResolvedWindows
+  comparisonPeriodFromResolvedWindows,
+  firstTailAxisLabelIndex
 } from "./ha-api";
 import {
   assertLtsHardLimits,
@@ -99,6 +102,20 @@ export function textSummaryNarrativeWithEmphasis(
 /** Chart forecast line: on unless explicitly `show_forecast: false` (alias `forecast` merged in setConfig). */
 export function isForecastLineVisible(config: CardConfig): boolean {
   return config.show_forecast !== false;
+}
+
+/** Use MoM-specific copy only when resolved geometry is two consecutive calendar months (FR-F). */
+function resolvedWindowsAreConsecutiveCalendarMonths(
+  windows: ResolvedWindow[] | undefined,
+  timeZone: string
+): boolean {
+  if (!windows || windows.length !== 2) {
+    return false;
+  }
+  const w0s = DateTime.fromJSDate(windows[0]!.start, { zone: timeZone }).startOf("day");
+  const w1s = DateTime.fromJSDate(windows[1]!.start, { zone: timeZone }).startOf("day");
+  const expectedPrev = w0s.minus({ months: 1 }).startOf("month");
+  return w1s.equals(expectedPrev);
 }
 
 function clampOpacity(value: unknown): number {
@@ -233,15 +250,15 @@ export class EnergyHorizonCard extends LitElement implements LovelaceCard {
           }
         }
 
-        if (this._chartRenderer && this._state.period && this._state.resolvedWindows) {
-          const resolved = resolveLocale(this.hass, this._config);
-          const localize = createLocalize(resolved.language);
-          const { timeline } = buildChartTimeline(
-            this._state.resolvedWindows,
-            this._state.mergedTimeWindow!,
-            resolved.timeZone,
-            this._config.comparison_preset
-          );
+        if (
+          this._chartRenderer &&
+          this._state.period &&
+          this._state.resolvedWindows &&
+          this._state.chartTime
+        ) {
+          const locResolved = resolveLocale(this.hass, this._config);
+          const localize = createLocalize(locResolved.language);
+          const { timeline } = this._state.chartTime;
           const rendererConfig = this._buildRendererConfig(timeline);
           this._chartRenderer.update(this._state.comparisonSeries, timeline, rendererConfig, {
             current: this._localizeOrError(localize, "period.current"),
@@ -274,14 +291,22 @@ export class EnergyHorizonCard extends LitElement implements LovelaceCard {
       merged.aggregation ?? "day"
     );
 
+    const chartTimeRaw = buildChartTimeline(
+      windows,
+      merged,
+      resolved.timeZone
+    );
+    const tailLabelFromIndex =
+      windows.length >= 2
+        ? firstTailAxisLabelIndex(
+            chartTimeRaw.timeline,
+            chartTimeRaw.alignStartsMs[0]!,
+            windows[0]!.end
+          )
+        : chartTimeRaw.timeline.length;
+
     try {
-      const { timeline: capTimeline } = buildChartTimeline(
-        windows,
-        merged,
-        resolved.timeZone,
-        this._config.comparison_preset
-      );
-      assertPointCountWithinCap(capTimeline.length);
+      assertPointCountWithinCap(chartTimeRaw.timeline.length);
     } catch (e) {
       if (e instanceof PointCapExceededError) {
         if (this._config.debug) {
@@ -380,13 +405,10 @@ export class EnergyHorizonCard extends LitElement implements LovelaceCard {
       const scaledSeries = this._applyUnitScalingToSeries(series, entityUnit);
 
       const summary = computeSummary(scaledSeries);
-      const { forecastPeriodBuckets } = buildChartTimeline(
-        windows,
-        merged,
-        resolved.timeZone,
-        this._config.comparison_preset
+      const forecast = computeForecast(
+        scaledSeries,
+        chartTimeRaw.forecastPeriodBuckets
       );
-      const forecast = computeForecast(scaledSeries, forecastPeriodBuckets);
 
       if (!summary.unit && entityUnit) {
         summary.unit = entityUnit;
@@ -405,7 +427,13 @@ export class EnergyHorizonCard extends LitElement implements LovelaceCard {
         textSummary,
         period,
         resolvedWindows: windows,
-        mergedTimeWindow: merged
+        mergedTimeWindow: merged,
+        chartTime: {
+          timeline: chartTimeRaw.timeline,
+          alignStartsMs: chartTimeRaw.alignStartsMs,
+          forecastPeriodBuckets: chartTimeRaw.forecastPeriodBuckets,
+          tailLabelFromIndex
+        }
       };
     } catch (e) {
       console.error(e);
@@ -621,19 +649,18 @@ export class EnergyHorizonCard extends LitElement implements LovelaceCard {
     const series = this._state.comparisonSeries;
     const windows = this._state.resolvedWindows;
     const singleWindow = !windows || windows.length < 2;
-
+    const ct = this._state.chartTime;
+    const w0 = windows?.[0];
+    const cs = w0?.start ?? period.current_start;
+    const lux = DateTime.fromJSDate(cs, { zone: resolved.timeZone });
     let periodLabel = "";
-    if (this._config.comparison_preset === "year_over_year") {
-      periodLabel = String(period.current_start.getFullYear());
-    } else if (this._config.comparison_preset === "month_over_month") {
+    if (lux.month === 1 && lux.day === 1) {
+      periodLabel = String(lux.year);
+    } else {
       periodLabel = new Intl.DateTimeFormat(language, {
         month: "long",
         year: "numeric"
-      }).format(period.current_start);
-    } else {
-      periodLabel = new Intl.DateTimeFormat(language, { month: "long" }).format(
-        period.current_start
-      );
+      }).format(cs);
     }
 
     const displayUnit = series.current.unit;
@@ -654,6 +681,9 @@ export class EnergyHorizonCard extends LitElement implements LovelaceCard {
       periodLabel,
       referencePeriodStart: period.reference_start.getTime(),
       windowAlignStartsMs: windows?.map((w) => w.start.getTime()),
+      tailLabelFromIndex: ct?.tailLabelFromIndex,
+      currentWindowStartMs: w0?.start?.getTime(),
+      currentWindowEndMs: w0?.end?.getTime(),
       comparisonMode: this._config.comparison_preset,
       language,
       numberLocale,
@@ -828,7 +858,14 @@ export class EnergyHorizonCard extends LitElement implements LovelaceCard {
 
     const forecastUnit = forecast?.unit || displayUnit;
 
-    const isMom = this._config.comparison_preset === "month_over_month";
+    const captionZoneForNarrative =
+      this._state.period?.time_zone ||
+      this.hass?.config?.time_zone ||
+      "UTC";
+    const isMom = resolvedWindowsAreConsecutiveCalendarMonths(
+      this._state.resolvedWindows,
+      captionZoneForNarrative
+    );
 
     let narrativeBody: TemplateResult | null = null;
     if (textSummary && !singleWindow) {

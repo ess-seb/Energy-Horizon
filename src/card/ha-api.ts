@@ -1,7 +1,7 @@
 import { DateTime } from "luxon";
+import { findTimelineSlotContainingInstant } from "./axis/now-marker-slot";
 import type {
   CardConfig,
-  ComparisonMode,
   ComparisonPeriod,
   LtsStatisticPoint,
   LtsStatisticsQuery,
@@ -16,6 +16,75 @@ import type {
   WindowAggregation,
   MergedTimeWindowConfig
 } from "./types";
+
+/**
+ * First timeline index whose aligned slot start (for series 0) is strictly after `windowEnd`.
+ * Used for FR-B tail labeling when another window extends the axis past the current window.
+ */
+export function firstTailAxisLabelIndex(
+  timeline: number[],
+  alignStartMs: number,
+  windowEnd: Date
+): number {
+  if (timeline.length === 0) {
+    return 0;
+  }
+  const t0 = timeline[0]!;
+  const endMs = windowEnd.getTime();
+  for (let j = 0; j < timeline.length; j++) {
+    const alignedSlotStart = alignStartMs + (timeline[j]! - t0);
+    if (alignedSlotStart <= endMs) {
+      continue;
+    }
+    return j;
+  }
+  return timeline.length;
+}
+
+/**
+ * FR-G: if “now” falls in a day/week/month bucket on the chart timeline and the aligned
+ * current series has no LTS point there, repeat the last known cumulative value in-window.
+ */
+export function carryForwardCurrentCumulativeAtNow(
+  alignedValues: (number | null)[],
+  timeline: number[],
+  nowMs: number,
+  alignStartMs: number,
+  windowStartMs: number,
+  windowEndMs: number,
+  aggregation: WindowAggregation
+): void {
+  if (aggregation === "hour") {
+    return;
+  }
+  if (timeline.length === 0 || alignedValues.length !== timeline.length) {
+    return;
+  }
+  const idx = findTimelineSlotContainingInstant(timeline, nowMs);
+  if (idx < 0 || idx >= alignedValues.length) {
+    return;
+  }
+  const t0 = timeline[0]!;
+  const alignedSlotStart = alignStartMs + (timeline[idx]! - t0);
+  if (alignedSlotStart < windowStartMs || alignedSlotStart > windowEndMs) {
+    return;
+  }
+  if (alignedValues[idx] != null) {
+    return;
+  }
+  let last: number | null = null;
+  for (let i = idx - 1; i >= 0; i--) {
+    const v = alignedValues[i];
+    if (v != null) {
+      last = v;
+      break;
+    }
+  }
+  if (last == null) {
+    return;
+  }
+  alignedValues[idx] = last;
+}
 
 /** Timeline slot timestamps (ms) from `rangeStart` through `rangeEnd` for the given aggregation. */
 export function buildTimelineSlots(
@@ -103,7 +172,11 @@ export function buildFullTimeline(
   );
 }
 
-/** Longest span (by wall-clock) drives slot count; aggregation follows window 0 (current). */
+/**
+ * Multi-window chart axis: pick the window with the **largest nominal slot count** at
+ * `primaryAgg = windows[0].aggregation` (006 FR-C), then build the shared timeline from
+ * that window’s nominal bounds — not wall-clock span alone.
+ */
 export function buildFullTimelineForWindows(
   windows: ResolvedWindow[],
   timeZone: string
@@ -113,12 +186,17 @@ export function buildFullTimelineForWindows(
   }
   const primaryAgg = windows[0]!.aggregation;
   let bestIdx = 0;
-  let bestSpan = -1;
+  let bestCount = -1;
   for (let i = 0; i < windows.length; i++) {
     const w = windows[i]!;
-    const span = w.end.getTime() - w.start.getTime();
-    if (span > bestSpan) {
-      bestSpan = span;
+    const count = buildTimelineSlots(
+      w.start,
+      w.end,
+      primaryAgg,
+      timeZone
+    ).length;
+    if (count > bestCount) {
+      bestCount = count;
       bestIdx = i;
     }
   }
@@ -135,58 +213,41 @@ export function buildFullTimelineForWindows(
   };
 }
 
-/** YoY/MoY preset keeps calendar axis on the current period; custom multi-window uses longest span (FR-009). */
+/**
+ * Single timeline policy for `N >= 2`: longest-window axis span (FR-C) + `forecastPeriodBuckets` from window 0 (FR-D).
+ * `merged` is reserved for future label hints; geometry does not branch on preset name (006 FR-A / FR-F).
+ */
 export function buildChartTimeline(
   windows: ResolvedWindow[],
-  merged: MergedTimeWindowConfig,
-  timeZone: string,
-  comparisonMode: ComparisonMode
+  _merged: MergedTimeWindowConfig,
+  timeZone: string
 ): {
   timeline: number[];
   alignStartsMs: number[];
   /** Denominator for `computeForecast` — full current-window bucket count, not always `timeline.length` when windows differ in length. */
   forecastPeriodBuckets: number;
 } {
+  void _merged;
   const alignStartsMs = windows.map((w) => w.start.getTime());
-  const legacyPreset =
-    !!merged.currentEndIsNow &&
-    !!merged.referenceFullPeriod &&
-    windows.length === 2;
+  if (windows.length === 0) {
+    return { timeline: [], alignStartsMs: [], forecastPeriodBuckets: 0 };
+  }
 
-  if (legacyPreset) {
-    const period = comparisonPeriodFromResolvedWindows(
-      windows,
-      timeZone,
-      windows[0]!.aggregation
-    );
-    const startLuxon = DateTime.fromJSDate(period.current_start, {
-      zone: timeZone
-    });
-    const fullEnd =
-      comparisonMode === "year_over_year"
-        ? DateTime.fromObject(
-            { year: startLuxon.year, month: 12, day: 31 },
-            { zone: timeZone }
-          ).endOf("day")
-        : startLuxon.endOf("month");
+  const forecastPeriodBuckets = countBucketsForWindow(windows[0]!, timeZone);
 
+  if (windows.length === 1) {
+    const w0 = windows[0]!;
     const timeline = buildTimelineSlots(
-      period.current_start,
-      fullEnd.toJSDate(),
-      period.aggregation,
+      w0.start,
+      w0.end,
+      w0.aggregation,
       timeZone
     );
-    return {
-      timeline,
-      alignStartsMs,
-      forecastPeriodBuckets: timeline.length
-    };
+    return { timeline, alignStartsMs, forecastPeriodBuckets };
   }
 
   const { timeline, alignStartsMs: align } =
     buildFullTimelineForWindows(windows, timeZone);
-  const forecastPeriodBuckets =
-    windows.length > 0 ? countBucketsForWindow(windows[0]!, timeZone) : 0;
   return { timeline, alignStartsMs: align, forecastPeriodBuckets };
 }
 

@@ -5,7 +5,7 @@
 
 W konfiguracji Lovelace kanoniczny klucz YAML to `comparison_preset` (legacy: `comparison_mode`); po normalizacji w karcie tryb jest przekazywany do merge/resolve jako wartość porównawcza (np. `ComparisonMode`), nie jako surowy string z YAML.
 
-**Prognoza (integracja z kartą)**: warstwa `ha-api.ts` (`buildChartTimeline`, `countBucketsForWindow`) wylicza **`forecastPeriodBuckets`** dla `computeForecast`: przy wielu oknach o różnej długości mianownik opiera się na **oknie 0**, nie na maksymalnej rozpiętości listy okien ani wyłącznie na długości osi X (FR-009).
+**Prognoza (integracja z kartą)**: warstwa `ha-api.ts` (`buildChartTimeline`, `countBucketsForWindow`) wylicza **`forecastPeriodBuckets`** dla `computeForecast`: przy wielu oknach mianownik opiera się na **oknie 0**, nie na długości osi X. **Oś X** dla `N ≥ 2`: długość = **max** liczby slotów nominalnych przy agregacji okna 0 (spec **006** — [unified-time-windows-axis.md](../../006-time-windows-unify/contracts/unified-time-windows-axis.md)), nie wyłącznie wall-clock „najdłuższego” okna.
 
 ## Exports (logiczne)
 

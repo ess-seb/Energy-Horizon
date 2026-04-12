@@ -16,6 +16,7 @@ import {
   formatAdaptiveTickLabel,
   formatForcedTickLabel
 } from './axis/axis-label-format';
+import { carryForwardCurrentCumulativeAtNow } from './ha-api';
 import { trendResolvedLineColor } from './trend-visual';
 import { formatTooltipHeader } from './axis/tooltip-format';
 import { findTimelineSlotContainingInstant } from './axis/now-marker-slot';
@@ -455,12 +456,18 @@ export class EChartsRenderer {
       }
 
       const agg = rendererConfig.primaryAggregation ?? "day";
+      const tailFrom = rendererConfig.tailLabelFromIndex;
       return formatAdaptiveTickLabel(
         tick,
         fullTimeline,
         zone,
         labelLocale,
-        agg
+        agg,
+        tailFrom != null &&
+          tailFrom < fullTimeline.length &&
+          fullTimeline.length > 0
+          ? { tailFromIndex: tailFrom }
+          : undefined
       );
     };
 
@@ -987,6 +994,26 @@ export class EChartsRenderer {
           align1
         )
       : new Array(fullTimeline.length).fill(null);
+
+    const w0Start = rendererConfig.currentWindowStartMs;
+    const w0End = rendererConfig.currentWindowEndMs;
+    const alignsAll = rendererConfig.windowAlignStartsMs;
+    if (
+      w0Start != null &&
+      w0End != null &&
+      alignsAll != null &&
+      alignsAll.length > 0
+    ) {
+      carryForwardCurrentCumulativeAtNow(
+        currentValues,
+        fullTimeline,
+        Date.now(),
+        alignsAll[0]!,
+        w0Start,
+        w0End,
+        comparisonSeries.aggregation ?? "day"
+      );
+    }
 
     const contextSeries =
       comparisonSeries.context?.map((ctx, idx) => ({

@@ -56,6 +56,26 @@ describe("time-windows merge + validate", () => {
     }
   });
 
+  it("structural YAML override strips legacy flags; validate still runs (FR-F, no silent preset restore)", () => {
+    const merged = mergeTimeWindowConfig({
+      mode: "year_over_year",
+      timeWindowPartial: {
+        anchor: "start_of_month",
+        duration: "1M",
+        step: "1M",
+        count: 2
+      },
+      periodOffset: -1
+    });
+    expect(merged.currentEndIsNow).toBeUndefined();
+    expect(merged.referenceFullPeriod).toBeUndefined();
+    const v = validateMergedTimeWindowConfig({
+      ...merged,
+      aggregation: "day"
+    });
+    expect(v.ok).toBe(true);
+  });
+
   it("rejects empty required fields after destructive merge", () => {
     const merged = mergeTimeWindowConfig({
       mode: "year_over_year",

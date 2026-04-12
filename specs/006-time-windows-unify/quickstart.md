@@ -1,5 +1,14 @@
 # Quickstart: 006-time-windows-unify
 
+## Pre-flight (przed zmianą osi / timeline)
+
+Sprawdź spójność z kontraktem **[contracts/unified-time-windows-axis.md](./contracts/unified-time-windows-axis.md)**:
+
+- **FR-B**: Etykiety osi w zakresie okna bieżącego jak okno 0; **tail** (oś dłuższa niż nominalny zasięg bieżącego na wspólnej osi) — kontynuacja ordinalna / copy bez mylącej narracji referencji (**FR-F** w tooltipach).
+- **FR-C**: Dla `windows.length >= 2`, `timeline.length` = **max** liczby slotów nominalnych przy `windows[0].aggregation` (nie wall-clock jako jedyne kryterium).
+- **FR-D**: `forecastPeriodBuckets` zawsze z okna indeksu **0**; kod prognozy musi działać przy `timeline.length > forecastPeriodBuckets`.
+- **Wskaźniki plików**: `src/card/ha-api.ts` (`buildChartTimeline`, `buildFullTimelineForWindows`), `src/card/cumulative-comparison-chart.ts`, `src/card/echarts-renderer.ts`, `tests/unit/ha-api.test.ts`, [golden-scenarios.md](./golden-scenarios.md).
+
 ## Testy
 
 ```bash

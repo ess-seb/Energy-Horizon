@@ -1,8 +1,11 @@
 import { describe, it, expect } from "vitest";
 import {
+  buildChartTimeline,
+  carryForwardCurrentCumulativeAtNow,
   computeSummary,
   computeForecast,
   computeTextSummary,
+  countBucketsForWindow,
   fullReferenceWindowRawTotal,
   mapLtsResponseToSeries
 } from "../../src/card/ha-api";
@@ -10,7 +13,9 @@ import { formatSigned } from "../../src/card/cumulative-comparison-chart";
 import type {
   ComparisonSeries,
   CumulativeSeries,
-  LtsStatisticsResponse
+  LtsStatisticsResponse,
+  MergedTimeWindowConfig,
+  ResolvedWindow
 } from "../../src/card/types";
 
 const DAY_MS = 24 * 60 * 60 * 1000;
@@ -620,6 +625,122 @@ describe("formatSigned", () => {
     });
     const result = formatSigned(-99.999, precisionFormatter, "Wh");
     expect(result).toMatch(/\u2212100\.\d{2} Wh/);
+  });
+});
+
+/** Noon UTC on calendar date — stable across CI host zones. */
+const utcNoon = (y: number, m: number, d: number): Date =>
+  new Date(Date.UTC(y, m - 1, d, 12, 0, 0, 0));
+
+describe("buildChartTimeline (006 FR-C / FR-D / FR-H)", () => {
+  const mergedMinimal = {
+    aggregation: "day"
+  } as MergedTimeWindowConfig;
+
+  it("uses IANA time zone for day buckets, not implicit local drift", () => {
+    const rangeStart = new Date(Date.UTC(2025, 5, 15, 6, 0, 0, 0));
+    const rangeEnd = new Date(Date.UTC(2025, 5, 18, 6, 0, 0, 0));
+    const windows: ResolvedWindow[] = [
+      {
+        index: 0,
+        id: "current",
+        role: "current",
+        start: rangeStart,
+        end: rangeEnd,
+        aggregation: "day"
+      }
+    ];
+    const utc = buildChartTimeline(windows, mergedMinimal, "UTC");
+    const warsaw = buildChartTimeline(windows, mergedMinimal, "Europe/Warsaw");
+    expect(utc.timeline[0]).not.toBe(warsaw.timeline[0]);
+  });
+
+  it("N=2 unequal calendar months (day): axis = max slots, forecast from window 0 (golden G5)", () => {
+    const windows: ResolvedWindow[] = [
+      {
+        index: 0,
+        id: "current",
+        role: "current",
+        start: utcNoon(2024, 2, 1),
+        end: utcNoon(2024, 2, 29),
+        aggregation: "day"
+      },
+      {
+        index: 1,
+        id: "reference",
+        role: "reference",
+        start: utcNoon(2024, 3, 1),
+        end: utcNoon(2024, 3, 31),
+        aggregation: "day"
+      }
+    ];
+    const { timeline, forecastPeriodBuckets } = buildChartTimeline(
+      windows,
+      mergedMinimal,
+      "UTC"
+    );
+    expect(timeline.length).toBe(31);
+    expect(forecastPeriodBuckets).toBe(29);
+    expect(countBucketsForWindow(windows[0]!, "UTC")).toBe(29);
+  });
+
+  it("N≥3: timeline length = max nominal slots at window 0 aggregation", () => {
+    const windows: ResolvedWindow[] = [
+      {
+        index: 0,
+        id: "current",
+        role: "current",
+        start: utcNoon(2025, 1, 1),
+        end: utcNoon(2025, 1, 31),
+        aggregation: "day"
+      },
+      {
+        index: 1,
+        id: "reference",
+        role: "reference",
+        start: utcNoon(2024, 1, 1),
+        end: utcNoon(2024, 4, 30),
+        aggregation: "day"
+      },
+      {
+        index: 2,
+        id: "context",
+        role: "context",
+        start: utcNoon(2023, 1, 1),
+        end: utcNoon(2023, 2, 28),
+        aggregation: "day"
+      }
+    ];
+    const counts = windows.map((w) =>
+      countBucketsForWindow(w, "UTC")
+    );
+    const maxSlots = Math.max(...counts);
+    const { timeline, forecastPeriodBuckets } = buildChartTimeline(
+      windows,
+      mergedMinimal,
+      "UTC"
+    );
+    expect(timeline.length).toBe(maxSlots);
+    expect(forecastPeriodBuckets).toBe(counts[0]);
+  });
+});
+
+describe("carryForwardCurrentCumulativeAtNow (FR-G)", () => {
+  it("fills the slot containing now when LTS left it null", () => {
+    const t0 = Date.UTC(2025, 0, 1);
+    const timeline = [t0, t0 + DAY_MS, t0 + 2 * DAY_MS];
+    const aligned: (number | null)[] = [10, 20, null];
+    const nowMs = t0 + 2 * DAY_MS + 3600000;
+    carryForwardCurrentCumulativeAtNow(
+      aligned,
+      timeline,
+      nowMs,
+      t0,
+      t0,
+      t0 + 10 * DAY_MS,
+      "day"
+    );
+    expect(aligned[2]).toBe(20);
   });
 });
 

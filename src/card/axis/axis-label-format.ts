@@ -39,12 +39,15 @@ export function formatAdaptiveTickLabel(
   fullTimeline: number[],
   zone: string,
   locale: string,
-  aggregation: WindowAggregation
+  aggregation: WindowAggregation,
+  opts?: { tailFromIndex?: number }
 ): string {
   const ms = fullTimeline[index];
   if (ms == null) return "";
 
   const cur = DateTime.fromMillis(ms, { zone });
+  const tailFrom = opts?.tailFromIndex;
+  const isTail = tailFrom != null && index >= tailFrom && tailFrom < fullTimeline.length;
   const prev =
     index > 0
       ? DateTime.fromMillis(fullTimeline[index - 1]!, { zone })
@@ -60,6 +63,34 @@ export function formatAdaptiveTickLabel(
     !!prev && (cur.month !== prev.month || cur.year !== prev.year);
 
   const isFirst = index === 0;
+
+  if (isTail) {
+    switch (aggregation) {
+      case "day":
+        return new Intl.DateTimeFormat(locale, {
+          month: "short",
+          day: "numeric"
+        }).format(new Date(ms));
+      case "week":
+      case "month":
+        return new Intl.DateTimeFormat(locale, {
+          month: "short",
+          day: "numeric"
+        }).format(new Date(ms));
+      case "hour":
+        return new Intl.DateTimeFormat(locale, {
+          month: "short",
+          day: "numeric",
+          hour: "numeric",
+          minute: "2-digit"
+        }).format(new Date(ms));
+      default:
+        return new Intl.DateTimeFormat(locale, {
+          month: "short",
+          day: "numeric"
+        }).format(new Date(ms));
+    }
+  }
 
   switch (aggregation) {
     case "hour": {

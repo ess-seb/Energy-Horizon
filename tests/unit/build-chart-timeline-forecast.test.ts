@@ -45,8 +45,7 @@ describe("buildChartTimeline — forecastPeriodBuckets vs chart axis", () => {
     const { timeline, forecastPeriodBuckets } = buildChartTimeline(
       windows,
       merged,
-      "UTC",
-      "year_over_year"
+      "UTC"
     );
 
     const w0Buckets = countBucketsForWindow(windows[0]!, "UTC");
@@ -54,7 +53,7 @@ describe("buildChartTimeline — forecastPeriodBuckets vs chart axis", () => {
     expect(timeline.length).toBeGreaterThan(forecastPeriodBuckets);
   });
 
-  it("legacy YoY preset: forecastPeriodBuckets matches full-period timeline length", () => {
+  it("YoY-style two windows: forecastPeriodBuckets is window 0 slots, axis uses max span (006 FR-D)", () => {
     const windows: ResolvedWindow[] = [
       {
         index: 0,
@@ -82,10 +81,11 @@ describe("buildChartTimeline — forecastPeriodBuckets vs chart axis", () => {
     const { timeline, forecastPeriodBuckets } = buildChartTimeline(
       windows,
       merged,
-      "UTC",
-      "year_over_year"
+      "UTC"
     );
 
-    expect(forecastPeriodBuckets).toBe(timeline.length);
+    const w0Buckets = countBucketsForWindow(windows[0]!, "UTC");
+    expect(forecastPeriodBuckets).toBe(w0Buckets);
+    expect(timeline.length).toBeGreaterThan(forecastPeriodBuckets);
   });
 });

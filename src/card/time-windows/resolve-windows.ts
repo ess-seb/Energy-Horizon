@@ -3,6 +3,34 @@ import type { ResolvedWindow, WindowAggregation } from "../types";
 import type { MergedTimeWindowConfig } from "../types";
 import { durationToMillis, parseDurationToken } from "./duration-parse";
 
+function twoWindowPresetPair(
+  currentStart: DateTime,
+  currentEnd: DateTime,
+  refStart: DateTime,
+  refEnd: DateTime,
+  aggregation: WindowAggregation
+): ResolvedWindow[] {
+  return [
+    {
+      index: 0,
+      id: "current",
+      role: "current",
+      start: currentStart.toJSDate(),
+      end: currentEnd.toJSDate(),
+      aggregation
+    },
+    {
+      index: 1,
+      id: "reference",
+      role: "reference",
+      start: refStart.toJSDate(),
+      end: refEnd.toJSDate(),
+      aggregation
+    }
+  ];
+}
+
+/** YoY / MoY preset geometry: same merge shape, different calendar anchors (006 FR-A — one explainable model). */
 function resolveLegacy(
   merged: MergedTimeWindowConfig,
   now: DateTime,
@@ -26,25 +54,13 @@ function resolveLegacy(
       { zone: timeZone }
     );
     const refEnd = refStart.plus(duration).minus({ milliseconds: 1 });
-
-    return [
-      {
-        index: 0,
-        id: "current",
-        role: "current",
-        start: currentStart.toJSDate(),
-        end: currentEnd.toJSDate(),
-        aggregation
-      },
-      {
-        index: 1,
-        id: "reference",
-        role: "reference",
-        start: refStart.toJSDate(),
-        end: refEnd.toJSDate(),
-        aggregation
-      }
-    ];
+    return twoWindowPresetPair(
+      currentStart,
+      currentEnd,
+      refStart,
+      refEnd,
+      aggregation
+    );
   }
 
   const year = now.year;
@@ -60,25 +76,13 @@ function resolveLegacy(
     { zone: timeZone }
   );
   const refEnd = refStart.plus(duration).minus({ milliseconds: 1 });
-
-  return [
-    {
-      index: 0,
-      id: "current",
-      role: "current",
-      start: currentStart.toJSDate(),
-      end: currentEnd.toJSDate(),
-      aggregation
-    },
-    {
-      index: 1,
-      id: "reference",
-      role: "reference",
-      start: refStart.toJSDate(),
-      end: refEnd.toJSDate(),
-      aggregation
-    }
-  ];
+  return twoWindowPresetPair(
+    currentStart,
+    currentEnd,
+    refStart,
+    refEnd,
+    aggregation
+  );
 }
 
 function resolveAnchorPoint(anchor: string, now: DateTime): DateTime {
