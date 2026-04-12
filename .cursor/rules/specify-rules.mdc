@@ -57,4 +57,5 @@ TypeScript (ES2020+, `strict` enabled): Follow standard conventions
 
 
 <!-- MANUAL ADDITIONS START -->
+<!-- Project Structure must stay aligned with repo: src/, tests/, config/ — not backend/frontend. -->
 <!-- MANUAL ADDITIONS END -->
