@@ -76,6 +76,8 @@ Given that feature description, do this:
 
    If the user explicitly provided `GIT_BRANCH_NAME`, pass it through to the hook so the branch script uses the exact value as the branch name (bypassing all prefix/suffix generation).
 
+   **If no hook ran** (no `.specify/extensions.yml` or no `before_specify`): after writing `.specify/feature.json`, run from repo root **`scripts/speckit-ensure-feature-branch.sh`** so git is on a feature-shaped branch (e.g. `006-short-name`) matching the spec folder basename. This avoids failures in commands that call `check-prerequisites.sh` without `--paths-only`. Skip only if the user is not using git or explicitly chose another branch workflow.
+
 3. **Create the spec feature directory**:
 
    Specs live under the default `specs/` directory unless the user explicitly provides `SPECIFY_FEATURE_DIRECTORY`.
@@ -106,6 +108,7 @@ Given that feature description, do this:
    - You must only create one feature per `/speckit.specify` invocation
    - The spec directory name and the git branch name are independent — they may be the same but that is the user's choice
    - The spec directory and file are always created by this command, never by the hook
+   - **Git (recommended)**: Once `feature.json` points at the new `SPECIFY_FEATURE_DIRECTORY`, run `scripts/speckit-ensure-feature-branch.sh` from the repository root (creates or switches to branch `$(basename SPECIFY_FEATURE_DIRECTORY)`). Use `bash scripts/speckit-ensure-feature-branch.sh` if the file is not marked executable.
 
 4. Load `.specify/templates/spec-template.md` to understand required sections.
 
@@ -263,7 +266,7 @@ Given that feature description, do this:
        ```
    - If no hooks are registered or `.specify/extensions.yml` does not exist, skip silently
 
-**NOTE:** Branch creation is handled by the `before_specify` hook (git extension). Spec directory and file creation are always handled by this core command.
+**NOTE:** Branch creation is either handled by the `before_specify` hook (if configured) or by `scripts/speckit-ensure-feature-branch.sh` after `feature.json` is written. Spec directory and file creation are always handled by this core command.
 
 ## Quick Guidelines
 
