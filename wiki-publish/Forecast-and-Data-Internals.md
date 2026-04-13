@@ -43,6 +43,8 @@ Each returned point may carry multiple numeric fields. The card prefers:
 
 This preference exists to keep cumulative energy math consistent when `sum` is available.
 
+**Timestamp for `sum` deltas:** each increment (current row’s `sum` minus previous row’s `sum`) is the energy for the interval **between** those rows. The card stores that increment at the **previous row’s `start`** — i.e. the **start of the LTS aggregation bucket** that increment belongs to. That matches the chart’s timeline slots (bucket starts in the Home Assistant time zone), so the first plotted value lines up with the first axis tick (e.g. day 1 of the month at `aggregation: day`), not the next bucket. Rows that only use `change` or `state` still use each row’s own `start` as the timestamp.
+
 ### 3) Cumulative series (running total)
 
 The plotted series is cumulative: each slot is the running total up to that point.

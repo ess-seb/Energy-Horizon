@@ -463,24 +463,33 @@ function normalizePoints(points: LtsStatisticPoint[]): {
   let unit = "";
   const series: TimeSeriesPoint[] = [];
   let previousSum: number | undefined;
+  /** Start of the LTS row that `previousSum` belongs to; delta timestamps use this (bucket start). */
+  let previousSumStartMs: number | undefined;
 
   for (const p of points) {
+    const startMs = new Date(p.start).getTime();
     let rawValue: number | undefined;
+    /** For sum-deltas: period start of the increment; else use `startMs`. */
+    let timestampMs = startMs;
 
     if (typeof p.sum === "number") {
       if (previousSum === undefined) {
         // Pierwszy punkt przy braku `change` traktujemy jako punkt odniesienia
         // dla bieżącego okresu (różnice liczymy względem niego).
         previousSum = p.sum;
+        previousSumStartMs = startMs;
         continue;
       } else {
         const delta = p.sum - previousSum;
         previousSum = p.sum;
         if (!Number.isFinite(delta) || delta <= 0) {
           // Reset licznika lub dane niespójne – pomijamy
+          previousSumStartMs = startMs;
           continue;
         }
         rawValue = delta;
+        timestampMs = previousSumStartMs ?? startMs;
+        previousSumStartMs = startMs;
       }
     } else if (typeof p.change === "number") {
       rawValue = p.change;
@@ -498,7 +507,7 @@ function normalizePoints(points: LtsStatisticPoint[]): {
     }
 
     series.push({
-      timestamp: new Date(p.start).getTime(),
+      timestamp: timestampMs,
       value: rawValue,
       rawValue
     });

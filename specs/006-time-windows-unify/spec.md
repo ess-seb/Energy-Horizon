@@ -30,6 +30,10 @@
 
 - **ECharts axis tooltip:** the chart maps the pointer column to `fullTimeline[i]` using **`axisValue`** (rounded) and/or the **current/reference** series’ explicit X coordinate — not `dataIndex` from an arbitrary first series (sparse forecast line). **FR-H:** default `Intl` formatting for axis/tooltip calendar fields passes **`timeZone`** = Home Assistant IANA zone. See [contracts/unified-time-windows-axis.md](./contracts/unified-time-windows-axis.md).
 
+### Session 2026-04-13 (LTS sum → chart buckets)
+
+- **FR-DATA-1:** For LTS rows using **`sum`** (monotonic total), each computed increment MUST be assigned the timestamp of the **previous row’s `start`** (start of the aggregation period that increment represents), so values map to the same nominal slot index as the shared `timeline[]` built in FR-H (first day/hour of the window is not skipped on the chart while the axis still labels that bucket). **`change`** / **`state`** rows keep the current row’s `start`. **G9** in [golden-scenarios.md](./golden-scenarios.md).
+
 ## User Scenarios & Testing *(mandatory)*
 
 ### User Story 1 - One story for time, axis, summary, and tooltip (Priority: P1)
@@ -44,6 +48,7 @@ As someone comparing energy use across periods on the Energy Horizon card, I nee
 
 1. **Given** a merged card configuration with a preset plus optional time window overrides, **When** the card renders, **Then** I can describe the result as an ordered list of windows with explicit start/end meaning without needing to know any internal “legacy vs generic” implementation path.
 2. **Given** two or more comparison windows, **When** I read the chart axis, **Then** the **number of steps** follows **Longest-window axis span** (FR-C), shorter series end without values past their window’s nominal end, **date/step label meaning** for slots within the current window follows the **current** window’s calendar structure and aggregation grain (FR-B), and each non-current series is aligned by the single documented ordinal rule; **tail** slots beyond the current window’s length use ordinal-consistent labeling per the Session 2026-04-13 clarification.
+3. **Given** LTS data with **`sum`** and daily (or hourly) aggregation, **When** the chart renders, **Then** the first non-null cumulative sample for the current window aligns with the **first** timeline slot for that window (**FR-DATA-1**, scenario **G9**)—the series does not appear shifted by one bucket relative to axis ticks.
 
 ---
 

@@ -294,17 +294,26 @@ export class EChartsRenderer {
       return result;
     }
 
-    const slotDuration = timeline.length > 1 ? timeline[1]! - timeline[0]! : 86400000;
+    const slotDuration =
+      timeline.length > 1
+        ? timeline[timeline.length - 1]! - timeline[timeline.length - 2]!
+        : 86400000;
     const timelineStart = timeline[0]!;
 
     for (let i = 0; i < timeline.length; i++) {
       const slotStart = timeline[i]!;
       const expectedTs = alignStartMs + (slotStart - timelineStart);
 
+      let slotEndAbs: number;
+      if (i + 1 < timeline.length) {
+        slotEndAbs = alignStartMs + (timeline[i + 1]! - timelineStart);
+      } else {
+        slotEndAbs = expectedTs + slotDuration;
+      }
+
       let matchedValue: number | null = null;
       for (const point of points) {
-        const slotEnd = expectedTs + slotDuration;
-        if (point.timestamp >= expectedTs && point.timestamp < slotEnd) {
+        if (point.timestamp >= expectedTs && point.timestamp < slotEndAbs) {
           matchedValue = point.value;
           break;
         }

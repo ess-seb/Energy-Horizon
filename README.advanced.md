@@ -181,6 +181,7 @@ An empty or invalid `x_axis_format` after trim does not run the validator (empty
 
 - Points for `entity` are taken from the HA response; if `results` has a single key, it is used as fallback.
 - Value preference: increments from **`sum`** (difference of consecutive sums), else **`change`**, else **`state`**.
+- For **`sum`**, each increment is timestamped at the **previous row’s period start** (the bucket that increment covers), so daily/hourly chart columns align with axis ticks. **`change`** / **`state`** keep the current row’s `start`.
 - The plotted series is **cumulative** (running total over time).
 - Inconsistent `unit_of_measurement` across points → series may be rejected (empty result).
 

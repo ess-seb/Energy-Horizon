@@ -9,6 +9,8 @@ import {
   countBucketsForWindow,
   findNowSlotIndexOnComparisonAxis,
   fullReferenceWindowRawTotal,
+  buildTimelineSlots,
+  mapLtsResponseToCumulativeSeries,
   mapLtsResponseToSeries
 } from "../../src/card/ha-api";
 import { formatSigned } from "../../src/card/cumulative-comparison-chart";
@@ -464,6 +466,31 @@ describe("mapLtsResponseToSeries", () => {
     expect(series!.current.points).toHaveLength(2);
     expect(series!.current.points[0].value).toBe(2);
     expect(series!.current.points[1].value).toBe(7);
+    const tJan1 = new Date("2024-01-01T00:00:00Z").getTime();
+    const tJan2 = new Date("2024-01-02T00:00:00Z").getTime();
+    expect(series!.current.points[0].timestamp).toBe(tJan1);
+    expect(series!.current.points[1].timestamp).toBe(tJan2);
+  });
+
+  it("places sum-delta timestamps on period start so first day matches daily axis slot 0", () => {
+    const response: LtsStatisticsResponse = {
+      results: {
+        "sensor.e": [
+          { start: "2026-04-01T00:00:00+00:00", sum: 1000, unit_of_measurement: "kWh" },
+          { start: "2026-04-02T00:00:00+00:00", sum: 1005, unit_of_measurement: "kWh" }
+        ]
+      }
+    };
+    const cum = mapLtsResponseToCumulativeSeries(response, "sensor.e", "Current");
+    expect(cum).toBeDefined();
+    const timeline = buildTimelineSlots(
+      new Date("2026-04-01T00:00:00Z"),
+      new Date("2026-04-15T15:00:00Z"),
+      "day",
+      "UTC"
+    );
+    expect(timeline.length).toBeGreaterThan(0);
+    expect(cum!.points[0]!.timestamp).toBe(timeline[0]!);
   });
 
   it("produces empty series when units are inconsistent", () => {

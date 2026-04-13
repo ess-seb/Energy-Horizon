@@ -8,6 +8,7 @@ All notable changes to **Energy Horizon Card** (Home Assistant Lovelace / HACS) 
 
 ### Fixed
 
+- **LTS `sum` vs chart slots:** increments from consecutive **`sum`** values are timestamped at the **start of the bucket** they belong to (previous row’s `start`), so the first visible point aligns with the first axis tick for `aggregation: day` / `hour` (e.g. month-over-year no longer looks shifted by one day or one hour). ECharts slot matching uses the **next timeline timestamp** as the slot end when available (same idea as the Chart.js path), improving DST-length days.
 - **Chart tooltip vs X-axis (spec 006):** tooltip date headers now resolve the **same timeline slot** as the axis (`axisValue` / current or reference series X), so sparse series such as the **two-point forecast line** no longer shift the header by one day or drop the tail column label. Default **Intl** axis and tooltip strings use **`timeZone: <HA zone>`** (FR-H) instead of the browser default.
 - **Multi-window chart axis (spec 006)**: `timeline[]` is built from **window 0’s** slot starts, then **ordinal tail** steps to reach **Longest-window axis span** — not from the longest window’s calendar alone. Resolves wrong month/year on the X-axis and the “now” marker jumping to the last day of the reference period (MoM / YoY / MoY).
 - **FR-G carry-forward**: the “now” slot for filling missing LTS buckets uses the same **window 0** bucket boundaries (with HA `time_zone`), consistent with the marker.
@@ -22,6 +23,7 @@ All notable changes to **Energy Horizon Card** (Home Assistant Lovelace / HACS) 
 
 - Cross-linked specs and wiki mental model with the unified axis + forecast rules (`specs/006-time-windows-unify/`, `wiki-publish/Mental-Model-Comparisons-and-Timelines.md`).
 - Updated `README.md`, `README.advanced.md`, `wiki-publish/Luxon-Formats-Reference.md`, and `wiki-publish/Forecast-and-Data-Internals.md` for timeline prefix/tail, “now”, and label policy.
+- **`sum` → axis alignment:** `wiki-publish/Forecast-and-Data-Internals.md`, `README.advanced.md`, and `README.md` describe how LTS `sum` increments map to bucket starts; `specs/006-time-windows-unify/` adds **G9** / **FR-DATA-1**.
 
 ## [0.5.1]
 
