@@ -6307,33 +6307,36 @@ function hT(r, t, e) {
 function dT(r) {
   let t = "";
   const e = [];
-  let n;
-  for (const i of r) {
-    let a;
-    if (typeof i.sum == "number")
+  let n, i;
+  for (const a of r) {
+    const o = new Date(a.start).getTime();
+    let s, l = o;
+    if (typeof a.sum == "number")
       if (n === void 0) {
-        n = i.sum;
+        n = a.sum, i = o;
         continue;
       } else {
-        const o = i.sum - n;
-        if (n = i.sum, !Number.isFinite(o) || o <= 0)
+        const u = a.sum - n;
+        if (n = a.sum, !Number.isFinite(u) || u <= 0) {
+          i = o;
           continue;
-        a = o;
+        }
+        s = u, l = i ?? o, i = o;
       }
-    else typeof i.change == "number" ? a = i.change : typeof i.state == "number" && (a = i.state);
-    if (!(a == null || !Number.isFinite(a))) {
-      if (!t && i.unit_of_measurement)
-        t = i.unit_of_measurement;
-      else if (t && i.unit_of_measurement && i.unit_of_measurement !== t)
+    else typeof a.change == "number" ? s = a.change : typeof a.state == "number" && (s = a.state);
+    if (!(s == null || !Number.isFinite(s))) {
+      if (!t && a.unit_of_measurement)
+        t = a.unit_of_measurement;
+      else if (t && a.unit_of_measurement && a.unit_of_measurement !== t)
         return { unit: "", timeSeries: [] };
       e.push({
-        timestamp: new Date(i.start).getTime(),
-        value: a,
-        rawValue: a
+        timestamp: l,
+        value: s,
+        rawValue: s
       });
     }
   }
-  return { unit: t, timeSeries: e.sort((i, a) => i.timestamp - a.timestamp) };
+  return { unit: t, timeSeries: e.sort((a, o) => a.timestamp - o.timestamp) };
 }
 function vT(r, t, e) {
   let n = 0;
@@ -27605,18 +27608,18 @@ class fR {
     const i = new Array(e.length).fill(null);
     if (e.length === 0)
       return i;
-    const a = e.length > 1 ? e[1] - e[0] : 864e5, o = e[0];
+    const a = e.length > 1 ? e[e.length - 1] - e[e.length - 2] : 864e5, o = e[0];
     for (let s = 0; s < e.length; s++) {
       const l = e[s], u = n + (l - o);
-      let c = null;
-      for (const f of t) {
-        const d = u + a;
-        if (f.timestamp >= u && f.timestamp < d) {
-          c = f.value;
+      let c;
+      s + 1 < e.length ? c = n + (e[s + 1] - o) : c = u + a;
+      let f = null;
+      for (const d of t)
+        if (d.timestamp >= u && d.timestamp < c) {
+          f = d.value;
           break;
         }
-      }
-      i[s] = c;
+      i[s] = f;
     }
     return i;
   }
