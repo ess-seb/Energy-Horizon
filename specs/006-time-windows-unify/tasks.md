@@ -60,6 +60,7 @@
 - [X] T008 [US1] Thread effective `ResolvedWindow[]`, `timeline`, and `alignStartsMs` from `buildChartTimeline` into chart/renderer state in `src/card/cumulative-comparison-chart.ts` (single source for oś + serie)
 - [X] T009 [US1] Ensure `computeForecast`, summary / `TextSummary` (or equivalent text stats), and cumulative LTS→series mapping in `src/card/cumulative-comparison-chart.ts` consume the **same** `forecastPeriodBuckets` and timeline semantics exported from `src/card/ha-api.ts` — brak rozjazdu „oś vs prognoza vs podsumowanie”. **FR-F**: copy w podsumowaniu / statystykach nie może zaprzeczać **effective windows** (preset tylko etykieta marketingowa po merge).
 - [X] T010 [P] [US1] In `src/card/echarts-renderer.ts`: align ECharts axis category/time labels with **FR-B** (current-window grain within its nominal span; **ordinal tail** when axis longer — Session 2026-04-13); **FR-H** dla strefy. **FR-F**: teksty **tooltipów** wykresu (okresy / serie) muszą wynikać z **effective** `ResolvedWindow[]` lub neutralnego copy — bez sugerowania narracji `comparison_preset`, gdy merge się z nią rozjeżdża.
+- [X] T010b [P] [US1] **Follow-up:** mapowanie nagłówka tooltipa na `fullTimeline` przez `axisValue` / X z serii bieżącej lub referencji (`resolveTimelineSlotIndexFromAxisParams`), nie przez `dataIndex` pierwszej serii (np. prognoza 2-punktowa); **FR-H:** `Intl.DateTimeFormat` z `timeZone` = HA IANA — testy w `echarts-renderer.test.ts`, `tooltip-format.test.ts`, `axis-label-format.test.ts`; kontrakt w `contracts/unified-time-windows-axis.md`.
 - [X] T011 [P] [US1] Align compact period captions with effective windows in `src/card/labels/compact-period-caption.ts`
 - [X] T012 [US1] Extend expectations for `buildChartTimeline` in `tests/unit/ha-api.test.ts`: **N=2** — `timeline.length` = **max** nominal slot counts of both windows at `windows[0].aggregation`; shorter window has no values past its end; **`forecastPeriodBuckets` still from window 0** (**FR-D**). **N=2 nierówna długość (wymagane w Phase 1)**: w `golden-scenarios.md` (T001) wpisz wiersz scenariusza np. **dwa miesiące kalendarzowe przy ziarnie `day`** (różna liczba dni, ta sama strefa FR-H) i dodaj test Vitest odpowiadający temu wierszowi — bez formuły „when feasible”.
 
@@ -187,6 +188,17 @@ Task T011 → src/card/labels/compact-period-caption.ts
 ### Parallel Team Strategy
 
 Po Phase 2: jeden deweloper na US1+US2 (oś + złote + FR-C test), drugi na US4 (walidacja), trzeci na US3 po stabilnym timeline z US1.
+
+---
+
+## Phase 8: Axis semantics fix (FR-B timeline ms + now + labels) — 2026-04-13
+
+**Purpose**: Dopasowanie implementacji do kontraktu po regresji: oś z prefixem okna 0 + tail ordinalnym, „now” z okna 0, wspólna polityka etykiet porównawczych.
+
+- [X] T029 [US1] `buildFullTimelineForWindows`: prefix z `windows[0]` + `advanceSlotStartMs` tail do **FR-C** max slotów — `src/card/ha-api.ts`; eksport `advanceSlotStartMs`, `findNowSlotIndexOnComparisonAxis`
+- [X] T030 [US3] `findNowSlotIndexOnComparisonAxis` + carry-forward używa prefixu okna 0 + `timeZone` — `src/card/echarts-renderer.ts`, `carryForwardCurrentCumulativeAtNow`
+- [X] T031 [US1] `resolveComparisonAxisLabelHints` + `formatAdaptiveTickLabel` / `formatTooltipHeader` / `ChartRendererConfig` — `src/card/labels/comparison-label-hints.ts`, `axis-label-format.ts`, `tooltip-format.ts`, `cumulative-comparison-chart.ts`
+- [X] T032 [P] Testy: `ha-api.test.ts` (G5 ms + now), `comparison-label-hints.test.ts`, rozszerzenia `axis-label-format` / `tooltip-format`; Phase 7 docs (`spec.md`, contract, `golden-scenarios.md`, wiki, README, CHANGELOG)
 
 ---
 

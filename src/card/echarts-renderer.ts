@@ -6,6 +6,7 @@ import { CanvasRenderer } from 'echarts/renderers';
 import type { ECharts } from 'echarts/core';
 import type { EChartsOption } from 'echarts';
 
+import type { ComparisonAxisLabelHints } from './labels/comparison-label-hints';
 import type {
   ComparisonSeries,
   ChartRendererConfig,
@@ -16,7 +17,10 @@ import {
   formatAdaptiveTickLabel,
   formatForcedTickLabel
 } from './axis/axis-label-format';
-import { carryForwardCurrentCumulativeAtNow } from './ha-api';
+import {
+  carryForwardCurrentCumulativeAtNow,
+  findNowSlotIndexOnComparisonAxis
+} from './ha-api';
 import { trendResolvedLineColor } from './trend-visual';
 import { formatTooltipHeader } from './axis/tooltip-format';
 import { findTimelineSlotContainingInstant } from './axis/now-marker-slot';
@@ -47,6 +51,106 @@ const LEGEND_BELOW_GAP_PX = 8;
 
 /** When legend view is missing or hidden, keep the previous fixed top inset. */
 const GRID_TOP_FALLBACK_PX = LEGEND_BASELINE_PX;
+
+/**
+ * Map ECharts `trigger: 'axis'` tooltip params to a `fullTimeline` slot index (006).
+ * Do not trust `dataIndex` from the first series: e.g. forecast has only two points and
+ * `dataIndex` is 0 or 1 for most pointer positions.
+ */
+export function resolveTimelineSlotIndexFromAxisParams(
+  items: unknown[],
+  timelineLength: number,
+  opts: { currentName: string; referenceName?: string }
+): number {
+  const maxIdx = Math.max(0, timelineLength - 1);
+  if (timelineLength <= 0) {
+    return 0;
+  }
+  const clamp = (i: number): number =>
+    Math.min(Math.max(0, Math.round(Number(i))), maxIdx);
+
+  const arr = Array.isArray(items) ? items : [];
+
+  for (const raw of arr) {
+    const p = raw as { axisValue?: unknown };
+    const av = p?.axisValue;
+    if (typeof av === 'number' && Number.isFinite(av)) {
+      return clamp(av);
+    }
+    if (typeof av === 'string' && av.trim() !== '') {
+      const n = Number(av);
+      if (Number.isFinite(n)) {
+        return clamp(n);
+      }
+    }
+  }
+
+  const xFromSeries = (seriesName: string): number | undefined => {
+    for (const raw of arr) {
+      const p = raw as {
+        seriesName?: string;
+        data?: unknown;
+        value?: unknown;
+      };
+      if (p.seriesName !== seriesName) {
+        continue;
+      }
+      const cand = p.data ?? p.value;
+      if (Array.isArray(cand) && cand.length >= 1) {
+        const x0 = cand[0];
+        const x = typeof x0 === 'number' ? x0 : Number(x0);
+        if (Number.isFinite(x)) {
+          return clamp(x);
+        }
+      }
+    }
+    return undefined;
+  };
+
+  const fromCurrent = xFromSeries(opts.currentName);
+  if (fromCurrent !== undefined) {
+    return fromCurrent;
+  }
+  if (opts.referenceName) {
+    const fromRef = xFromSeries(opts.referenceName);
+    if (fromRef !== undefined) {
+      return fromRef;
+    }
+  }
+
+  const dataIndexForNamedSeries = (seriesName: string): number | undefined => {
+    for (const raw of arr) {
+      const p = raw as { seriesName?: string; dataIndex?: unknown };
+      if (p.seriesName !== seriesName) {
+        continue;
+      }
+      const di = p.dataIndex;
+      if (typeof di === 'number' && Number.isFinite(di)) {
+        return clamp(di);
+      }
+    }
+    return undefined;
+  };
+
+  const diCur = dataIndexForNamedSeries(opts.currentName);
+  if (diCur !== undefined) {
+    return diCur;
+  }
+  if (opts.referenceName) {
+    const diRef = dataIndexForNamedSeries(opts.referenceName);
+    if (diRef !== undefined) {
+      return diRef;
+    }
+  }
+
+  const first = arr[0] as { dataIndex?: unknown } | undefined;
+  const fallbackDi = first?.dataIndex;
+  if (typeof fallbackDi === 'number' && Number.isFinite(fallbackDi)) {
+    return clamp(fallbackDi);
+  }
+
+  return 0;
+}
 
 /**
  * Runtime-only ECharts APIs for legend layout sync (declared private on `ECharts` in typings, so we avoid intersecting with `ECharts`).
@@ -395,11 +499,31 @@ export class EChartsRenderer {
     const currentSeriesVisible = currentValues.some((v) => v !== null);
     const mode = rendererConfig.xAxisMode ?? "adaptive";
 
-    // “Today” pointer = slot on fullTimeline that contains the current instant (hour/day/week/month buckets).
-    const todaySlotIndex = findTimelineSlotContainingInstant(
-      fullTimeline,
-      Date.now()
-    );
+    // “Today” pointer = bucket within **current window** on the shared axis (006 FR-B), not the longest window’s calendar.
+    const w0s = rendererConfig.currentWindowStartMs;
+    const w0e = rendererConfig.currentWindowEndMs;
+    const tz = rendererConfig.haTimeZone ?? 'UTC';
+    const agg = rendererConfig.primaryAggregation ?? 'day';
+    const todaySlotIndex =
+      w0s != null && w0e != null
+        ? findNowSlotIndexOnComparisonAxis(
+            fullTimeline,
+            w0s,
+            w0e,
+            agg,
+            tz,
+            Date.now()
+          )
+        : findTimelineSlotContainingInstant(fullTimeline, Date.now());
+
+    const comparisonAxisHints: ComparisonAxisLabelHints | undefined =
+      rendererConfig.singleWindowMode !== true
+        ? {
+            omitYearOnAxis: rendererConfig.comparisonAxisOmitYear === true,
+            dayOfMonthOnlyOnAxis:
+              rendererConfig.comparisonAxisDayOfMonthOnly === true
+          }
+        : undefined;
 
     const xLabelStops = (() => {
       if (mode === "forced") {
@@ -457,17 +581,26 @@ export class EChartsRenderer {
 
       const agg = rendererConfig.primaryAggregation ?? "day";
       const tailFrom = rendererConfig.tailLabelFromIndex;
+      const hasTailContext =
+        tailFrom != null &&
+        tailFrom < fullTimeline.length &&
+        fullTimeline.length > 0;
+      const tickOpts =
+        hasTailContext || comparisonAxisHints != null
+          ? {
+              ...(hasTailContext ? { tailFromIndex: tailFrom! } : {}),
+              ...(comparisonAxisHints != null
+                ? { comparisonHints: comparisonAxisHints }
+                : {})
+            }
+          : undefined;
       return formatAdaptiveTickLabel(
         tick,
         fullTimeline,
         zone,
         labelLocale,
         agg,
-        tailFrom != null &&
-          tailFrom < fullTimeline.length &&
-          fullTimeline.length > 0
-          ? { tailFromIndex: tailFrom }
-          : undefined
+        tickOpts
       );
     };
 
@@ -827,15 +960,14 @@ export class EChartsRenderer {
         appendTo: this.container,
         formatter: (params: unknown) => {
           const items = Array.isArray(params) ? params : [params];
-          const first: any = items[0] ?? {};
-
-          const rawIndex =
-            first?.dataIndex ??
-            first?.axisValue ??
-            first?.data?.[0] ??
-            first?.value?.[0];
-          const slotIndex =
-            typeof rawIndex === 'number' ? rawIndex : Number(rawIndex);
+          const slotIndex = resolveTimelineSlotIndexFromAxisParams(
+            items,
+            fullTimeline.length,
+            {
+              currentName: labels.current,
+              referenceName: labels.reference
+            }
+          );
 
           const numberLocale = rendererConfig.numberLocale;
           const precision = rendererConfig.precision;
@@ -862,7 +994,8 @@ export class EChartsRenderer {
             labelLocale,
             primaryAggregation: rendererConfig.primaryAggregation ?? 'day',
             mergedDurationMs: rendererConfig.mergedDurationMs ?? 0,
-            tooltipFormatPattern: rendererConfig.tooltipFormatPattern
+            tooltipFormatPattern: rendererConfig.tooltipFormatPattern,
+            comparisonHints: comparisonAxisHints
           });
 
           const valueLines: string[] = [];
@@ -1011,7 +1144,8 @@ export class EChartsRenderer {
         alignsAll[0]!,
         w0Start,
         w0End,
-        comparisonSeries.aggregation ?? "day"
+        comparisonSeries.aggregation ?? "day",
+        rendererConfig.haTimeZone ?? "UTC"
       );
     }
 

@@ -100,7 +100,7 @@ Additionally, the card can detect an **anomalous reference** year (extreme ratio
 
 ## Multi-window charts: what forecast uses as the denominator
 
-If you define multiple windows with different lengths, the X-axis can be longer than the current period.
+If you define multiple windows with different lengths, the X-axis can be longer than the current period. Tick dates follow **window 0’s** calendar for the prefix and **ordinal** extra slots for the tail; the “now” marker is based on **window 0**, not the reference calendar alone.
 
 Forecast progress thresholds use **only window 0 (current)** bucket count as the denominator — not the longest axis.
 
@@ -124,4 +124,5 @@ See also:
 
 - `specs/001-compute-forecast/`
 - `specs/001-time-windows-engine/`
+- `specs/006-time-windows-unify/`
 - `specs/004-smart-unit-scaling/`

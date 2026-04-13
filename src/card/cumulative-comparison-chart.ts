@@ -56,6 +56,7 @@ import {
   hour12FromHaTimeFormat,
   resolvedWindowForCaption
 } from "./labels/compact-period-caption";
+import { resolveComparisonAxisLabelHints } from "./labels/comparison-label-hints";
 import "./energy-horizon-card-editor.js";
 
 export function formatSigned(
@@ -666,6 +667,11 @@ export class EnergyHorizonCard extends LitElement implements LovelaceCard {
     const displayUnit = series.current.unit;
     const precision = this._config.precision ?? 2;
 
+    const axisHints =
+      !singleWindow && windows?.[0] && windows[1]
+        ? resolveComparisonAxisLabelHints(windows[0]!, windows[1], resolved.timeZone)
+        : { omitYearOnAxis: false, dayOfMonthOnlyOnAxis: false };
+
     return {
       primaryColor: this._config.primary_color ?? "",
       fillCurrent: this._config.fill_current ?? true,
@@ -699,7 +705,9 @@ export class EnergyHorizonCard extends LitElement implements LovelaceCard {
       mergedDurationMs,
       tooltipFormatPattern: tf || undefined,
       chartTheme: this._resolveChartTheme(),
-      chartTrend: this._state.textSummary?.trend ?? "unknown"
+      chartTrend: this._state.textSummary?.trend ?? "unknown",
+      comparisonAxisOmitYear: axisHints.omitYearOnAxis,
+      comparisonAxisDayOfMonthOnly: axisHints.dayOfMonthOnlyOnAxis
     };
   }
 

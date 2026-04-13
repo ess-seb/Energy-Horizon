@@ -27,6 +27,8 @@ Window 0 is the **current** window. Window 1 is the **reference** window. Window
 
 The card renders all series against a **shared timeline** whose length is the **largest nominal bucket count** among all windows at the chart’s aggregation grain (the same grain as window 0). That is **not** the same as picking the longest span by wall‑clock alone—two months with different numbers of days can differ in slot count even when wall‑clock ranges look similar.
 
+**Slot timestamps on that axis:** the first part of the timeline is built from **window 0’s** calendar (its nominal `start`/`end`). If another window needs more slots, the axis **extends** with extra buckets by stepping forward at the same aggregation grain (ordinal continuation)—it does **not** switch to the reference window’s calendar for the whole axis.
+
 That means:
 
 - If one month is shorter (February) and the other is longer (March), the shorter series simply **ends earlier** (it does *not* stretch).
@@ -41,11 +43,15 @@ There are two different “time” ideas in the UI:
 - The **axis** is a shared index timeline (“slot 0…N”) representing the *comparison axis*.
 - Each series still comes from real calendar timestamps in its own window.
 
+**Tooltip header vs ticks:** The hover title uses **`fullTimeline[i]`** for the same column index *i* as the X-axis (including **tail** slots when the axis is longer than window 0 — e.g. April vs March at daily grain adds one ordinal day after April 30). It does **not** follow an arbitrary series’ internal `dataIndex`; sparse lines such as the **forecast** segment must not shift the date.
+
+**Calendar wording:** Default axis and tooltip date parts are formatted in the **Home Assistant instance time zone** (same as window boundaries and LTS), not the browser’s local zone.
+
 **Practical implication:** When you hover, you’re comparing values that correspond to the **same position in the window**, even if their absolute calendar dates differ (e.g., 2026 vs 2025).
 
-**Chart “now” pointer (vertical guide, dots, delta segment, highlighted X tick):** The card places these on the **timeline slot whose time range contains the current instant** (`Date.now()`), using consecutive slot boundaries from `fullTimeline`. With **week** or **month** LTS aggregation there is no separate “today” day column on the axis—the pointer sits on the bucket that **covers today**, which matches what the tooltip shows for that bucket. With **hour** aggregation over a single day, the pointer follows the **current hour**, not midnight.
+**Chart “now” pointer (vertical guide, dots, delta segment, highlighted X tick):** The card maps **today** to the bucket that contains the current instant **inside window 0** (Home Assistant time zone, same aggregation as the chart), then uses that bucket’s index on the **shared** axis. It does **not** use “which slot in `fullTimeline` contains `Date.now()` on the raw tick timestamps” when the reference window’s calendar would dominate the tail—otherwise the marker could jump to the last day of the reference month/year. With **week** or **month** LTS aggregation there is no separate “today” day column on the axis—the pointer sits on the bucket that **covers today** in window 0. With **hour** aggregation over a single day, the pointer follows the **current hour**, not midnight.
 
-> If you force `x_axis_format` / `tooltip_format`, you are formatting the shared timeline ticks/headers. That’s intentional: it keeps the mental model “same slot = same elapsed position”.
+**Default axis vs summary captions:** for two windows, adaptive labels may **omit the year** when the periods start in different years (YoY / MoY), or show **day-of-month only** when the year matches but the months differ (MoM). The comparison panel captions still carry month/year context. If you force `x_axis_format` / `tooltip_format`, your Luxon pattern applies to the tick/tooltip timestamps on that shared axis and overrides the adaptive matrix.
 
 ---
 

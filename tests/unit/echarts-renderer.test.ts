@@ -45,10 +45,12 @@ vi.mock("echarts/core", () => ({
 }));
 
 let EChartsRenderer: typeof import("../../src/card/echarts-renderer").EChartsRenderer;
+let resolveTimelineSlotIndexFromAxisParams: typeof import("../../src/card/echarts-renderer").resolveTimelineSlotIndexFromAxisParams;
 
 beforeAll(async () => {
   const mod = await import("../../src/card/echarts-renderer");
   EChartsRenderer = mod.EChartsRenderer;
+  resolveTimelineSlotIndexFromAxisParams = mod.resolveTimelineSlotIndexFromAxisParams;
 
   // Make getComputedStyle available as global (renderer uses it without window.).
   // @ts-expect-error test-only globals
@@ -331,11 +333,13 @@ describe('EChartsRenderer', () => {
 
       const header0 = new Intl.DateTimeFormat(labelLocale, {
         day: "numeric",
-        month: "long"
+        month: "long",
+        timeZone: "UTC"
       }).format(new Date(fullTimeline[0]!));
       const header1 = new Intl.DateTimeFormat(labelLocale, {
         day: "numeric",
-        month: "long"
+        month: "long",
+        timeZone: "UTC"
       }).format(new Date(fullTimeline[1]!));
 
       const html0 = formatter([
@@ -451,12 +455,14 @@ describe('EChartsRenderer', () => {
 
       const expectedHeader0 = new Intl.DateTimeFormat(language, {
         day: "numeric",
-        month: "long"
+        month: "long",
+        timeZone: "UTC"
       }).format(new Date(fullTimeline[0]));
 
       const expectedHeader2 = new Intl.DateTimeFormat(language, {
         day: "numeric",
-        month: "long"
+        month: "long",
+        timeZone: "UTC"
       }).format(new Date(fullTimeline[2]));
 
       const html0 = formatter([
@@ -522,7 +528,8 @@ describe('EChartsRenderer', () => {
       });
       const expectedHeader = new Intl.DateTimeFormat(language, {
         day: "numeric",
-        month: "long"
+        month: "long",
+        timeZone: "UTC"
       }).format(new Date(fullTimeline[0]!));
 
       const html = formatter([
@@ -537,6 +544,206 @@ describe('EChartsRenderer', () => {
 
       renderer.destroy();
       document.body.removeChild(container);
+    });
+
+    it("tooltip header follows axisValue when Forecast is first with misleading dataIndex", () => {
+      const container = document.createElement("div");
+      document.body.appendChild(container);
+
+      const day0 = Date.UTC(2026, 3, 1);
+      const fullTimeline = Array.from(
+        { length: 31 },
+        (_, i) => day0 + i * 86400000
+      );
+      const labelLocale = "en-US";
+      const rendererConfig = buildBaseRendererConfig({
+        language: labelLocale,
+        xAxisLabelLocale: labelLocale,
+        numberLocale: "en-US",
+        precision: 1,
+        unit: "kWh",
+        haTimeZone: "UTC"
+      });
+
+      const renderer = new EChartsRenderer(container);
+      const comparisonSeries: ComparisonSeries = {
+        current: {
+          points: fullTimeline.map((ts, i) => ({
+            timestamp: ts + 100,
+            value: i + 1
+          })),
+          unit: "kWh",
+          periodLabel: "",
+          total: 31
+        },
+        reference: {
+          points: fullTimeline.map((ts, i) => ({
+            timestamp: ts + 100,
+            value: i
+          })),
+          unit: "kWh",
+          periodLabel: "",
+          total: 30
+        },
+        aggregation: "day",
+        time_zone: "UTC"
+      };
+
+      renderer.update(
+        comparisonSeries,
+        fullTimeline,
+        rendererConfig,
+        { current: "Current", reference: "Reference" }
+      );
+
+      const option = captureOption(renderer);
+      const formatter = option.tooltip.formatter as (params: unknown) => string;
+
+      const slot = 14;
+      const expectedHeader = new Intl.DateTimeFormat(labelLocale, {
+        day: "numeric",
+        month: "long",
+        timeZone: "UTC"
+      }).format(new Date(fullTimeline[slot]!));
+
+      const html = formatter([
+        {
+          dataIndex: 0,
+          seriesName: "Forecast",
+          data: [0, 1],
+          axisValue: slot
+        },
+        {
+          dataIndex: slot,
+          seriesName: "Current",
+          data: [slot, 15]
+        }
+      ]);
+      expect(html).toContain(expectedHeader);
+
+      renderer.destroy();
+      document.body.removeChild(container);
+    });
+
+    it("tooltip header rounds fractional axisValue and clamps to last timeline index", () => {
+      const container = document.createElement("div");
+      document.body.appendChild(container);
+
+      const day0 = Date.UTC(2026, 3, 1);
+      const fullTimeline = [day0, day0 + 86400000, day0 + 2 * 86400000];
+      const labelLocale = "en-US";
+      const rendererConfig = buildBaseRendererConfig({
+        language: labelLocale,
+        xAxisLabelLocale: labelLocale,
+        haTimeZone: "UTC"
+      });
+
+      const renderer = new EChartsRenderer(container);
+      const comparisonSeries: ComparisonSeries = {
+        current: {
+          points: fullTimeline.map((ts, i) => ({
+            timestamp: ts + 100,
+            value: i
+          })),
+          unit: "kWh",
+          periodLabel: "",
+          total: 2
+        },
+        aggregation: "day",
+        time_zone: "UTC"
+      };
+
+      renderer.update(
+        comparisonSeries,
+        fullTimeline,
+        rendererConfig,
+        { current: "Current", reference: "Reference" }
+      );
+
+      const option = captureOption(renderer);
+      const formatter = option.tooltip.formatter as (params: unknown) => string;
+
+      const expectedMid = new Intl.DateTimeFormat(labelLocale, {
+        day: "numeric",
+        month: "long",
+        timeZone: "UTC"
+      }).format(new Date(fullTimeline[1]!));
+      const htmlFrac = formatter([
+        { axisValue: 1.4, seriesName: "Current", data: [1, 5] }
+      ]);
+      expect(htmlFrac).toContain(expectedMid);
+
+      const expectedLast = new Intl.DateTimeFormat(labelLocale, {
+        day: "numeric",
+        month: "long",
+        timeZone: "UTC"
+      }).format(new Date(fullTimeline[2]!));
+      const htmlClamp = formatter([
+        { axisValue: 99, seriesName: "Current", data: [2, 5] }
+      ]);
+      expect(htmlClamp).toContain(expectedLast);
+
+      renderer.destroy();
+      document.body.removeChild(container);
+    });
+  });
+
+  describe("resolveTimelineSlotIndexFromAxisParams", () => {
+    it("prefers axisValue over misleading forecast dataIndex", () => {
+      const items = [
+        { dataIndex: 0, seriesName: "Forecast", data: [0, 1], axisValue: 12 },
+        { dataIndex: 12, seriesName: "Current", data: [12, 2] }
+      ];
+      expect(
+        resolveTimelineSlotIndexFromAxisParams(items, 31, {
+          currentName: "Current",
+          referenceName: "Reference"
+        })
+      ).toBe(12);
+    });
+
+    it("uses Current series X when axisValue is absent", () => {
+      const items = [
+        { dataIndex: 0, seriesName: "Forecast", data: [0, 1] },
+        { dataIndex: 7, seriesName: "Current", data: [7, 2] }
+      ];
+      expect(
+        resolveTimelineSlotIndexFromAxisParams(items, 20, {
+          currentName: "Current",
+          referenceName: "Reference"
+        })
+      ).toBe(7);
+    });
+
+    it("falls back to Reference series X when Current missing from params", () => {
+      const items = [{ dataIndex: 3, seriesName: "Reference", data: [3, 9] }];
+      expect(
+        resolveTimelineSlotIndexFromAxisParams(items, 10, {
+          currentName: "Current",
+          referenceName: "Reference"
+        })
+      ).toBe(3);
+    });
+
+    it("clamps axisValue to timeline bounds", () => {
+      expect(
+        resolveTimelineSlotIndexFromAxisParams([{ axisValue: 30.7 }], 31, {
+          currentName: "Current"
+        })
+      ).toBe(30);
+      expect(
+        resolveTimelineSlotIndexFromAxisParams([{ axisValue: -2 }], 5, {
+          currentName: "Current"
+        })
+      ).toBe(0);
+    });
+
+    it("returns 0 for empty timeline", () => {
+      expect(
+        resolveTimelineSlotIndexFromAxisParams([{ axisValue: 3 }], 0, {
+          currentName: "Current"
+        })
+      ).toBe(0);
     });
   });
 

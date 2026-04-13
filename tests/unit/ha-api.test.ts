@@ -1,3 +1,4 @@
+import { DateTime } from "luxon";
 import { describe, it, expect } from "vitest";
 import {
   buildChartTimeline,
@@ -6,6 +7,7 @@ import {
   computeForecast,
   computeTextSummary,
   countBucketsForWindow,
+  findNowSlotIndexOnComparisonAxis,
   fullReferenceWindowRawTotal,
   mapLtsResponseToSeries
 } from "../../src/card/ha-api";
@@ -682,6 +684,40 @@ describe("buildChartTimeline (006 FR-C / FR-D / FR-H)", () => {
     expect(timeline.length).toBe(31);
     expect(forecastPeriodBuckets).toBe(29);
     expect(countBucketsForWindow(windows[0]!, "UTC")).toBe(29);
+    // FR-B: prefix = current (Feb) calendar; tail = ordinal day steps into Mar
+    expect(timeline.length).toBe(31);
+    const feb1 = DateTime.fromMillis(timeline[0]!, { zone: "UTC" }).startOf("day");
+    expect(feb1.month).toBe(2);
+    expect(feb1.day).toBe(1);
+    const lastFeb = DateTime.fromMillis(timeline[28]!, { zone: "UTC" }).startOf("day");
+    expect(lastFeb.month).toBe(2);
+    expect(lastFeb.day).toBe(29);
+    const mar1 = DateTime.fromMillis(timeline[29]!, { zone: "UTC" }).startOf("day");
+    expect(mar1.month).toBe(3);
+    expect(mar1.day).toBe(1);
+    const mar2 = DateTime.fromMillis(timeline[30]!, { zone: "UTC" }).startOf("day");
+    expect(mar2.month).toBe(3);
+    expect(mar2.day).toBe(2);
+
+    const idxMidFeb = findNowSlotIndexOnComparisonAxis(
+      timeline,
+      windows[0]!.start.getTime(),
+      windows[0]!.end.getTime(),
+      "day",
+      "UTC",
+      Date.UTC(2024, 1, 15, 12, 0, 0)
+    );
+    expect(idxMidFeb).toBe(14);
+
+    const idxAfterFeb = findNowSlotIndexOnComparisonAxis(
+      timeline,
+      windows[0]!.start.getTime(),
+      windows[0]!.end.getTime(),
+      "day",
+      "UTC",
+      Date.UTC(2024, 2, 20, 12, 0, 0)
+    );
+    expect(idxAfterFeb).toBe(28);
   });
 
   it("N≥3: timeline length = max nominal slots at window 0 aggregation", () => {
@@ -738,7 +774,8 @@ describe("carryForwardCurrentCumulativeAtNow (FR-G)", () => {
       t0,
       t0,
       t0 + 10 * DAY_MS,
-      "day"
+      "day",
+      "UTC"
     );
     expect(aligned[2]).toBe(20);
   });

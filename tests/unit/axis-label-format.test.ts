@@ -59,4 +59,39 @@ describe("formatAdaptiveTickLabel", () => {
     const label = formatAdaptiveTickLabel(2, hTimeline, zone, locale, "hour");
     expect(label.length).toBeGreaterThan(0);
   });
+
+  it("comparison omitYearOnAxis: first day tick has no calendar year", () => {
+    const label = formatAdaptiveTickLabel(0, timeline, zone, locale, "day", {
+      comparisonHints: {
+        omitYearOnAxis: true,
+        dayOfMonthOnlyOnAxis: false
+      }
+    });
+    expect(label).not.toMatch(/2024/);
+    expect(label).toMatch(/Jan/);
+  });
+
+  it("comparison dayOfMonthOnlyOnAxis: numeric day only", () => {
+    const label = formatAdaptiveTickLabel(1, timeline, zone, locale, "day", {
+      comparisonHints: {
+        omitYearOnAxis: false,
+        dayOfMonthOnlyOnAxis: true
+      }
+    });
+    expect(label).toBe("2");
+  });
+
+  it("FR-H: tick label uses HA zone for Intl calendar fields", () => {
+    const ms = Date.UTC(2026, 3, 1, 2, 0, 0, 0);
+    const tl = [ms];
+    const utcLabel = formatAdaptiveTickLabel(0, tl, "UTC", "en-US", "day");
+    const nyLabel = formatAdaptiveTickLabel(0, tl, "America/New_York", "en-US", "day");
+    expect(utcLabel).toMatch(/2026/);
+    expect(utcLabel).toMatch(/Apr/);
+    expect(utcLabel).toMatch(/1/);
+    expect(nyLabel).toMatch(/2026/);
+    expect(nyLabel).toMatch(/Mar/);
+    expect(nyLabel).toMatch(/31/);
+    expect(utcLabel).not.toBe(nyLabel);
+  });
 });

@@ -334,5 +334,14 @@ export interface ChartRendererConfig {
   chartTheme?: ChartThemeResolved;
   /** Consumption trend vs reference — drives delta-at-today segment color (US-6). */
   chartTrend?: Trend;
+  /**
+   * Multi-window comparison: omit calendar year on default X-axis / tooltip (YoY, MoY).
+   * Forced `x_axis_format` / `tooltip_format` overrides adaptive behavior.
+   */
+  comparisonAxisOmitYear?: boolean;
+  /**
+   * Multi-window comparison: show day-of-month only for `day` aggregation (MoM).
+   */
+  comparisonAxisDayOfMonthOnly?: boolean;
 }
 

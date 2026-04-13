@@ -134,6 +134,10 @@ The YAML object is **deep-merged** with the preset template: fields in `time_win
 
 If you change `anchor`, `step`, `count`, or set a non-empty `offset` different from the preset, the card **strips** legacy flags (`currentEndIsNow`, `referenceFullPeriod`) and uses **generic** resolution — even if you started from YoY/MoY.
 
+### Shared chart axis (multi-window)
+
+For `count ≥ 2`, the horizontal axis uses **Longest-window axis span** (max nominal bucket count at the chart aggregation). **Tick timestamps** are anchored to **window 0** for the initial slots, then continue with **ordinal** steps if a longer window needs extra slots—so the axis does not adopt the reference window’s calendar for the whole range. The **“now”** marker uses the bucket containing the current instant **inside window 0** (HA time zone). Default adaptive labels may **omit the year** (different start years) or use **day-of-month only** (same year, different start months) on the axis; forced `x_axis_format` / `tooltip_format` override that. Details: `specs/006-time-windows-unify/` and the wiki [Mental Model: Comparisons and Timelines](https://github.com/hello-sebastian/energy-horizon/wiki/Mental-Model-Comparisons-and-Timelines).
+
 ### Duration tokens (`duration`, `step`, `offset`)
 
 Format: optional `+`/`-` sign, number, unit. Units mapped to Luxon: **`y`**, **`M`** (month), **`w`**, **`d`**, **`h`**, **`m`** (minutes), **`s`**.
@@ -214,6 +218,8 @@ Implemented in [`src/utils/unit-scaler.ts`](src/utils/unit-scaler.ts).
 ### Adaptive mode (default)
 
 When **`x_axis_format` is omitted**, X-axis label density and style depend on aggregation and context (“smart” boundaries in the renderer).
+
+**Tooltip header (default matrix):** the first line shows the **same timeline slot** as the axis column under the pointer. The renderer resolves the slot from the axis (`axisValue`) or from the current/reference line’s X coordinate — not from sparse helper series (e.g. the forecast segment has only two points). Calendar parts in default **Intl** formatting use **`timeZone`** = your Home Assistant IANA zone.
 
 ### Forced mode
 

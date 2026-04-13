@@ -63,7 +63,7 @@ src/card/
 ├── ha-api.ts                 # buildChartTimeline, buildFullTimelineForWindows, countBucketsForWindow, mapowanie LTS → sloty
 ├── cumulative-comparison-chart.ts  # Orkiestracja, znacznik „teraz”, seria bieżąca
 ├── labels/                   # Podpisy okresów — zgodność z effective windows
-└── echarts-renderer.ts       # Oś, tooltip (indeksy 0+1)
+└── echarts-renderer.ts       # Oś, tooltip (`axisValue` / slot timeline)
 
 tests/unit/
 ├── time-windows-*.test.ts

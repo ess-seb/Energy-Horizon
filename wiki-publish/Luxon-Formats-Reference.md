@@ -85,7 +85,7 @@ For long windows (months/years), forcing `x_axis_format` to include time (`HH:mm
 
 ## Mental model reminder
 
-When you force formats, you format the **shared comparison timeline**, not the raw timestamps of each window. That is on purpose: the comparison axis represents “elapsed position in the window”.
+When you force formats, you format the **tick timestamps on the shared comparison axis** (window 0’s calendar for the prefix, then ordinal tail slots if the axis is longer than window 0). That is still “one slot index = one aligned comparison step”, not each series’ raw LTS timestamps.
 
 More context: [Mental Model: Comparisons and Timelines](Mental-Model-Comparisons-and-Timelines).
 

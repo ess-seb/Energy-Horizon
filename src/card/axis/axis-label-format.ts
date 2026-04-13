@@ -1,5 +1,6 @@
 import { DateTime } from "luxon";
 import type { HomeAssistant } from "../../ha-types";
+import type { ComparisonAxisLabelHints } from "../labels/comparison-label-hints";
 import type { CardConfig, WindowAggregation } from "../types";
 
 /**
@@ -40,7 +41,10 @@ export function formatAdaptiveTickLabel(
   zone: string,
   locale: string,
   aggregation: WindowAggregation,
-  opts?: { tailFromIndex?: number }
+  opts?: {
+    tailFromIndex?: number;
+    comparisonHints?: ComparisonAxisLabelHints;
+  }
 ): string {
   const ms = fullTimeline[index];
   if (ms == null) return "";
@@ -63,32 +67,39 @@ export function formatAdaptiveTickLabel(
     !!prev && (cur.month !== prev.month || cur.year !== prev.year);
 
   const isFirst = index === 0;
+  const hints = opts?.comparisonHints;
+  const tz: Intl.DateTimeFormatOptions = { timeZone: zone };
+  const d = new Date(ms);
 
   if (isTail) {
     switch (aggregation) {
       case "day":
         return new Intl.DateTimeFormat(locale, {
           month: "short",
-          day: "numeric"
-        }).format(new Date(ms));
+          day: "numeric",
+          ...tz
+        }).format(d);
       case "week":
       case "month":
         return new Intl.DateTimeFormat(locale, {
           month: "short",
-          day: "numeric"
-        }).format(new Date(ms));
+          day: "numeric",
+          ...tz
+        }).format(d);
       case "hour":
         return new Intl.DateTimeFormat(locale, {
           month: "short",
           day: "numeric",
           hour: "numeric",
-          minute: "2-digit"
-        }).format(new Date(ms));
+          minute: "2-digit",
+          ...tz
+        }).format(d);
       default:
         return new Intl.DateTimeFormat(locale, {
           month: "short",
-          day: "numeric"
-        }).format(new Date(ms));
+          day: "numeric",
+          ...tz
+        }).format(d);
     }
   }
 
@@ -99,44 +110,58 @@ export function formatAdaptiveTickLabel(
           month: "short",
           day: "numeric",
           hour: "numeric",
-          minute: "2-digit"
-        }).format(new Date(ms));
+          minute: "2-digit",
+          ...tz
+        }).format(d);
       }
       return new Intl.DateTimeFormat(locale, {
         hour: "numeric",
-        minute: "2-digit"
-      }).format(new Date(ms));
+        minute: "2-digit",
+        ...tz
+      }).format(d);
     }
     case "day": {
-      const opts: Intl.DateTimeFormatOptions =
-        isFirst || yearChanged
-          ? { year: "numeric", month: "short", day: "numeric" }
-          : { month: "short", day: "numeric" };
-      return new Intl.DateTimeFormat(locale, opts).format(new Date(ms));
+      if (hints?.dayOfMonthOnlyOnAxis) {
+        return new Intl.DateTimeFormat(locale, { day: "numeric", ...tz }).format(
+          d
+        );
+      }
+      const includeYear =
+        (isFirst || yearChanged) && !hints?.omitYearOnAxis;
+      const dOpts: Intl.DateTimeFormatOptions = includeYear
+        ? { year: "numeric", month: "short", day: "numeric", ...tz }
+        : { month: "short", day: "numeric", ...tz };
+      return new Intl.DateTimeFormat(locale, dOpts).format(d);
     }
     case "week": {
-      const opts: Intl.DateTimeFormatOptions = {
+      const wOpts: Intl.DateTimeFormatOptions = {
         month: "short",
-        day: "numeric"
+        day: "numeric",
+        ...tz
       };
-      if (isFirst || yearChanged) {
-        opts.year = "numeric";
+      if ((isFirst || yearChanged) && !hints?.omitYearOnAxis) {
+        wOpts.year = "numeric";
       }
-      return new Intl.DateTimeFormat(locale, opts).format(new Date(ms));
+      return new Intl.DateTimeFormat(locale, wOpts).format(d);
     }
     case "month": {
-      const opts: Intl.DateTimeFormatOptions = {
-        month: "short"
+      const mOpts: Intl.DateTimeFormatOptions = {
+        month: "short",
+        ...tz
       };
-      if (isFirst || yearChanged || monthChanged) {
-        opts.year = "numeric";
+      if (
+        (isFirst || yearChanged || monthChanged) &&
+        !hints?.omitYearOnAxis
+      ) {
+        mOpts.year = "numeric";
       }
-      return new Intl.DateTimeFormat(locale, opts).format(new Date(ms));
+      return new Intl.DateTimeFormat(locale, mOpts).format(d);
     }
     default:
       return new Intl.DateTimeFormat(locale, {
         dateStyle: "medium",
-        timeStyle: "short"
-      }).format(new Date(ms));
+        timeStyle: "short",
+        ...tz
+      }).format(d);
   }
 }

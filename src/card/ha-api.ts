@@ -52,7 +52,8 @@ export function carryForwardCurrentCumulativeAtNow(
   alignStartMs: number,
   windowStartMs: number,
   windowEndMs: number,
-  aggregation: WindowAggregation
+  aggregation: WindowAggregation,
+  timeZone: string
 ): void {
   if (aggregation === "hour") {
     return;
@@ -60,7 +61,13 @@ export function carryForwardCurrentCumulativeAtNow(
   if (timeline.length === 0 || alignedValues.length !== timeline.length) {
     return;
   }
-  const idx = findTimelineSlotContainingInstant(timeline, nowMs);
+  const prefix = buildTimelineSlots(
+    new Date(windowStartMs),
+    new Date(windowEndMs),
+    aggregation,
+    timeZone
+  );
+  const idx = findTimelineSlotContainingInstant(prefix, nowMs);
   if (idx < 0 || idx >= alignedValues.length) {
     return;
   }
@@ -143,6 +150,55 @@ export function buildTimelineSlots(
   return timeline;
 }
 
+/** Next bucket start after `prevStartMs`, same rules as {@link buildTimelineSlots} steps (FR-H zone). */
+export function advanceSlotStartMs(
+  prevStartMs: number,
+  aggregation: WindowAggregation,
+  timeZone: string
+): number {
+  const zone = { zone: timeZone };
+  if (aggregation === "hour") {
+    return DateTime.fromMillis(prevStartMs, zone).plus({ hours: 1 }).toMillis();
+  }
+  if (aggregation === "day") {
+    return DateTime.fromMillis(prevStartMs, zone).plus({ days: 1 }).toMillis();
+  }
+  if (aggregation === "week") {
+    return DateTime.fromMillis(prevStartMs, zone).plus({ weeks: 1 }).toMillis();
+  }
+  const d = new Date(prevStartMs);
+  d.setMonth(d.getMonth() + 1);
+  return d.getTime();
+}
+
+/**
+ * “Now” on the shared comparison axis: bucket within **window 0** that contains `nowMs`, mapped to
+ * `fullTimeline` index (006 FR-B / FR-G). Does not use the reference/longest calendar on the axis.
+ */
+export function findNowSlotIndexOnComparisonAxis(
+  fullTimeline: number[],
+  windowStartMs: number,
+  windowEndMs: number,
+  aggregation: WindowAggregation,
+  timeZone: string,
+  nowMs: number
+): number {
+  const prefix = buildTimelineSlots(
+    new Date(windowStartMs),
+    new Date(windowEndMs),
+    aggregation,
+    timeZone
+  );
+  if (prefix.length === 0 || fullTimeline.length === 0) {
+    return -1;
+  }
+  const idx = findTimelineSlotContainingInstant(prefix, nowMs);
+  if (idx < 0) {
+    return -1;
+  }
+  return Math.min(idx, fullTimeline.length - 1);
+}
+
 /**
  * Slot count for one resolved window — use as `periodTotalBuckets` for {@link computeForecast}.
  * Chart X-axis may use a longer span (longest window, FR-009); forecast progress must use
@@ -173,9 +229,10 @@ export function buildFullTimeline(
 }
 
 /**
- * Multi-window chart axis: pick the window with the **largest nominal slot count** at
- * `primaryAgg = windows[0].aggregation` (006 FR-C), then build the shared timeline from
- * that window’s nominal bounds — not wall-clock span alone.
+ * Multi-window chart axis (006 FR-C + FR-B): axis **length** = max nominal slot count at
+ * `windows[0].aggregation`; timeline **millis** = prefix from **window 0** + ordinal tail
+ * (`advanceSlotStartMs`) so ticks and alignment follow the current window’s calendar, not the
+ * longest reference window alone.
  */
 export function buildFullTimelineForWindows(
   windows: ResolvedWindow[],
@@ -185,28 +242,27 @@ export function buildFullTimelineForWindows(
     return { timeline: [], alignStartsMs: [] };
   }
   const primaryAgg = windows[0]!.aggregation;
-  let bestIdx = 0;
-  let bestCount = -1;
-  for (let i = 0; i < windows.length; i++) {
-    const w = windows[i]!;
+  const w0 = windows[0]!;
+  let maxSlots = 0;
+  for (const w of windows) {
     const count = buildTimelineSlots(
       w.start,
       w.end,
       primaryAgg,
       timeZone
     ).length;
-    if (count > bestCount) {
-      bestCount = count;
-      bestIdx = i;
+    if (count > maxSlots) {
+      maxSlots = count;
     }
   }
-  const longest = windows[bestIdx]!;
-  const timeline = buildTimelineSlots(
-    longest.start,
-    longest.end,
-    primaryAgg,
-    timeZone
-  );
+  const prefix = buildTimelineSlots(w0.start, w0.end, primaryAgg, timeZone);
+  const timeline = [...prefix];
+  let lastMs =
+    timeline.length > 0 ? timeline[timeline.length - 1]! : null;
+  while (timeline.length < maxSlots && lastMs != null) {
+    lastMs = advanceSlotStartMs(lastMs, primaryAgg, timeZone);
+    timeline.push(lastMs);
+  }
   return {
     timeline,
     alignStartsMs: windows.map((w) => w.start.getTime())

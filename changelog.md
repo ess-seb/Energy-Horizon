@@ -6,14 +6,22 @@ All notable changes to **Energy Horizon Card** (Home Assistant Lovelace / HACS) 
 
 ## Unreleased
 
+### Fixed
+
+- **Chart tooltip vs X-axis (spec 006):** tooltip date headers now resolve the **same timeline slot** as the axis (`axisValue` / current or reference series X), so sparse series such as the **two-point forecast line** no longer shift the header by one day or drop the tail column label. Default **Intl** axis and tooltip strings use **`timeZone: <HA zone>`** (FR-H) instead of the browser default.
+- **Multi-window chart axis (spec 006)**: `timeline[]` is built from **window 0’s** slot starts, then **ordinal tail** steps to reach **Longest-window axis span** — not from the longest window’s calendar alone. Resolves wrong month/year on the X-axis and the “now” marker jumping to the last day of the reference period (MoM / YoY / MoY).
+- **FR-G carry-forward**: the “now” slot for filling missing LTS buckets uses the same **window 0** bucket boundaries (with HA `time_zone`), consistent with the marker.
+
 ### Changed
 
 - **Unified multi-window chart axis (spec 006)**: `buildChartTimeline` uses one rule for all `N ≥ 2` windows — axis length is the **maximum nominal bucket count** at window 0’s aggregation (not a separate YoY/MoY “legacy” axis path). **Forecast** still uses `forecastPeriodBuckets` from **window 0** only when it differs from axis length.
 - **FR-B tail labels**: X-axis ticks past the current window’s nominal end use compact date-style tail formatting; **FR-G** carry-forward fills the current cumulative at the “today” slot when LTS has not closed that bucket yet (day/week/month).
+- **Comparison axis labels**: default adaptive X-axis and tooltip headers **omit redundant years** when the two windows start in different years, and use **day-of-month only** for daily aggregation when the year matches but start months differ (MoM). Forced `x_axis_format` / `tooltip_format` still override this matrix.
 
 ### Documentation
 
 - Cross-linked specs and wiki mental model with the unified axis + forecast rules (`specs/006-time-windows-unify/`, `wiki-publish/Mental-Model-Comparisons-and-Timelines.md`).
+- Updated `README.md`, `README.advanced.md`, `wiki-publish/Luxon-Formats-Reference.md`, and `wiki-publish/Forecast-and-Data-Internals.md` for timeline prefix/tail, “now”, and label policy.
 
 ## [0.5.1]
 

@@ -1,4 +1,5 @@
 import { DateTime } from "luxon";
+import type { ComparisonAxisLabelHints } from "../labels/comparison-label-hints";
 import type { WindowAggregation } from "../types";
 
 const MS_DAY = 86400000;
@@ -15,6 +16,8 @@ export interface FormatTooltipHeaderParams {
   mergedDurationMs: number;
   /** Optional Luxon pattern from card `tooltip_format`; overrides matrix. */
   tooltipFormatPattern?: string;
+  /** When set, default tooltip header mirrors comparison X-axis label policy. */
+  comparisonHints?: ComparisonAxisLabelHints;
 }
 
 /**
@@ -29,7 +32,8 @@ export function formatTooltipHeader(p: FormatTooltipHeaderParams): string {
     labelLocale,
     primaryAggregation,
     mergedDurationMs,
-    tooltipFormatPattern
+    tooltipFormatPattern,
+    comparisonHints
   } = p;
 
   if (
@@ -51,25 +55,44 @@ export function formatTooltipHeader(p: FormatTooltipHeaderParams): string {
   }
 
   const d = new Date(ms);
+  const tz: Intl.DateTimeFormatOptions = { timeZone: zone };
 
   switch (primaryAggregation) {
     case "month":
-      return new Intl.DateTimeFormat(labelLocale, { month: "long" }).format(d);
+      return new Intl.DateTimeFormat(labelLocale, { month: "long", ...tz }).format(
+        d
+      );
     case "week":
     case "day":
+      if (comparisonHints?.dayOfMonthOnlyOnAxis && primaryAggregation === "day") {
+        return new Intl.DateTimeFormat(labelLocale, {
+          day: "numeric",
+          ...tz
+        }).format(d);
+      }
+      if (comparisonHints?.omitYearOnAxis) {
+        return new Intl.DateTimeFormat(labelLocale, {
+          day: "numeric",
+          month: "long",
+          ...tz
+        }).format(d);
+      }
       return new Intl.DateTimeFormat(labelLocale, {
         day: "numeric",
-        month: "long"
+        month: "long",
+        ...tz
       }).format(d);
     case "hour": {
       const timePart = new Intl.DateTimeFormat(labelLocale, {
         hour: "numeric",
-        minute: "2-digit"
+        minute: "2-digit",
+        ...tz
       }).format(d);
       if (mergedDurationMs > MS_DAY) {
         const dayPart = new Intl.DateTimeFormat(labelLocale, {
           day: "numeric",
-          month: "short"
+          month: "short",
+          ...tz
         }).format(d);
         return `${timePart}, ${dayPart}`;
       }
@@ -78,7 +101,8 @@ export function formatTooltipHeader(p: FormatTooltipHeaderParams): string {
     default:
       return new Intl.DateTimeFormat(labelLocale, {
         day: "numeric",
-        month: "long"
+        month: "long",
+        ...tz
       }).format(d);
   }
 }
