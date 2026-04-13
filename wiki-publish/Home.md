@@ -2,7 +2,7 @@
 
 Welcome to the full documentation for **Energy Horizon Card** — a Home Assistant Lovelace card for long-term cumulative energy comparison (year-over-year, month-over-year, month-over-month) with optional forecast.
 
-![Energy Horizon Card screenshot](energy-horizon-card.png)
+![Energy Horizon Card screenshot](ehorizon-screenshot.png)
 
 ## Documentation version
 
