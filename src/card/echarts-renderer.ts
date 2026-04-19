@@ -24,6 +24,12 @@ import {
 import { trendResolvedLineColor } from './trend-visual';
 import { formatTooltipHeader } from './axis/tooltip-format';
 import { findTimelineSlotContainingInstant } from './axis/now-marker-slot';
+import {
+  computeXAxisVerticalReservePx,
+  X_AXIS_DESCENDER_BUFFER_PX,
+  X_AXIS_RICH_EDGE_METRICS,
+  X_AXIS_RICH_TODAY_METRICS
+} from './axis/x-axis-rich-styles';
 import { resolveSeriesCurrentColor } from './series-color';
 
 // Register modular ECharts components at module level (FR-016)
@@ -53,12 +59,6 @@ const LEGEND_BELOW_GAP_PX = 8;
 const GRID_TOP_FALLBACK_PX = LEGEND_BASELINE_PX;
 
 /**
- * Extra `grid.bottom` when the adaptive “now” tick shares an index with the first or last bucket:
- * second label row (edge + “now” caption) needs vertical budget beyond a single-line axis.
- */
-const X_AXIS_NOW_STACK_EXTRA_PX = 22;
-
-/**
  * Escape `{`, `}`, `|` in user/locale strings embedded in ECharts `rich` `{style|text}` pieces
  * (fullwidth substitutes — stable across ECharts versions).
  */
@@ -68,9 +68,6 @@ export function escapeEchartsRichAxisPiece(text: string): string {
     .replace(/\{/g, '\uFF5B')
     .replace(/\}/g, '\uFF5D');
 }
-
-/** @internal exported for unit tests */
-export const _X_AXIS_NOW_STACK_EXTRA_PX = X_AXIS_NOW_STACK_EXTRA_PX;
 
 /**
  * Map ECharts `trigger: 'axis'` tooltip params to a `fullTimeline` slot index (006).
@@ -200,8 +197,8 @@ export class EChartsRenderer {
   /** Last applied values to avoid `finished` ↔ `setOption` feedback loops. */
   private lastSyncedGridTop: number | undefined;
   private lastSyncedMinHeightTotalPx: number | undefined;
-  /** Extra container min-height when X-axis stacks “now” under edge tick (006 UX). */
-  private lastXAxisStackExtraPx = 0;
+  /** Extra container min-height for X-axis label block (adaptive rich “today” / stacked edge+Now). */
+  private lastXAxisLabelMinHeightExtraPx = 0;
   /** Last `grid.bottom` from buildOption — reapplied on legend sync so merge does not drop it. */
   private lastGridBottomPx = 0;
   private readonly onLegendLayoutFinished: () => void;
@@ -229,7 +226,7 @@ export class EChartsRenderer {
     this.instance?.off('finished', this.onLegendLayoutFinished);
     this.instance?.dispose();
     this.instance = undefined;
-    this.lastXAxisStackExtraPx = 0;
+    this.lastXAxisLabelMinHeightExtraPx = 0;
     this.lastGridBottomPx = 0;
   }
 
@@ -266,9 +263,9 @@ export class EChartsRenderer {
     const extraMinHeightPx = hasLegendLayout
       ? Math.max(0, legendHeightPx - LEGEND_BASELINE_PX)
       : 0;
-    const xAxisStackExtraPx = this.lastXAxisStackExtraPx;
+    const xAxisLabelMinHeightExtraPx = this.lastXAxisLabelMinHeightExtraPx;
     const minHeightTotalPx =
-      CHART_MIN_HEIGHT_BASE_PX + extraMinHeightPx + xAxisStackExtraPx;
+      CHART_MIN_HEIGHT_BASE_PX + extraMinHeightPx + xAxisLabelMinHeightExtraPx;
 
     const topDelta =
       this.lastSyncedGridTop === undefined
@@ -283,7 +280,7 @@ export class EChartsRenderer {
       return;
     }
 
-    if ((hasLegendLayout && extraMinHeightPx > 0) || xAxisStackExtraPx > 0) {
+    if ((hasLegendLayout && extraMinHeightPx > 0) || xAxisLabelMinHeightExtraPx > 0) {
       this.container.style.minHeight = `${minHeightTotalPx}px`;
     } else {
       this.container.style.minHeight = '';
@@ -648,9 +645,17 @@ export class EChartsRenderer {
       xAxisRichAdaptive &&
       todaySlotIndex >= 0 &&
       (todaySlotIndex === 0 || todaySlotIndex === xMax);
-    const xAxisStackExtraPx = xAxisNowCollidesWithEdge ? X_AXIS_NOW_STACK_EXTRA_PX : 0;
-    const gridBottomPx = xAxisStackExtraPx > 0 ? tickLabelGapPx + xAxisStackExtraPx : 0;
-    this.lastXAxisStackExtraPx = xAxisStackExtraPx;
+    const xAxisReserve = computeXAxisVerticalReservePx({
+      tickLabelGapPx: tickLabelGapPx,
+      edgeLineHeight: X_AXIS_RICH_EDGE_METRICS.lineHeight,
+      todayLineHeight: X_AXIS_RICH_TODAY_METRICS.lineHeight,
+      descenderBufferPx: X_AXIS_DESCENDER_BUFFER_PX,
+      adaptiveRich: xAxisRichAdaptive,
+      todayInRange: todaySlotIndex >= 0,
+      edgeCollision: xAxisNowCollidesWithEdge
+    });
+    const gridBottomPx = xAxisReserve.gridBottomPx;
+    this.lastXAxisLabelMinHeightExtraPx = xAxisReserve.minHeightExtraPx;
     this.lastGridBottomPx = gridBottomPx;
 
     const nowStackCaption =
@@ -680,15 +685,11 @@ export class EChartsRenderer {
           rich: {
             edge: {
               color: theme.secondaryText,
-              fontSize: 11,
-              fontWeight: 'normal' as const,
-              lineHeight: 14
+              ...X_AXIS_RICH_EDGE_METRICS
             },
             today: {
               color: theme.primaryText,
-              fontSize: 14,
-              fontWeight: 'bold' as const,
-              lineHeight: 18
+              ...X_AXIS_RICH_TODAY_METRICS
             }
           }
         }

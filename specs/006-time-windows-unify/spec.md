@@ -38,6 +38,11 @@
 
 - When the **adaptive** X-axis shows the **current** series and the **“now”** slot index equals the **first** or **last** axis index (`0` or `timeline.length - 1`), the tick MUST **not** collapse the edge bucket label and the “now” emphasis into a single ambiguous line: the **calendar edge label** (same semantics as other edge ticks) MUST appear on the **first** line, and a short **current-instant caption** (localized, e.g. “Now”) MUST appear on a **second** line below it. The chart layout MUST reserve **additional vertical space** for that second line so the plot area and container `min-height` do not clip the axis. **Forced** `x_axis_format` / non-adaptive tick strategies are unchanged unless extended later. No new YAML keys.
 
+### Session 2026-04-19 (adaptive X-axis — no clipped “today” tick; typography-driven layout)
+
+- For the **adaptive** X-axis with the **current** series visible, whenever the **“now”** tick is shown (at **any** axis index — first, last, or **between** edges), the full tick label MUST remain **readable and not clipped** by the chart container or grid. Relying solely on ECharts `containLabel` is **not** sufficient when the “today” tick uses a **taller** rich-text style than edge ticks.
+- **Layout rule:** vertical reserve for `grid.bottom` and the chart container `min-height` MUST be derived from the **same** typography metrics used for `axisLabel.rich` (**edge** vs **today**: `lineHeight`, `fontSize`, etc.) plus a small **descender buffer** constant in code. Changing those metrics in **one place** MUST update both the visual style and the layout budget so future design tweaks (e.g. larger “today” text) do not reproduce clipping. **Forced** `x_axis_format` / non-adaptive tick strategies are unchanged. No new YAML keys.
+
 ## User Scenarios & Testing *(mandatory)*
 
 ### User Story 1 - One story for time, axis, summary, and tooltip (Priority: P1)
@@ -84,6 +89,7 @@ As a user viewing a long current window (e.g. a shifted fiscal year), I need the
 1. **Given** a partial current bucket (e.g. today inside a daily or coarser aggregation), **When** the “now” marker is shown, **Then** the current series extends to that marker with a value consistent with the summary’s cumulative logic, or any intentional difference is explicitly documented—not an unexplained gap.
 2. **Given** aggregation coarser than a day (week, month), **When** the “now” marker falls inside an open bucket, **Then** carry-forward MUST apply **analogous to the daily case** (latest known cumulative value for the current window carried to the slot containing “now”), unless a grain-specific limitation makes that impossible—in which case **FR-F** applies (explicit documented semantics or reject/guide), not an undocumented gap.
 3. **Given** the adaptive X-axis with the current series visible and the **“now”** tick on the **same index** as the **first or last** bucket, **When** the chart renders, **Then** the axis shows a **two-line** tick (edge date on the first line, short “now” caption on the second) and the card reserves enough **vertical** space that those labels are not clipped or overlapped by the default layout.
+4. **Given** the adaptive X-axis with the current series visible and the **“now”** tick on an **interior** index (not the first or last bucket), **When** the chart renders, **Then** the emphasized “today” tick label is **fully visible** (not vertically clipped); vertical layout reserve follows the **Session 2026-04-19** typography-driven rule.
 
 ---
 

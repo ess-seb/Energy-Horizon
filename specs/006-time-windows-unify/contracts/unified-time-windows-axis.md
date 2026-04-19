@@ -49,6 +49,10 @@ Przy `trigger: 'axis'` nagłówek tooltipa **musi** odnosić się do tego samego
 
 Domyślne ścieżki formatowania osi i nagłówka tooltipa oparte na **`Intl.DateTimeFormat`** muszą przekazywać **`timeZone`** równy IANA strefie instancji HA (ten sam string co dla Luxon / `buildTimelineSlots`), żeby kalendarz nie zależał od strefy przeglądarki.
 
+## ECharts: adaptacyjna oś — rezerwa pionowa dla etykiet „edge” vs „today”
+
+Przy **adaptacyjnym** trybie osi X (seria bieżąca widoczna, rich `axisLabel`), etykieta znacznika **„teraz”** ma wyższy styl niż skrajne ticki. **Grid** (`grid.bottom`) i minimalna wysokość kontenera wykresu muszą uwzględniać te różnice tak, aby **żaden** tick (w tym „dzisiaj” na **środku** osi) nie był obcinany — wartości rezerwy wynikają z **wspólnych** metryk typografii w kodzie (patrz sesja 2026-04-19 w [spec.md](../spec.md)), nie wyłącznie z domyślnego `containLabel`.
+
 ## Carry-forward (FR-G)
 
 Po zbudowaniu szeregu skumulowanego dla okna bieżącego: jeśli wykazywany jest znacznik „now” w slocie, wartość w tym slocie musi odzwierciedlać **ostatnią znaną** skumulację w oknie, gdy surowe LTS nie zamknęło jeszcze bucketa — dla ziaren **day**, **week**, **month** (domyślnie analogicznie), o ile technicznie możliwe; w przeciwnym razie jawna semantyka w dokumentacji / błąd (FR-F), nie cicha luka. Wykrywanie slotu „now” dla carry-forward używa **tych samych** granic bucketa co okno 0 (prefix), nie pełnej tablicy osi porównawczej z tail.

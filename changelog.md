@@ -4,6 +4,13 @@ All notable changes to **Energy Horizon Card** (Home Assistant Lovelace / HACS) 
 
 
 
+## [1.0.2]
+
+### Fixed
+
+- **Adaptive X-axis — “today” tick never clipped:** The emphasized **current-day** tick (larger rich text than edge labels) reserves **explicit** vertical space via `grid.bottom` and chart `min-height` at **any** axis index—including **between** Jan 1 and Dec 31 on year-over-year—so labels are never cut off. Layout reserve is **derived from the same typography metrics** as `axisLabel.rich` (`src/card/axis/x-axis-rich-styles.ts`); changing those values updates both style and spacing.
+- **Adaptive X-axis when “today” is the first or last tick:** The bucket date stays on the **first** label line and a short **“Now”** line (localized) appears **below** it; the chart gains a little extra **vertical** room so the text stays clear next to the vertical guide.
+
 ## [1.0.1-beta]
 
 ### Added
@@ -30,7 +37,6 @@ All notable changes to **Energy Horizon Card** (Home Assistant Lovelace / HACS) 
 - **LTS `sum` vs chart slots:** Increments from consecutive **`sum`** values are timestamped at the **start of the bucket** they belong to (**previous row’s `start`**), so the first visible point aligns with the **first axis tick** for **`aggregation: day`** / **`hour`** (e.g. month-over-year no longer looks shifted by one day or hour). ECharts slot matching uses the **next timeline timestamp** as the slot end when available (same idea as the historical Chart.js path), improving **DST**-length days.
 - **Chart tooltip vs X-axis:** Tooltip date headers resolve the **same timeline slot** as the axis (`axisValue` / current or reference series X), so sparse series such as the **two-point forecast line** no longer shift the header by one day or drop the tail column label.
 - **FR-G carry-forward:** The “now” slot used to fill missing LTS buckets matches **window 0** bucket boundaries with HA **`time_zone`**, consistent with the **“now”** marker.
-- **Adaptive X-axis when “today” is the first or last tick:** The bucket date stays on the **first** label line and a short **“Now”** line (localized) appears **below** it; the chart gains a little extra **vertical** room so the text stays clear next to the vertical guide. No YAML change.
 - **Comparison panel — current period caption:** For presets with **`currentEndIsNow`**, the **current** window caption shows the **full nominal** month/year again (`expandCurrentWindowForCaption`), not a partial range to today (e.g. **`Apr 2026`** vs **`1 Apr – 12 Apr 2026`**).
 
 ### Documentation

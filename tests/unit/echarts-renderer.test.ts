@@ -1,5 +1,12 @@
 import "../helpers/setup-dom";
 import { describe, it, expect, vi, beforeAll, beforeEach, afterEach } from "vitest";
+import {
+  computeXAxisVerticalReservePx,
+  X_AXIS_DESCENDER_BUFFER_PX,
+  X_AXIS_RICH_EDGE_METRICS,
+  X_AXIS_RICH_TODAY_METRICS
+} from "../../src/card/axis/x-axis-rich-styles";
+import { escapeEchartsRichAxisPiece } from "../../src/card/echarts-renderer";
 import type { ComparisonSeries, ChartRendererConfig } from "../../src/card/types";
 
 // Mock ECharts init() so tests can capture ECOption passed to setOption.
@@ -1683,13 +1690,24 @@ describe('EChartsRenderer', () => {
   });
 
   describe("X-axis: now label stacks below edge when colliding", () => {
-    let escapeEchartsRichAxisPiece: (s: string) => string;
-    let stackExtraPx: number;
-
-    beforeAll(async () => {
-      const mod = await import("../../src/card/echarts-renderer");
-      escapeEchartsRichAxisPiece = mod.escapeEchartsRichAxisPiece;
-      stackExtraPx = mod._X_AXIS_NOW_STACK_EXTRA_PX;
+    const tickGap = 8;
+    const reserveEdgeCollision = computeXAxisVerticalReservePx({
+      tickLabelGapPx: tickGap,
+      edgeLineHeight: X_AXIS_RICH_EDGE_METRICS.lineHeight,
+      todayLineHeight: X_AXIS_RICH_TODAY_METRICS.lineHeight,
+      descenderBufferPx: X_AXIS_DESCENDER_BUFFER_PX,
+      adaptiveRich: true,
+      todayInRange: true,
+      edgeCollision: true
+    });
+    const reserveMiddleToday = computeXAxisVerticalReservePx({
+      tickLabelGapPx: tickGap,
+      edgeLineHeight: X_AXIS_RICH_EDGE_METRICS.lineHeight,
+      todayLineHeight: X_AXIS_RICH_TODAY_METRICS.lineHeight,
+      descenderBufferPx: X_AXIS_DESCENDER_BUFFER_PX,
+      adaptiveRich: true,
+      todayInRange: true,
+      edgeCollision: false
     });
 
     afterEach(() => {
@@ -1784,9 +1802,8 @@ describe('EChartsRenderer', () => {
       expect(at0).toContain("{today|");
       expect(at0).toContain("Now");
 
-      const tickGap = 8;
       expect((option.grid as { bottom?: number }).bottom).toBe(
-        tickGap + stackExtraPx
+        reserveEdgeCollision.gridBottomPx
       );
 
       setOptionMock.mockClear();
@@ -1796,7 +1813,7 @@ describe('EChartsRenderer', () => {
       expect(setOptionMock).toHaveBeenCalledWith(
         expect.objectContaining({
           grid: expect.objectContaining({
-            bottom: tickGap + stackExtraPx
+            bottom: reserveEdgeCollision.gridBottomPx
           })
         }),
         expect.any(Object)
@@ -1804,7 +1821,8 @@ describe('EChartsRenderer', () => {
 
       const legendHeight = mockLegendBoundingHeightPx;
       const extraLegend = Math.max(0, legendHeight - 32);
-      const expectedMin = 240 + extraLegend + stackExtraPx;
+      const expectedMin =
+        240 + extraLegend + reserveEdgeCollision.minHeightExtraPx;
       expect(container.style.minHeight).toBe(`${expectedMin}px`);
 
       renderer.destroy();
@@ -1866,7 +1884,7 @@ describe('EChartsRenderer', () => {
       document.body.removeChild(container);
     });
 
-    it("when now is in the middle: single-line today tick and grid.bottom 0", () => {
+    it("when now is in the middle: single-line today tick reserves grid.bottom from typography metrics", () => {
       vi.useFakeTimers();
       const day0 = Date.UTC(2026, 0, 1);
       const fullTimeline = Array.from(
@@ -1913,7 +1931,19 @@ describe('EChartsRenderer', () => {
         ?.formatter!;
       expect(fmt(3)).not.toContain("\n");
       expect(fmt(3)).toMatch(/\{today\|/);
-      expect((option.grid as { bottom?: number }).bottom).toBe(0);
+      expect((option.grid as { bottom?: number }).bottom).toBe(
+        reserveMiddleToday.gridBottomPx
+      );
+
+      setOptionMock.mockClear();
+      const finishedHandler = onMock.mock.calls.find((c) => c[0] === "finished")?.[1] as () => void;
+      finishedHandler();
+
+      const legendHeight = mockLegendBoundingHeightPx;
+      const extraLegend = Math.max(0, legendHeight - 32);
+      const expectedMin =
+        240 + extraLegend + reserveMiddleToday.minHeightExtraPx;
+      expect(container.style.minHeight).toBe(`${expectedMin}px`);
 
       renderer.destroy();
       document.body.removeChild(container);
