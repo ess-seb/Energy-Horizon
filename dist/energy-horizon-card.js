@@ -27795,7 +27795,7 @@ class wR {
         Jt,
         fr
       );
-    }, I = w === "adaptive" && _, E = I && T >= 0 && (T === 0 || T === m), O = vR({
+    }, I = w === "adaptive" && _, E = I && T >= 0 && (T === 0 || T === m || M === "day" && m >= 1 && T === m - 1), O = vR({
       tickLabelGapPx: 8,
       edgeLineHeight: Dy.lineHeight,
       todayLineHeight: Ay.lineHeight,

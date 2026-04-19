@@ -641,10 +641,13 @@ export class EChartsRenderer {
 
     /** Figma: edge ticks 11px secondary; “today” tick 14px bold primary (when in range). */
     const xAxisRichAdaptive = mode === 'adaptive' && currentSeriesVisible;
+    /** Day: “now” one slot before nominal end shares the right edge with the last tick — use edge+Now stack so the terminal boundary label stays legible (006). */
     const xAxisNowCollidesWithEdge =
       xAxisRichAdaptive &&
       todaySlotIndex >= 0 &&
-      (todaySlotIndex === 0 || todaySlotIndex === xMax);
+      (todaySlotIndex === 0 ||
+        todaySlotIndex === xMax ||
+        (agg === 'day' && xMax >= 1 && todaySlotIndex === xMax - 1));
     const xAxisReserve = computeXAxisVerticalReservePx({
       tickLabelGapPx: tickLabelGapPx,
       edgeLineHeight: X_AXIS_RICH_EDGE_METRICS.lineHeight,

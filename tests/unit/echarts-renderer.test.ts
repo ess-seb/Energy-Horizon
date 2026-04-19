@@ -1884,6 +1884,70 @@ describe('EChartsRenderer', () => {
       document.body.removeChild(container);
     });
 
+    it("when now is second-to-last bucket (day): stacked now tick and edge-only last tick; grid.bottom like edge collision", () => {
+      vi.useFakeTimers();
+      const day0 = Date.UTC(2026, 0, 1);
+      const fullTimeline = Array.from(
+        { length: 7 },
+        (_, i) => day0 + i * 86400000
+      );
+      vi.setSystemTime(day0 + 5 * 86400000 + 12 * 3600000);
+
+      const container = document.createElement("div");
+      document.body.appendChild(container);
+
+      const comparisonSeries: ComparisonSeries = {
+        current: {
+          points: fullTimeline.map((ts, i) => ({
+            timestamp: ts + 100,
+            value: i + 1
+          })),
+          unit: "kWh",
+          periodLabel: "Cur",
+          total: 1
+        },
+        reference: undefined,
+        aggregation: "day",
+        time_zone: "UTC"
+      };
+
+      const w0Start = day0;
+      const w0End = day0 + 7 * 86400000;
+
+      const renderer = new EChartsRenderer(container);
+      renderer.update(
+        comparisonSeries,
+        fullTimeline,
+        edgeCollisionBaseConfig({
+          windowAlignStartsMs: [w0Start],
+          currentWindowStartMs: w0Start,
+          currentWindowEndMs: w0End
+        }),
+        { current: "Current", reference: "Reference" }
+      );
+
+      const [option] = setOptionMock.mock.calls[0] as [Record<string, unknown>];
+      const fmt = (option.xAxis as { axisLabel?: { formatter?: (v: number) => string } }).axisLabel
+        ?.formatter!;
+      const xMax = 6;
+      const atNow = fmt(5);
+      expect(atNow).toContain("\n");
+      expect(atNow).toContain("{edge|");
+      expect(atNow).toContain("{today|");
+      expect(atNow).toContain("Now");
+
+      const atLast = fmt(xMax);
+      expect(atLast).toMatch(/\{edge\|/);
+      expect(atLast).not.toMatch(/\{today\|/);
+
+      expect((option.grid as { bottom?: number }).bottom).toBe(
+        reserveEdgeCollision.gridBottomPx
+      );
+
+      renderer.destroy();
+      document.body.removeChild(container);
+    });
+
     it("when now is in the middle: single-line today tick reserves grid.bottom from typography metrics", () => {
       vi.useFakeTimers();
       const day0 = Date.UTC(2026, 0, 1);
