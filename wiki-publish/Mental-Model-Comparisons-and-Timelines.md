@@ -51,6 +51,8 @@ There are two different “time” ideas in the UI:
 
 **Chart “now” pointer (vertical guide, dots, delta segment, highlighted X tick):** The card maps **today** to the bucket that contains the current instant **inside window 0** (Home Assistant time zone, same aggregation as the chart), then uses that bucket’s index on the **shared** axis. It does **not** use “which slot in `fullTimeline` contains `Date.now()` on the raw tick timestamps” when the reference window’s calendar would dominate the tail—otherwise the marker could jump to the last day of the reference month/year. With **week** or **month** LTS aggregation there is no separate “today” day column on the axis—the pointer sits on the bucket that **covers today** in window 0. With **hour** aggregation over a single day, the pointer follows the **current hour**, not midnight.
 
+On the **default adaptive** X-axis (current series visible), the **caption for that “now” tick** is always drawn on a **second line** below the row used by other tick labels: the emphasized line shows the **same kind of date/time text** as other adaptive ticks (e.g. month, day, time), not a standalone word like “Now”. A slim **placeholder** first line keeps vertical alignment with neighboring ticks.
+
 **Default axis vs summary captions:** for two windows, adaptive labels may **omit the year** when the periods start in different years (YoY / MoY), or show **day-of-month only** when the year matches but the months differ (MoM). The comparison panel captions still carry month/year context. If you force `x_axis_format` / `tooltip_format`, your Luxon pattern applies to the tick/tooltip timestamps on that shared axis and overrides the adaptive matrix.
 
 ---

@@ -25,8 +25,7 @@ describe("computeXAxisVerticalReservePx", () => {
     expect(
       computeXAxisVerticalReservePx({
         ...base,
-        adaptiveRich: false,
-        edgeCollision: false
+        adaptiveRich: false
       })
     ).toEqual({ gridBottomPx: 0, minHeightExtraPx: 0 });
   });
@@ -35,40 +34,25 @@ describe("computeXAxisVerticalReservePx", () => {
     expect(
       computeXAxisVerticalReservePx({
         ...base,
-        todayInRange: false,
-        edgeCollision: false
+        todayInRange: false
       })
     ).toEqual({ gridBottomPx: 0, minHeightExtraPx: 0 });
   });
 
-  it("middle-axis today: gap + (today - edge) + buffer; minHeight extra equals label block", () => {
-    const r = computeXAxisVerticalReservePx({
-      ...base,
-      edgeCollision: false
-    });
-    const labelBlock = Math.max(0, todayH - edgeH) + buf;
-    expect(r.gridBottomPx).toBe(tickGap + labelBlock);
-    expect(r.minHeightExtraPx).toBe(labelBlock);
-    expect(r.minHeightExtraPx).toBe(r.gridBottomPx - tickGap);
-  });
-
-  it("edge collision: gap + edge + today + buffer; minHeight extra is full label stack", () => {
-    const r = computeXAxisVerticalReservePx({
-      ...base,
-      edgeCollision: true
-    });
+  it("today in range: always full two-line stack (gap + edge + today + buffer)", () => {
+    const r = computeXAxisVerticalReservePx(base);
     const labelBlock = edgeH + todayH + buf;
     expect(r.gridBottomPx).toBe(tickGap + labelBlock);
     expect(r.minHeightExtraPx).toBe(labelBlock);
+    expect(r.minHeightExtraPx).toBe(r.gridBottomPx - tickGap);
   });
 
   it("scales when today lineHeight increases (future style change)", () => {
     const tallerToday = 22;
     const r = computeXAxisVerticalReservePx({
       ...base,
-      todayLineHeight: tallerToday,
-      edgeCollision: false
+      todayLineHeight: tallerToday
     });
-    expect(r.gridBottomPx).toBe(tickGap + (tallerToday - edgeH) + buf);
+    expect(r.gridBottomPx).toBe(tickGap + edgeH + tallerToday + buf);
   });
 });

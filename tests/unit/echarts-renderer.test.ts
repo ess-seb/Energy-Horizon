@@ -1689,32 +1689,22 @@ describe('EChartsRenderer', () => {
     });
   });
 
-  describe("X-axis: now label stacks below edge when colliding", () => {
+  describe("X-axis: now label always on second rich line", () => {
     const tickGap = 8;
-    const reserveEdgeCollision = computeXAxisVerticalReservePx({
+    const reserveNowInRange = computeXAxisVerticalReservePx({
       tickLabelGapPx: tickGap,
       edgeLineHeight: X_AXIS_RICH_EDGE_METRICS.lineHeight,
       todayLineHeight: X_AXIS_RICH_TODAY_METRICS.lineHeight,
       descenderBufferPx: X_AXIS_DESCENDER_BUFFER_PX,
       adaptiveRich: true,
-      todayInRange: true,
-      edgeCollision: true
-    });
-    const reserveMiddleToday = computeXAxisVerticalReservePx({
-      tickLabelGapPx: tickGap,
-      edgeLineHeight: X_AXIS_RICH_EDGE_METRICS.lineHeight,
-      todayLineHeight: X_AXIS_RICH_TODAY_METRICS.lineHeight,
-      descenderBufferPx: X_AXIS_DESCENDER_BUFFER_PX,
-      adaptiveRich: true,
-      todayInRange: true,
-      edgeCollision: false
+      todayInRange: true
     });
 
     afterEach(() => {
       vi.useRealTimers();
     });
 
-    function edgeCollisionBaseConfig(
+    function nowLabelBaseConfig(
       overrides: Partial<ChartRendererConfig> = {}
     ): ChartRendererConfig {
       return {
@@ -1738,7 +1728,6 @@ describe('EChartsRenderer', () => {
         mergedDurationMs: 86400000 * 7,
         showReferenceComparison: false,
         windowAlignStartsMs: [],
-        xAxisNowStackCaption: "Now",
         xAxisLabelLocale: "en-US",
         ...overrides
       };
@@ -1749,7 +1738,7 @@ describe('EChartsRenderer', () => {
       expect(escapeEchartsRichAxisPiece("a|b{c}")).not.toMatch(/[{}]/);
     });
 
-    it("when now is first bucket: stacked rich label, grid.bottom bump, minHeight after finished", () => {
+    it("when now is first bucket: two-line rich label with placeholder edge, grid.bottom bump, minHeight after finished", () => {
       vi.useFakeTimers();
       const day0 = Date.UTC(2026, 0, 1);
       const fullTimeline = Array.from(
@@ -1783,7 +1772,7 @@ describe('EChartsRenderer', () => {
       renderer.update(
         comparisonSeries,
         fullTimeline,
-        edgeCollisionBaseConfig({
+        nowLabelBaseConfig({
           windowAlignStartsMs: [w0Start],
           currentWindowStartMs: w0Start,
           currentWindowEndMs: w0End
@@ -1800,10 +1789,9 @@ describe('EChartsRenderer', () => {
       expect(at0).toContain("\n");
       expect(at0).toContain("{edge|");
       expect(at0).toContain("{today|");
-      expect(at0).toContain("Now");
 
       expect((option.grid as { bottom?: number }).bottom).toBe(
-        reserveEdgeCollision.gridBottomPx
+        reserveNowInRange.gridBottomPx
       );
 
       setOptionMock.mockClear();
@@ -1813,7 +1801,7 @@ describe('EChartsRenderer', () => {
       expect(setOptionMock).toHaveBeenCalledWith(
         expect.objectContaining({
           grid: expect.objectContaining({
-            bottom: reserveEdgeCollision.gridBottomPx
+            bottom: reserveNowInRange.gridBottomPx
           })
         }),
         expect.any(Object)
@@ -1822,7 +1810,7 @@ describe('EChartsRenderer', () => {
       const legendHeight = mockLegendBoundingHeightPx;
       const extraLegend = Math.max(0, legendHeight - 32);
       const expectedMin =
-        240 + extraLegend + reserveEdgeCollision.minHeightExtraPx;
+        240 + extraLegend + reserveNowInRange.minHeightExtraPx;
       expect(container.style.minHeight).toBe(`${expectedMin}px`);
 
       renderer.destroy();
@@ -1863,7 +1851,7 @@ describe('EChartsRenderer', () => {
       renderer.update(
         comparisonSeries,
         fullTimeline,
-        edgeCollisionBaseConfig({
+        nowLabelBaseConfig({
           windowAlignStartsMs: [w0Start],
           currentWindowStartMs: w0Start,
           currentWindowEndMs: w0End
@@ -1878,13 +1866,12 @@ describe('EChartsRenderer', () => {
       const atLast = fmt(xMax);
       expect(atLast).toContain("\n");
       expect(atLast).toContain("{today|");
-      expect(atLast).toContain("Now");
 
       renderer.destroy();
       document.body.removeChild(container);
     });
 
-    it("when now is second-to-last bucket (day): stacked now tick and edge-only last tick; grid.bottom like edge collision", () => {
+    it("when now is second-to-last bucket (day): stacked now tick and edge-only last tick", () => {
       vi.useFakeTimers();
       const day0 = Date.UTC(2026, 0, 1);
       const fullTimeline = Array.from(
@@ -1918,7 +1905,7 @@ describe('EChartsRenderer', () => {
       renderer.update(
         comparisonSeries,
         fullTimeline,
-        edgeCollisionBaseConfig({
+        nowLabelBaseConfig({
           windowAlignStartsMs: [w0Start],
           currentWindowStartMs: w0Start,
           currentWindowEndMs: w0End
@@ -1934,21 +1921,20 @@ describe('EChartsRenderer', () => {
       expect(atNow).toContain("\n");
       expect(atNow).toContain("{edge|");
       expect(atNow).toContain("{today|");
-      expect(atNow).toContain("Now");
 
       const atLast = fmt(xMax);
       expect(atLast).toMatch(/\{edge\|/);
       expect(atLast).not.toMatch(/\{today\|/);
 
       expect((option.grid as { bottom?: number }).bottom).toBe(
-        reserveEdgeCollision.gridBottomPx
+        reserveNowInRange.gridBottomPx
       );
 
       renderer.destroy();
       document.body.removeChild(container);
     });
 
-    it("when now is in the middle: single-line today tick reserves grid.bottom from typography metrics", () => {
+    it("when now is in the middle: two-line today tick reserves full grid.bottom stack", () => {
       vi.useFakeTimers();
       const day0 = Date.UTC(2026, 0, 1);
       const fullTimeline = Array.from(
@@ -1982,7 +1968,7 @@ describe('EChartsRenderer', () => {
       renderer.update(
         comparisonSeries,
         fullTimeline,
-        edgeCollisionBaseConfig({
+        nowLabelBaseConfig({
           windowAlignStartsMs: [w0Start],
           currentWindowStartMs: w0Start,
           currentWindowEndMs: w0End
@@ -1993,10 +1979,11 @@ describe('EChartsRenderer', () => {
       const [option] = setOptionMock.mock.calls[0] as [Record<string, unknown>];
       const fmt = (option.xAxis as { axisLabel?: { formatter?: (v: number) => string } }).axisLabel
         ?.formatter!;
-      expect(fmt(3)).not.toContain("\n");
+      expect(fmt(3)).toContain("\n");
+      expect(fmt(3)).toMatch(/\{edge\|/);
       expect(fmt(3)).toMatch(/\{today\|/);
       expect((option.grid as { bottom?: number }).bottom).toBe(
-        reserveMiddleToday.gridBottomPx
+        reserveNowInRange.gridBottomPx
       );
 
       setOptionMock.mockClear();
@@ -2006,7 +1993,7 @@ describe('EChartsRenderer', () => {
       const legendHeight = mockLegendBoundingHeightPx;
       const extraLegend = Math.max(0, legendHeight - 32);
       const expectedMin =
-        240 + extraLegend + reserveMiddleToday.minHeightExtraPx;
+        240 + extraLegend + reserveNowInRange.minHeightExtraPx;
       expect(container.style.minHeight).toBe(`${expectedMin}px`);
 
       renderer.destroy();

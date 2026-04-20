@@ -4,6 +4,12 @@ All notable changes to **Energy Horizon Card** (Home Assistant Lovelace / HACS) 
 
 
 
+## [Unreleased]
+
+### Changed
+
+- **Adaptive X-axis — “now” tick label:** The highlighted tick for the current instant always uses a **two-line** layout so the substantive label (adaptive date/time) sits **below** other tick captions. The short localized **“Now” / “Teraz”** line and collision-only branching are **removed**; spacing uses one **full** two-line budget whenever “now” is shown (`src/card/axis/x-axis-rich-styles.ts`, `src/card/echarts-renderer.ts`).
+
 ## [1.0.2]
 
 ### Fixed

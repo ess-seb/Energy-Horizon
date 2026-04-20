@@ -107,7 +107,7 @@ destroy()
 
 - **Moduł**: [`src/card/axis/now-marker-slot.ts`](../../src/card/axis/now-marker-slot.ts) — `findTimelineSlotContainingInstant(timeline, nowMs)` (spec: **FR-003a**).
 - **Użycie**: `EChartsRenderer.buildOption` (oraz spójnie zastąpione w deprecated `chart-renderer.ts`) zamiast `indexOf` na północy doby w strefie przeglądarki.
-- **Testy**: `tests/unit/now-marker-slot.test.ts`; regresja wizualna opcji: `tests/unit/echarts-renderer.test.ts` → describe „Now marker: markLine uses slot containing current instant”.
+- **Testy**: `tests/unit/now-marker-slot.test.ts`; regresja wizualna opcji: `tests/unit/echarts-renderer.test.ts` → describe „Now marker: markLine uses slot containing current instant” oraz „X-axis: now label always on second rich line”.
 
 ---
 

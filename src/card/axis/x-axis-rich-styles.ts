@@ -1,5 +1,5 @@
 /**
- * Single source of truth for adaptive X-axis ECharts `axisLabel.rich` typography (Figma: edge vs “today”).
+ * Single source of truth for adaptive X-axis ECharts `axisLabel.rich` typography (Figma: edge vs "today").
  * Colors come from `ChartThemeResolved` at render time; only size/weight/line metrics live here so
  * `grid.bottom` / container `min-height` can track style changes in one place.
  */
@@ -14,7 +14,7 @@ export const X_AXIS_RICH_EDGE_METRICS = {
   lineHeight: 14
 };
 
-/** Emphasized “today” tick — matches former inline `rich.today`. */
+/** Emphasized "today" tick — matches former inline `rich.today`. */
 export const X_AXIS_RICH_TODAY_METRICS = {
   fontSize: 14,
   fontWeight: 'bold' as const,
@@ -28,8 +28,6 @@ export interface XAxisVerticalReserveParams {
   descenderBufferPx: number;
   adaptiveRich: boolean;
   todayInRange: boolean;
-  /** True when “today” shares index with first or last bucket (two-line stacked tick). */
-  edgeCollision: boolean;
 }
 
 export interface XAxisVerticalReservePx {
@@ -40,8 +38,9 @@ export interface XAxisVerticalReservePx {
 }
 
 /**
- * Vertical space for adaptive X-axis labels so rich “today” style is never clipped vs edge ticks,
- * including middle-axis “today” and stacked edge+Now. Values scale when `lineHeight` changes above.
+ * Vertical space for adaptive X-axis labels so the "today" tick is never clipped.
+ * The "now" tick always uses a two-line stack (invisible placeholder edge row + substantive today row),
+ * so the full two-line budget is reserved whenever "now" is in range. Values scale when `lineHeight` changes above.
  */
 export function computeXAxisVerticalReservePx(
   params: XAxisVerticalReserveParams
@@ -52,17 +51,14 @@ export function computeXAxisVerticalReservePx(
     todayLineHeight,
     descenderBufferPx,
     adaptiveRich,
-    todayInRange,
-    edgeCollision
+    todayInRange
   } = params;
 
   if (!adaptiveRich || !todayInRange) {
     return { gridBottomPx: 0, minHeightExtraPx: 0 };
   }
 
-  const labelBlockPx = edgeCollision
-    ? edgeLineHeight + todayLineHeight + descenderBufferPx
-    : Math.max(0, todayLineHeight - edgeLineHeight) + descenderBufferPx;
+  const labelBlockPx = edgeLineHeight + todayLineHeight + descenderBufferPx;
 
   const gridBottomPx = tickLabelGapPx + labelBlockPx;
   const minHeightExtraPx = Math.max(0, gridBottomPx - tickLabelGapPx);

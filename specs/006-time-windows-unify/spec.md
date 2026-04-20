@@ -34,9 +34,9 @@
 
 - **FR-DATA-1:** For LTS rows using **`sum`** (monotonic total), each computed increment MUST be assigned the timestamp of the **previous row’s `start`** (start of the aggregation period that increment represents), so values map to the same nominal slot index as the shared `timeline[]` built in FR-H (first day/hour of the window is not skipped on the chart while the axis still labels that bucket). **`change`** / **`state`** rows keep the current row’s `start`. **G9** in [golden-scenarios.md](./golden-scenarios.md).
 
-### Session 2026-04-17 (adaptive X-axis — “now” at edge tick)
+### Session 2026-04-20 (adaptive X-axis — “now” tick always two lines, substantive time only)
 
-- When the **adaptive** X-axis shows the **current** series and the **“now”** slot index equals the **first** or **last** axis index (`0` or `timeline.length - 1`), the tick MUST **not** collapse the edge bucket label and the “now” emphasis into a single ambiguous line: the **calendar edge label** (same semantics as other edge ticks) MUST appear on the **first** line, and a short **current-instant caption** (localized, e.g. “Now”) MUST appear on a **second** line below it. The chart layout MUST reserve **additional vertical space** for that second line so the plot area and container `min-height` do not clip the axis. **Forced** `x_axis_format` / non-adaptive tick strategies are unchanged unless extended later. No new YAML keys.
+- When the **adaptive** X-axis shows the **current** series and the **“now”** tick is shown at **any** axis index, the emphasized tick MUST use a **two-line** `axisLabel.rich` stack: the **first** line uses **edge** typography as a **placeholder row** (no standalone caption such as “Now” / “Teraz”) so the substantive label sits **below** the band used by other tick captions; the **second** line uses the **today** rich style and MUST show the **same adaptive date/time string** as the bucket would use on the axis (`Intl` / `formatAdaptiveTickLabel` semantics)—never a short localized “now” word alone. The chart MUST reserve **vertical** space for this **full** two-line stack whenever “now” is in range, using the **shared** metrics in `src/card/axis/x-axis-rich-styles.ts` for both style and `grid.bottom` / container `min-height` budget. **Forced** `x_axis_format` / non-adaptive tick strategies are unchanged. No new YAML keys.
 
 ### Session 2026-04-19 (adaptive X-axis — no clipped “today” tick; typography-driven layout)
 
@@ -45,7 +45,7 @@
 
 ### Session 2026-04-19 (adaptive X-axis — “now” one day before nominal window end)
 
-- For **day** aggregation, when the **“now”** slot index is **`timeline.length - 2`** and the axis still has a **nominal terminal** slot at **`timeline.length - 1`** (partial window: today is not the calendar end day), the **“now”** tick MUST use the same **two-line** stack as in Session 2026-04-17 (**edge-style** calendar on the first line, localized **“Now”** caption on the second), with the same **vertical** layout reserve. The **last** tick MUST remain a normal **edge** label for that terminal bucket so the period end date stays visible and is not obscured by the emphasized “now” tick beside it. **Hour** (and other) aggregations are unchanged by this rule unless extended later.
+- For **day** aggregation, when the **“now”** slot index is **`timeline.length - 2`** and the axis still has a **nominal terminal** slot at **`timeline.length - 1`**, the **“now”** tick MUST use the **same two-line stack** as in Session 2026-04-20 (placeholder **edge** row, substantive **today** row). The **last** tick MUST remain a normal **single-line** **edge** label for that terminal bucket so the period end date stays visible. **Hour** and other aggregations use the same two-line “now” stack at the slot that contains the current instant.
 
 ## User Scenarios & Testing *(mandatory)*
 
@@ -92,8 +92,7 @@ As a user viewing a long current window (e.g. a shifted fiscal year), I need the
 
 1. **Given** a partial current bucket (e.g. today inside a daily or coarser aggregation), **When** the “now” marker is shown, **Then** the current series extends to that marker with a value consistent with the summary’s cumulative logic, or any intentional difference is explicitly documented—not an unexplained gap.
 2. **Given** aggregation coarser than a day (week, month), **When** the “now” marker falls inside an open bucket, **Then** carry-forward MUST apply **analogous to the daily case** (latest known cumulative value for the current window carried to the slot containing “now”), unless a grain-specific limitation makes that impossible—in which case **FR-F** applies (explicit documented semantics or reject/guide), not an undocumented gap.
-3. **Given** the adaptive X-axis with the current series visible and the **“now”** tick on the **same index** as the **first or last** bucket, **or** (for **day** aggregation) on the **second-to-last** index while a nominal **last** bucket still exists on the axis, **When** the chart renders, **Then** the **“now”** tick shows a **two-line** stack (edge-style calendar on the first line, short “now” caption on the second), the **terminal** bucket keeps its **edge** label on the last index, and the card reserves enough **vertical** space that those labels are not clipped or overlapped by the default layout.
-4. **Given** the adaptive X-axis with the current series visible and the **“now”** tick on an **interior** index (not the first or last bucket, and **not** the day-aggregation second-to-last case in scenario 3), **When** the chart renders, **Then** the emphasized “today” tick label is **fully visible** (not vertically clipped); vertical layout reserve follows the **Session 2026-04-19** typography-driven rule.
+3. **Given** the adaptive X-axis with the current series visible and the **“now”** tick visible at **any** axis index (first, last, interior, or day second-to-last with a terminal bucket), **When** the chart renders, **Then** the **“now”** tick always uses the **two-line** stack from **Session 2026-04-20**: an invisible **placeholder** edge row on the first line so the tick occupies the same vertical band as other edge labels, and the substantive adaptive date/time in **today** style on the second line—never a short localized caption; any non-“now” ticks keep their normal **single-line** edge label, and the card reserves the **full** two-line vertical budget (**Session 2026-04-19** typography rule) so no label is clipped.
 
 ---
 
@@ -181,7 +180,7 @@ As an advanced user editing time window settings, I need invalid combinations to
 
 - **SC-LABEL-1**: For two windows with different start years, default axis/tooltip headers do not show a misleading single year on every tick; for same-year different-month daily comparisons, default axis/tooltip use day-of-month unless the user forces Luxon formats.
 
-- **SC-AXIS-NOW-EDGE-1**: When the adaptive axis places “now” on the first or last slot, Vitest (`echarts-renderer`) asserts a stacked axis label and extra bottom/grid + `min-height` budget (Session 2026-04-17).
+- **SC-AXIS-NOW-STACK-1**: When the adaptive axis shows “now” at any index (including first, last, interior, or day second-to-last with a terminal bucket), Vitest (`echarts-renderer`) asserts a **two-line** rich axis label with substantive calendar/time text (not a standalone “Now” / “Teraz” caption) and the extra bottom/grid + `min-height` budget (**Session 2026-04-20**).
 
 ### Phased deliverables *(planning hook)*
 
