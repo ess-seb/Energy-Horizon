@@ -130,6 +130,20 @@
 
 ---
 
+## Phase 8: Chart Grid Stabilization
+
+**Purpose**: Stabilna wysokość wykresu i zmniejszony dolny margines — `grid.bottom` zawsze stała; `containLabel: false`; wyekstrahowane stałe.
+
+**Source session**: Session 2026-04-20 (chart grid bottom — constant reserve & reduced gap) w `spec.md`.
+
+- [x] T029 — `src/card/axis/x-axis-rich-styles.ts`: usuń `computeXAxisVerticalReservePx` i interfejsy `XAxisVerticalReserveParams`/`XAxisVerticalReservePx`; dodaj eksportowane stałe `AXIS_TICK_LABEL_GAP_PX = 4` i `GRID_BOTTOM_PX` (= suma składowych metryk)
+- [x] T030 — `src/card/echarts-renderer.ts`: zmień `containLabel: true → false`; `left: tickLabelGapPx → GRID_LEFT_PX`; `bottom: gridBottomPx → GRID_BOTTOM_PX` (zawsze stała); usuń lokalny `const tickLabelGapPx = 8`; dodaj `GRID_LEFT_PX = 56`; zmień `CHART_MIN_HEIGHT_BASE_PX = 274`; zaimportuj `AXIS_TICK_LABEL_GAP_PX`, `GRID_BOTTOM_PX` z `x-axis-rich-styles.ts`
+- [x] T031 — `src/card/echarts-renderer.ts`: uprość `syncLegendLayoutAfterPaint` — usuń pola klasy `lastXAxisLabelMinHeightExtraPx` i `lastGridBottomPx`; usuń `xAxisLabelMinHeightExtraPx` z `minHeightTotalPx`; zastąp `this.lastGridBottomPx` przez `GRID_BOTTOM_PX` w `setOption`
+- [x] T032 [P] — testy: przepisz `tests/unit/x-axis-rich-styles.test.ts` (nowe stałe zamiast usuniętej funkcji); zaktualizuj `tests/unit/echarts-renderer.test.ts` (`GRID_BOTTOM_PX`, `GRID_LEFT_PX`, `containLabel: false`, `CHART_MIN_HEIGHT_BASE_PX = 274`)
+- [x] T033 [P] — `specs/006-time-windows-unify/spec.md`: dodaj Session 2026-04-20 (chart grid bottom); `specs/006-time-windows-unify/tasks.md`: dodaj Phase 8; `changelog.md`: wpis do `[1.0.2]` → Fixed
+
+---
+
 ## Dependencies & Execution Order
 
 ### Phase Dependencies

@@ -1,12 +1,11 @@
 import "../helpers/setup-dom";
 import { describe, it, expect, vi, beforeAll, beforeEach, afterEach } from "vitest";
 import {
-  computeXAxisVerticalReservePx,
-  X_AXIS_DESCENDER_BUFFER_PX,
+  GRID_BOTTOM_PX,
   X_AXIS_RICH_EDGE_METRICS,
   X_AXIS_RICH_TODAY_METRICS
 } from "../../src/card/axis/x-axis-rich-styles";
-import { escapeEchartsRichAxisPiece } from "../../src/card/echarts-renderer";
+import { escapeEchartsRichAxisPiece, GRID_LEFT_PX } from "../../src/card/echarts-renderer";
 import type { ComparisonSeries, ChartRendererConfig } from "../../src/card/types";
 
 // Mock ECharts init() so tests can capture ECOption passed to setOption.
@@ -111,7 +110,7 @@ describe('EChartsRenderer', () => {
     const legendHeight = mockLegendBoundingHeightPx;
     const expectedGridTop = Math.ceil(legendHeight) + 8;
     const expectedExtraMinHeight = Math.max(0, legendHeight - 32);
-    const expectedMinHeightTotal = 240 + expectedExtraMinHeight;
+    const expectedMinHeightTotal = 274 + expectedExtraMinHeight;
 
     const renderer = new EChartsRenderer(container);
     const finishedHandler = onMock.mock.calls.find((c) => c[0] === "finished")?.[1] as () => void;
@@ -125,7 +124,7 @@ describe('EChartsRenderer', () => {
     expect(getModelMock).toHaveBeenCalled();
     expect(getViewOfComponentModelMock).toHaveBeenCalled();
     expect(setOptionMock).toHaveBeenCalledWith(
-      { grid: { top: expectedGridTop, bottom: 0 } },
+      { grid: { top: expectedGridTop, bottom: GRID_BOTTOM_PX } },
       { notMerge: false, lazyUpdate: false }
     );
     expect(container.style.minHeight).toBe(`${expectedMinHeightTotal}px`);
@@ -1690,16 +1689,6 @@ describe('EChartsRenderer', () => {
   });
 
   describe("X-axis: now label always on second rich line", () => {
-    const tickGap = 8;
-    const reserveNowInRange = computeXAxisVerticalReservePx({
-      tickLabelGapPx: tickGap,
-      edgeLineHeight: X_AXIS_RICH_EDGE_METRICS.lineHeight,
-      todayLineHeight: X_AXIS_RICH_TODAY_METRICS.lineHeight,
-      descenderBufferPx: X_AXIS_DESCENDER_BUFFER_PX,
-      adaptiveRich: true,
-      todayInRange: true
-    });
-
     afterEach(() => {
       vi.useRealTimers();
     });
@@ -1790,9 +1779,10 @@ describe('EChartsRenderer', () => {
       expect(at0).toContain("{edge|");
       expect(at0).toContain("{today|");
 
-      expect((option.grid as { bottom?: number }).bottom).toBe(
-        reserveNowInRange.gridBottomPx
-      );
+      const grid = option.grid as { bottom?: number; left?: number; containLabel?: boolean };
+      expect(grid.bottom).toBe(GRID_BOTTOM_PX);
+      expect(grid.containLabel).toBe(false);
+      expect(grid.left).toBe(GRID_LEFT_PX);
 
       setOptionMock.mockClear();
       const finishedHandler = onMock.mock.calls.find((c) => c[0] === "finished")?.[1] as () => void;
@@ -1801,7 +1791,7 @@ describe('EChartsRenderer', () => {
       expect(setOptionMock).toHaveBeenCalledWith(
         expect.objectContaining({
           grid: expect.objectContaining({
-            bottom: reserveNowInRange.gridBottomPx
+            bottom: GRID_BOTTOM_PX
           })
         }),
         expect.any(Object)
@@ -1810,7 +1800,7 @@ describe('EChartsRenderer', () => {
       const legendHeight = mockLegendBoundingHeightPx;
       const extraLegend = Math.max(0, legendHeight - 32);
       const expectedMin =
-        240 + extraLegend + reserveNowInRange.minHeightExtraPx;
+        274 + extraLegend;
       expect(container.style.minHeight).toBe(`${expectedMin}px`);
 
       renderer.destroy();
@@ -1927,7 +1917,7 @@ describe('EChartsRenderer', () => {
       expect(atLast).not.toMatch(/\{today\|/);
 
       expect((option.grid as { bottom?: number }).bottom).toBe(
-        reserveNowInRange.gridBottomPx
+        GRID_BOTTOM_PX
       );
 
       renderer.destroy();
@@ -1983,7 +1973,7 @@ describe('EChartsRenderer', () => {
       expect(fmt(3)).toMatch(/\{edge\|/);
       expect(fmt(3)).toMatch(/\{today\|/);
       expect((option.grid as { bottom?: number }).bottom).toBe(
-        reserveNowInRange.gridBottomPx
+        GRID_BOTTOM_PX
       );
 
       setOptionMock.mockClear();
@@ -1993,7 +1983,7 @@ describe('EChartsRenderer', () => {
       const legendHeight = mockLegendBoundingHeightPx;
       const extraLegend = Math.max(0, legendHeight - 32);
       const expectedMin =
-        240 + extraLegend + reserveNowInRange.minHeightExtraPx;
+        274 + extraLegend;
       expect(container.style.minHeight).toBe(`${expectedMin}px`);
 
       renderer.destroy();

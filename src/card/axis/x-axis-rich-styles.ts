@@ -2,7 +2,13 @@
  * Single source of truth for adaptive X-axis ECharts `axisLabel.rich` typography (Figma: edge vs "today").
  * Colors come from `ChartThemeResolved` at render time; only size/weight/line metrics live here so
  * `grid.bottom` / container `min-height` can track style changes in one place.
+ *
+ * All grid layout constants are exported so changing a single value here updates both the visual
+ * style and the spatial budget in `echarts-renderer.ts` without hunting through code.
  */
+
+/** Gap between the axis tick mark and the top of the label text block (px). Main lever for bottom margin. */
+export const AXIS_TICK_LABEL_GAP_PX = 4;
 
 /** Small buffer below the label block for descenders and font metrics variance (ECharts canvas text). */
 export const X_AXIS_DESCENDER_BUFFER_PX = 2;
@@ -21,47 +27,19 @@ export const X_AXIS_RICH_TODAY_METRICS = {
   lineHeight: 18
 };
 
-export interface XAxisVerticalReserveParams {
-  tickLabelGapPx: number;
-  edgeLineHeight: number;
-  todayLineHeight: number;
-  descenderBufferPx: number;
-  adaptiveRich: boolean;
-  todayInRange: boolean;
-}
-
-export interface XAxisVerticalReservePx {
-  /** Passed to ECharts `grid.bottom` (includes gap above labels). */
-  gridBottomPx: number;
-  /** Added to chart container `min-height` beyond `CHART_MIN_HEIGHT_BASE_PX` (label block only, excludes tick gap). */
-  minHeightExtraPx: number;
-}
-
 /**
- * Vertical space for adaptive X-axis labels so the "today" tick is never clipped.
- * The "now" tick always uses a two-line stack (invisible placeholder edge row + substantive today row),
- * so the full two-line budget is reserved whenever "now" is in range. Values scale when `lineHeight` changes above.
+ * Total vertical space reserved at the bottom of the ECharts grid for X-axis labels.
+ * Used as `grid.bottom` with `containLabel: false` — the axis line sits exactly this many
+ * pixels from the chart canvas bottom, and labels hang within that space.
+ *
+ * Always the two-line (edge + today) budget so chart height is consistent regardless of
+ * whether "today" is currently in range.
+ *
+ * Formula: AXIS_TICK_LABEL_GAP_PX + edge lineHeight + today lineHeight + descender buffer
+ * = 4 + 14 + 18 + 2 = 38 px
  */
-export function computeXAxisVerticalReservePx(
-  params: XAxisVerticalReserveParams
-): XAxisVerticalReservePx {
-  const {
-    tickLabelGapPx,
-    edgeLineHeight,
-    todayLineHeight,
-    descenderBufferPx,
-    adaptiveRich,
-    todayInRange
-  } = params;
-
-  if (!adaptiveRich || !todayInRange) {
-    return { gridBottomPx: 0, minHeightExtraPx: 0 };
-  }
-
-  const labelBlockPx = edgeLineHeight + todayLineHeight + descenderBufferPx;
-
-  const gridBottomPx = tickLabelGapPx + labelBlockPx;
-  const minHeightExtraPx = Math.max(0, gridBottomPx - tickLabelGapPx);
-
-  return { gridBottomPx, minHeightExtraPx };
-}
+export const GRID_BOTTOM_PX =
+  AXIS_TICK_LABEL_GAP_PX +
+  X_AXIS_RICH_EDGE_METRICS.lineHeight +
+  X_AXIS_RICH_TODAY_METRICS.lineHeight +
+  X_AXIS_DESCENDER_BUFFER_PX;

@@ -25,8 +25,8 @@ import { trendResolvedLineColor } from './trend-visual';
 import { formatTooltipHeader } from './axis/tooltip-format';
 import { findTimelineSlotContainingInstant } from './axis/now-marker-slot';
 import {
-  computeXAxisVerticalReservePx,
-  X_AXIS_DESCENDER_BUFFER_PX,
+  AXIS_TICK_LABEL_GAP_PX,
+  GRID_BOTTOM_PX,
   X_AXIS_RICH_EDGE_METRICS,
   X_AXIS_RICH_TODAY_METRICS
 } from './axis/x-axis-rich-styles';
@@ -43,8 +43,13 @@ echartsUse([
   CanvasRenderer
 ]);
 
-/** Matches `min-height` on the chart container in `energy-horizon-card-styles.ts`. */
-const CHART_MIN_HEIGHT_BASE_PX = 240;
+/**
+ * Minimum chart container height.
+ * Set to accommodate a comfortable plot area even with the fixed `GRID_BOTTOM_PX` and a
+ * single-row legend: 274 − 40 (legend+gap) − 38 (GRID_BOTTOM_PX) ≈ 196 px plot area.
+ * Previously 240 px; increased when the dynamic `xAxisLabelMinHeightExtraPx` was removed.
+ */
+const CHART_MIN_HEIGHT_BASE_PX = 274;
 
 /**
  * Legacy single-row legend vertical budget baked into the initial `grid.top` (32px).
@@ -57,6 +62,13 @@ const LEGEND_BELOW_GAP_PX = 8;
 
 /** When legend view is missing or hidden, keep the previous fixed top inset. */
 const GRID_TOP_FALLBACK_PX = LEGEND_BASELINE_PX;
+
+/**
+ * Explicit left-side grid margin (px) that accommodates Y-axis tick labels.
+ * With `containLabel: false` the margin must cover the widest formatted Y label
+ * (e.g. "1,927 kWh" at ~12 px font ≈ 56 px). Increase if labels are clipped.
+ */
+export const GRID_LEFT_PX = 56;
 
 /**
  * Escape `{`, `}`, `|` in user/locale strings embedded in ECharts `rich` `{style|text}` pieces
@@ -197,10 +209,6 @@ export class EChartsRenderer {
   /** Last applied values to avoid `finished` ↔ `setOption` feedback loops. */
   private lastSyncedGridTop: number | undefined;
   private lastSyncedMinHeightTotalPx: number | undefined;
-  /** Extra container min-height for X-axis label block (adaptive rich “today” / stacked edge+Now). */
-  private lastXAxisLabelMinHeightExtraPx = 0;
-  /** Last `grid.bottom` from buildOption — reapplied on legend sync so merge does not drop it. */
-  private lastGridBottomPx = 0;
   private readonly onLegendLayoutFinished: () => void;
 
   constructor(container: HTMLElement) {
@@ -226,8 +234,6 @@ export class EChartsRenderer {
     this.instance?.off('finished', this.onLegendLayoutFinished);
     this.instance?.dispose();
     this.instance = undefined;
-    this.lastXAxisLabelMinHeightExtraPx = 0;
-    this.lastGridBottomPx = 0;
   }
 
   /**
@@ -263,9 +269,7 @@ export class EChartsRenderer {
     const extraMinHeightPx = hasLegendLayout
       ? Math.max(0, legendHeightPx - LEGEND_BASELINE_PX)
       : 0;
-    const xAxisLabelMinHeightExtraPx = this.lastXAxisLabelMinHeightExtraPx;
-    const minHeightTotalPx =
-      CHART_MIN_HEIGHT_BASE_PX + extraMinHeightPx + xAxisLabelMinHeightExtraPx;
+    const minHeightTotalPx = CHART_MIN_HEIGHT_BASE_PX + extraMinHeightPx;
 
     const topDelta =
       this.lastSyncedGridTop === undefined
@@ -280,7 +284,7 @@ export class EChartsRenderer {
       return;
     }
 
-    if ((hasLegendLayout && extraMinHeightPx > 0) || xAxisLabelMinHeightExtraPx > 0) {
+    if (hasLegendLayout && extraMinHeightPx > 0) {
       this.container.style.minHeight = `${minHeightTotalPx}px`;
     } else {
       this.container.style.minHeight = '';
@@ -290,7 +294,7 @@ export class EChartsRenderer {
       {
         grid: {
           top: gridTopPx,
-          bottom: this.lastGridBottomPx
+          bottom: GRID_BOTTOM_PX
         }
       },
       { notMerge: false, lazyUpdate: false }
@@ -505,11 +509,6 @@ export class EChartsRenderer {
     labels: { current: string; reference: string },
     theme: ChartThemeResolved
   ): EChartsOption {
-    // Keep a fixed visual gap between axis ticks and tick labels.
-    // For yAxis labels this manifests as spacing on the right side of the label;
-    // for xAxis labels as spacing above the label.
-    const tickLabelGapPx = 8;
-
     // Compute nice max Y value (no hardcoded minimum — niceMax handles dataMax <= 0)
     const allNonNull = [
       ...(currentValues.filter((v) => v !== null) as number[]),
@@ -641,17 +640,7 @@ export class EChartsRenderer {
 
     /** Figma: edge ticks 11px secondary; “today” tick 14px bold primary (when in range). */
     const xAxisRichAdaptive = mode === 'adaptive' && currentSeriesVisible;
-    const xAxisReserve = computeXAxisVerticalReservePx({
-      tickLabelGapPx: tickLabelGapPx,
-      edgeLineHeight: X_AXIS_RICH_EDGE_METRICS.lineHeight,
-      todayLineHeight: X_AXIS_RICH_TODAY_METRICS.lineHeight,
-      descenderBufferPx: X_AXIS_DESCENDER_BUFFER_PX,
-      adaptiveRich: xAxisRichAdaptive,
-      todayInRange: todaySlotIndex >= 0
-    });
-    const gridBottomPx = xAxisReserve.gridBottomPx;
-    this.lastXAxisLabelMinHeightExtraPx = xAxisReserve.minHeightExtraPx;
-    this.lastGridBottomPx = gridBottomPx;
+
 
     const xAxisAxisLabel = xAxisRichAdaptive
       ? {
@@ -664,7 +653,7 @@ export class EChartsRenderer {
             }
             return `{edge|${escapeEchartsRichAxisPiece(text)}}`;
           },
-          margin: tickLabelGapPx,
+          margin: AXIS_TICK_LABEL_GAP_PX,
           rotate: 0,
           hideOverlap: false,
           alignMinLabel: 'left' as const,
@@ -683,7 +672,7 @@ export class EChartsRenderer {
       : {
           color: theme.primaryText,
           formatter: (value: number) => formatXAxisLabel(value),
-          margin: tickLabelGapPx,
+          margin: AXIS_TICK_LABEL_GAP_PX,
           rotate: 0,
           hideOverlap: true,
           alignMinLabel: 'left' as const,
@@ -971,15 +960,16 @@ export class EChartsRenderer {
 
     const option: EChartsOption = {
       animation: false,
-      // Explicit grid bounds to avoid ECharts default large paddings.
-      // `containLabel: true` keeps axis labels inside the grid area.
+      // Explicit grid bounds — `containLabel: false` so each side means the exact pixel distance
+      // from the chart canvas edge to the axis line. Labels hang outside the plot area into the
+      // reserved space. GRID_BOTTOM_PX is always the full two-line budget so chart height is
+      // stable regardless of whether "today" is in range. GRID_LEFT_PX accommodates Y-axis labels.
       grid: {
-        containLabel: true,
-        // Give the X-axis edge labels some breathing room on responsive layouts.
-        left: tickLabelGapPx,
-        right: tickLabelGapPx,
+        containLabel: false,
+        left: GRID_LEFT_PX,
+        right: AXIS_TICK_LABEL_GAP_PX,
         top: GRID_TOP_FALLBACK_PX,
-        bottom: gridBottomPx
+        bottom: GRID_BOTTOM_PX
       },
       legend: {
         show: rendererConfig.showLegend === true,
@@ -1125,7 +1115,7 @@ export class EChartsRenderer {
             }
             return formatted;
           },
-          margin: tickLabelGapPx,
+          margin: AXIS_TICK_LABEL_GAP_PX,
           // Ensures the margin translates to spacing on the right side.
           align: 'right'
         }
